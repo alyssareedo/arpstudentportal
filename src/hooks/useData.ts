@@ -1,0 +1,122 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+export type Level = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+
+export interface Profile {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  level: Level;
+  goals: string;
+  notes: string;
+  joined_at: string;
+}
+
+export interface Lesson {
+  id: string;
+  student_id: string;
+  lesson_date: string;
+  lesson_time: string;
+  topic: string;
+  zoom_link: string | null;
+  teams_link: string | null;
+  homework: string | null;
+  notes: string | null;
+  attendance: "present" | "absent" | "late" | "scheduled";
+  completed: boolean;
+}
+
+export interface Score {
+  id: string;
+  student_id: string;
+  year: number;
+  month: string;
+  speaking: number;
+  grammar: number;
+  listening: number | null;
+  writing: number | null;
+}
+
+export interface Homework {
+  id: string;
+  student_id: string;
+  lesson_id: string | null;
+  title: string;
+  description: string | null;
+  assigned_at: string;
+  due_at: string | null;
+  completed: boolean;
+}
+
+export function useStudents() {
+  const [students, setStudents] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    // get student role ids
+    const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "student");
+    const ids = (roles ?? []).map((r) => r.user_id);
+    if (ids.length === 0) {
+      setStudents([]);
+      setLoading(false);
+      return;
+    }
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .in("id", ids)
+      .order("full_name");
+    setStudents((data as Profile[]) ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+  return { students, loading, reload: load };
+}
+
+export function useStudent(id: string | undefined) {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [scores, setScores] = useState<Score[]>([]);
+  const [homework, setHomework] = useState<Homework[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    const [{ data: p }, { data: l }, { data: s }, { data: h }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
+      supabase.from("lessons").select("*").eq("student_id", id).order("lesson_date", { ascending: false }),
+      supabase.from("scores").select("*").eq("student_id", id).order("year").order("month"),
+      supabase.from("homework").select("*").eq("student_id", id).order("assigned_at", { ascending: false }),
+    ]);
+    setProfile(p as Profile | null);
+    setLessons((l as Lesson[]) ?? []);
+    setScores((s as Score[]) ?? []);
+    setHomework((h as Homework[]) ?? []);
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => { load(); }, [load]);
+  return { profile, lessons, scores, homework, loading, reload: load };
+}
+
+export function useAllLessons() {
+  const [lessons, setLessons] = useState<(Lesson & { profiles: Pick<Profile, "id" | "full_name" | "avatar_url" | "level"> })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("lessons")
+      .select("*, profiles!inner(id, full_name, avatar_url, level)")
+      .order("lesson_date", { ascending: false });
+    setLessons((data as any) ?? []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  return { lessons, loading, reload: load };
+}

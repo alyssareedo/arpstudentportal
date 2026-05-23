@@ -14,16 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      homework: {
+        Row: {
+          assigned_at: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_at: string | null
+          id: string
+          lesson_id: string | null
+          student_id: string
+          title: string
+        }
+        Insert: {
+          assigned_at?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          student_id: string
+          title: string
+        }
+        Update: {
+          assigned_at?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          student_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          attendance: Database["public"]["Enums"]["attendance_status"]
+          completed: boolean
+          created_at: string
+          homework: string | null
+          id: string
+          lesson_date: string
+          lesson_time: string
+          notes: string | null
+          student_id: string
+          teams_link: string | null
+          topic: string
+          zoom_link: string | null
+        }
+        Insert: {
+          attendance?: Database["public"]["Enums"]["attendance_status"]
+          completed?: boolean
+          created_at?: string
+          homework?: string | null
+          id?: string
+          lesson_date: string
+          lesson_time?: string
+          notes?: string | null
+          student_id: string
+          teams_link?: string | null
+          topic?: string
+          zoom_link?: string | null
+        }
+        Update: {
+          attendance?: Database["public"]["Enums"]["attendance_status"]
+          completed?: boolean
+          created_at?: string
+          homework?: string | null
+          id?: string
+          lesson_date?: string
+          lesson_time?: string
+          notes?: string | null
+          student_id?: string
+          teams_link?: string | null
+          topic?: string
+          zoom_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          goals: string | null
+          id: string
+          joined_at: string
+          level: Database["public"]["Enums"]["cefr_level"] | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          goals?: string | null
+          id: string
+          joined_at?: string
+          level?: Database["public"]["Enums"]["cefr_level"] | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          goals?: string | null
+          id?: string
+          joined_at?: string
+          level?: Database["public"]["Enums"]["cefr_level"] | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      scores: {
+        Row: {
+          created_at: string
+          grammar: number
+          id: string
+          listening: number | null
+          month: string
+          speaking: number
+          student_id: string
+          writing: number | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          grammar?: number
+          id?: string
+          listening?: number | null
+          month: string
+          speaking?: number
+          student_id: string
+          writing?: number | null
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          grammar?: number
+          id?: string
+          listening?: number | null
+          month?: string
+          speaking?: number
+          student_id?: string
+          writing?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scores_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
+      attendance_status: "present" | "absent" | "late" | "scheduled"
+      cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +371,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+      attendance_status: ["present", "absent", "late", "scheduled"],
+      cefr_level: ["A1", "A2", "B1", "B2", "C1", "C2"],
+    },
   },
 } as const

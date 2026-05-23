@@ -1,28 +1,16 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Users,
-  CalendarDays,
-  FileBarChart,
-  Settings,
-  GraduationCap,
-  LogOut,
+  LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
+  GraduationCap, LogOut, UserCircle,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
-const items = [
+const adminItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Students", url: "/students", icon: Users },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
@@ -30,11 +18,17 @@ const items = [
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
+const studentItems = [
+  { title: "My profile", url: "/my-profile", icon: UserCircle },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
+  const { role, signOut } = useAuth();
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/");
+  const items = role === "admin" ? adminItems : studentItems;
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -45,24 +39,20 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold tracking-tight">LinguaDesk</span>
-              <span className="text-xs text-muted-foreground">ESL Studio</span>
+              <span className="text-sm font-bold tracking-tight">ARP Speak English</span>
+              <span className="text-xs text-muted-foreground">With Me</span>
             </div>
           )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>{role === "admin" ? "Workspace" : "Menu"}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
                     <NavLink to={item.url} className="flex items-center gap-3">
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -77,11 +67,9 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Sign out">
-              <NavLink to="/" className="flex items-center gap-3 text-muted-foreground">
-                <LogOut className="h-4 w-4" />
-                {!collapsed && <span>Sign out</span>}
-              </NavLink>
+            <SidebarMenuButton onClick={signOut} tooltip="Sign out">
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span>Sign out</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

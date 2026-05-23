@@ -24,8 +24,8 @@ export default function Settings() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2"><Label>Full name</Label><Input defaultValue="Alex Rivera" /></div>
             <div className="grid gap-2"><Label>Email</Label><Input defaultValue="teacher@linguadesk.com" /></div>
-            <div className="grid gap-2"><Label>School</Label><Input defaultValue="LinguaDesk Academy" /></div>
-            <div className="grid gap-2"><Label>Timezone</Label><Input defaultValue="GMT+1 (Madrid)" /></div>
+            <div className="grid gap-2"><Label>School</Label><Input defaultValue="ARP Speak English With Me" /></div>
+            <div className="grid gap-2"><Label>Timezone</Label><Input defaultValue="GMT+7 (Bangkok)" /></div>
           </div>
         </CardContent>
       </Card>

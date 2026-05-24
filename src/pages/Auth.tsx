@@ -88,6 +88,20 @@ export default function Auth() {
                   <Button type="submit" disabled={busy} className="group w-full gradient-primary text-primary-foreground shadow-glow">
                     Sign in <ArrowRight className="ml-1 h-4 w-4" />
                   </Button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email) return toast.error("Enter your email first");
+                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                        redirectTo: `${window.location.origin}/reset-password`,
+                      });
+                      if (error) toast.error(error.message);
+                      else toast.success("Reset email sent — check your inbox");
+                    }}
+                    className="block w-full text-center text-xs text-muted-foreground hover:text-primary"
+                  >
+                    Forgot password?
+                  </button>
                 </form>
               </TabsContent>
 

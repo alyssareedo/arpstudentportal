@@ -14,6 +14,7 @@ import Lessons from "./pages/Lessons";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
+import ResetPassword from "./pages/ResetPassword";
 import { ProtectedRoute, RoleRedirect } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<RoleRedirect />} />
           <Route path="/index" element={<Index />} />
 

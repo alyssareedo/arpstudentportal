@@ -8,6 +8,8 @@ import { useAllLessons } from "@/hooks/useData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { EditLessonDialog } from "./StudentDetail";
+import { useAuth } from "@/hooks/useAuth";
 
 function attendanceBadge(status: string) {
   switch (status) {
@@ -20,6 +22,8 @@ function attendanceBadge(status: string) {
 
 export default function Lessons() {
   const { lessons, loading, reload } = useAllLessons();
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const upcoming = lessons.filter((l) => l.attendance === "scheduled");
   const past = lessons.filter((l) => l.attendance !== "scheduled");
 
@@ -77,6 +81,7 @@ export default function Lessons() {
                       </SelectContent>
                     </Select>
                     {attendanceBadge(l.attendance)}
+                    {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}
                   </div>
                 </CardContent>
               </Card>

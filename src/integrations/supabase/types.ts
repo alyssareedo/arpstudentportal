@@ -124,12 +124,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          course_start_date: string | null
           created_at: string
           email: string
           full_name: string
+          gender: string | null
           goals: string | null
           id: string
           joined_at: string
+          lessons_purchased: number | null
           level: Database["public"]["Enums"]["cefr_level"] | null
           notes: string | null
           phone: string | null
@@ -137,12 +140,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          course_start_date?: string | null
           created_at?: string
           email: string
           full_name: string
+          gender?: string | null
           goals?: string | null
           id: string
           joined_at?: string
+          lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
           notes?: string | null
           phone?: string | null
@@ -150,12 +156,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          course_start_date?: string | null
           created_at?: string
           email?: string
           full_name?: string
+          gender?: string | null
           goals?: string | null
           id?: string
           joined_at?: string
+          lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
           notes?: string | null
           phone?: string | null

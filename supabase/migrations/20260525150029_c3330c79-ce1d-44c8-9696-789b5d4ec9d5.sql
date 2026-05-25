@@ -1,0 +1,4 @@
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS gender TEXT,
+  ADD COLUMN IF NOT EXISTS course_start_date DATE,
+  ADD COLUMN IF NOT EXISTS lessons_purchased INTEGER DEFAULT 0;

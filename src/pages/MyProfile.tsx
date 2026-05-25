@@ -15,6 +15,8 @@ import { toast } from "sonner";
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
   const { profile, lessons, scores, homework, loading, reload } = useStudent(user?.id);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   if (authLoading || loading) return <p className="text-center text-muted-foreground">Loading…</p>;
   if (!user) return <Navigate to="/auth" replace />;

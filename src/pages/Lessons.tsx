@@ -81,7 +81,7 @@ export default function Lessons() {
                       </SelectContent>
                     </Select>
                     {attendanceBadge(l.attendance)}
-                  </div>
+                    {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}
                 </CardContent>
               </Card>
             ))}

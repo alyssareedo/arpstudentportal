@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
-  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save,
+  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2,
 } from "lucide-react";
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useStudent } from "@/hooks/useData";
+import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,6 +31,9 @@ export default function StudentDetail() {
   const [notes, setNotes] = useState("");
   const [goals, setGoals] = useState("");
   const [level, setLevel] = useState("A1");
+  const [gender, setGender] = useState("unspecified");
+  const [courseStart, setCourseStart] = useState("");
+  const [lessonsPurchased, setLessonsPurchased] = useState("0");
   const [initialized, setInitialized] = useState(false);
 
   if (loading) return <p className="text-center text-muted-foreground">Loading…</p>;
@@ -45,15 +48,25 @@ export default function StudentDetail() {
     setNotes(profile.notes || "");
     setGoals(profile.goals || "");
     setLevel(profile.level);
+    setGender(profile.gender || "unspecified");
+    setCourseStart(profile.course_start_date || "");
+    setLessonsPurchased(String(profile.lessons_purchased ?? 0));
     setInitialized(true);
   }
 
   const latest = scores[scores.length - 1];
   const attended = lessons.filter((l) => l.attendance !== "scheduled");
   const presentRate = attended.length ? Math.round((attended.filter((l) => l.attendance === "present").length / attended.length) * 100) : 100;
+  const lessonsUsed = lessons.filter((l) => l.attendance === "present" || l.attendance === "late").length;
+  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsUsed);
 
   const saveProfile = async () => {
-    const { error } = await supabase.from("profiles").update({ notes, goals, level: level as any }).eq("id", profile.id);
+    const { error } = await supabase.from("profiles").update({
+      notes, goals, level: level as any,
+      gender: gender === "unspecified" ? null : gender,
+      course_start_date: courseStart || null,
+      lessons_purchased: parseInt(lessonsPurchased) || 0,
+    }).eq("id", profile.id);
     if (error) return toast.error(error.message);
     toast.success("Profile saved");
     reload();
@@ -79,11 +92,13 @@ export default function StudentDetail() {
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-2xl font-bold tracking-tight">{profile.full_name}</h2>
                 <Badge variant="secondary" className="rounded-full">{profile.level}</Badge>
+                {profile.gender && <Badge variant="outline" className="rounded-full capitalize">{profile.gender}</Badge>}
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {profile.email}</span>
                 {profile.phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {profile.phone}</span>}
                 <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Joined {profile.joined_at}</span>
+                {profile.course_start_date && <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Course started {profile.course_start_date}</span>}
               </div>
             </div>
           </div>
@@ -101,7 +116,7 @@ export default function StudentDetail() {
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
           { label: "Attendance", value: `${presentRate}%`, color: "text-success" },
-          { label: "Lessons", value: lessons.length, color: "text-foreground" },
+          { label: "Lessons left", value: `${lessonsRemaining}/${profile.lessons_purchased ?? 0}`, color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60 shadow-elegant">
             <CardContent className="p-5">
@@ -162,7 +177,10 @@ export default function StudentDetail() {
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="font-medium">{l.topic}</p>
-                        <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
+                          {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}
+                        </div>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{l.lesson_date} · {l.lesson_time}</p>
                       {l.homework && <p className="mt-2 text-sm"><span className="font-medium">Homework: </span>{l.homework}</p>}
@@ -198,12 +216,35 @@ export default function StudentDetail() {
           <TabsContent value="edit">
             <Card className="border-border/60 shadow-elegant">
               <CardContent className="space-y-4 p-6">
-                <div className="grid gap-2">
-                  <Label>Level</Label>
-                  <Select value={level} onValueChange={setLevel}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{["A1","A2","B1","B2","C1","C2"].map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                  </Select>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Level</Label>
+                    <Select value={level} onValueChange={setLevel}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{["A1","A2","B1","B2","C1","C2"].map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Gender</Label>
+                    <Select value={gender} onValueChange={setGender}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unspecified">Unspecified</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="non-binary">Non-binary</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Course start date</Label>
+                    <Input type="date" value={courseStart} onChange={(e) => setCourseStart(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Total lessons purchased</Label>
+                    <Input type="number" min="0" value={lessonsPurchased} onChange={(e) => setLessonsPurchased(e.target.value)} />
+                  </div>
                 </div>
                 <div className="grid gap-2"><Label>Goals</Label><Textarea rows={2} value={goals} onChange={(e) => setGoals(e.target.value)} /></div>
                 <div className="grid gap-2"><Label>Teacher notes</Label><Textarea rows={6} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
@@ -289,6 +330,84 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
           <div className="grid gap-2"><Label>Notes</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <DialogFooter><Button onClick={save} className="gradient-primary text-primary-foreground">Save</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    lesson_date: lesson.lesson_date,
+    lesson_time: lesson.lesson_time?.slice(0, 5) ?? "10:00",
+    topic: lesson.topic,
+    zoom_link: lesson.zoom_link ?? "",
+    homework: lesson.homework ?? "",
+    notes: lesson.notes ?? "",
+    attendance: lesson.attendance,
+  });
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    const { error } = await supabase.from("lessons").update({
+      lesson_date: form.lesson_date,
+      lesson_time: form.lesson_time,
+      topic: form.topic,
+      zoom_link: form.zoom_link || null,
+      homework: form.homework || null,
+      notes: form.notes || null,
+      attendance: form.attendance as any,
+      completed: form.attendance !== "scheduled",
+    }).eq("id", lesson.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Lesson updated");
+    setOpen(false); onSaved();
+  };
+
+  const remove = async () => {
+    if (!confirm("Delete this lesson? This cannot be undone.")) return;
+    setBusy(true);
+    const { error } = await supabase.from("lessons").delete().eq("id", lesson.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Lesson deleted");
+    setOpen(false); onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-7 w-7"><Pencil className="h-3.5 w-3.5" /></Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader><DialogTitle>Edit lesson</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2"><Label>Date</Label><Input type="date" value={form.lesson_date} onChange={(e) => setForm({ ...form, lesson_date: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Time</Label><Input type="time" value={form.lesson_time} onChange={(e) => setForm({ ...form, lesson_time: e.target.value })} /></div>
+          </div>
+          <div className="grid gap-2"><Label>Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
+          <div className="grid gap-2"><Label>Attendance</Label>
+            <Select value={form.attendance} onValueChange={(v) => setForm({ ...form, attendance: v as any })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="present">Present</SelectItem>
+                <SelectItem value="absent">Absent</SelectItem>
+                <SelectItem value="late">Late</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
+          <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
+          <div className="grid gap-2"><Label>Notes</Label><Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+        </div>
+        <DialogFooter className="flex-row justify-between sm:justify-between">
+          <Button variant="destructive" onClick={remove} disabled={busy}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+          <Button onClick={save} disabled={busy} className="gradient-primary text-primary-foreground"><Save className="mr-1 h-4 w-4" /> Save</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

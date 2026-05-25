@@ -22,6 +22,8 @@ function attendanceBadge(status: string) {
 
 export default function Lessons() {
   const { lessons, loading, reload } = useAllLessons();
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const upcoming = lessons.filter((l) => l.attendance === "scheduled");
   const past = lessons.filter((l) => l.attendance !== "scheduled");
 

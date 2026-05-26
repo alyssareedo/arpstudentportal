@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  GraduationCap, LogOut, UserCircle,
+  LogOut, UserCircle,
 } from "lucide-react";
+import logo from "@/assets/logo.png";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -34,13 +35,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl gradient-primary shadow-glow">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-glow">
+            <img src={logo} alt="ARP Speak English With Me" className="h-full w-full object-contain" />
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold tracking-tight">ARP Speak English</span>
-              <span className="text-xs text-muted-foreground">With Me</span>
+              <span className="text-sm font-bold tracking-tight text-sidebar-foreground">ARP Speak English</span>
+              <span className="text-xs text-sidebar-foreground/70">With Me</span>
             </div>
           )}
         </div>

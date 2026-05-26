@@ -5,6 +5,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/assets/logo.png";
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -27,6 +28,7 @@ export default function AppLayout() {
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md md:px-6">
             <SidebarTrigger />
+            <img src={logo} alt="ARP" className="h-9 w-auto md:hidden" />
             <h1 className="text-lg font-semibold tracking-tight md:text-xl">{title}</h1>
             <div className="ml-auto flex items-center gap-2">
               <Button variant="ghost" size="icon" className="rounded-full">

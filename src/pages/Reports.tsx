@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStudents, useStudent } from "@/hooks/useData";
+import logo from "@/assets/logo.png";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -67,10 +68,11 @@ export default function Reports() {
       </Card>
 
       <Card className="border-border/60 shadow-elevated print:shadow-none">
-        <CardHeader className="border-b">
+        <CardHeader className="border-b bg-gradient-to-r from-secondary/60 to-background">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-14 w-14"><AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} /><AvatarFallback>{profile.full_name[0]}</AvatarFallback></Avatar>
+            <div className="flex items-center gap-4">
+              <img src={logo} alt="ARP Speak English With Me" className="h-16 w-auto" />
+              <Avatar className="h-14 w-14 ring-2 ring-primary/20"><AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} /><AvatarFallback>{profile.full_name[0]}</AvatarFallback></Avatar>
               <div>
                 <CardTitle className="text-xl">{profile.full_name}</CardTitle>
                 <p className="text-sm text-muted-foreground">{month} progress report · Level {profile.level}</p>

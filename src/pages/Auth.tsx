@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Mail, Lock, ArrowRight } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,13 +51,11 @@ export default function Auth() {
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2">
         <div className="hidden lg:block">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl gradient-primary shadow-glow">
-            <GraduationCap className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="ARP Speak English With Me" className="h-44 w-auto drop-shadow-xl" />
           <h1 className="mt-6 text-5xl font-bold leading-tight tracking-tight">
-            ARP Speak English <br />
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              With Me
+            Speak English <br />
+            <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
+              with confidence
             </span>
           </h1>
           <p className="mt-4 max-w-md text-lg text-muted-foreground">
@@ -67,9 +66,7 @@ export default function Auth() {
         <Card className="border-border/60 shadow-elevated">
           <CardContent className="p-8">
             <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src={logo} alt="ARP Speak English With Me" className="h-12 w-auto" />
               <span className="text-lg font-bold">ARP Speak English With Me</span>
             </div>
 

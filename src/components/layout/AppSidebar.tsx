@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -13,6 +13,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 const adminItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Bookings", url: "/bookings", icon: Inbox },
+  { title: "Availability", url: "/availability", icon: CalendarClock },
   { title: "Students", url: "/students", icon: Users },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Reports", url: "/reports", icon: FileBarChart },
@@ -20,6 +23,8 @@ const adminItems = [
 ];
 
 const studentItems = [
+  { title: "Book a lesson", url: "/book", icon: CalendarPlus },
+  { title: "My schedule", url: "/schedule", icon: CalendarRange },
   { title: "My profile", url: "/my-profile", icon: UserCircle },
 ];
 

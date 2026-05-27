@@ -16,6 +16,10 @@ import Settings from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
 import ResetPassword from "./pages/ResetPassword";
 import { ProtectedRoute, RoleRedirect } from "./components/ProtectedRoute";
+import Availability from "./pages/Availability";
+import Bookings from "./pages/Bookings";
+import BookLesson from "./pages/BookLesson";
+import Schedule from "./pages/Schedule";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,8 @@ const App = () => (
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/my-profile" element={<MyProfile />} />
+              <Route path="/book" element={<BookLesson />} />
+              <Route path="/schedule" element={<Schedule />} />
             </Route>
           </Route>
 
@@ -44,6 +50,8 @@ const App = () => (
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/lessons" element={<Lessons />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/availability" element={<Availability />} />
+              <Route path="/bookings" element={<Bookings />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

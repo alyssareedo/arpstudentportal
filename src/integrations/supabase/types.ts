@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_slots: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          teacher_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          teacher_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          teacher_id?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          admin_notes: string | null
+          booking_date: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          duration_minutes: number
+          id: string
+          lesson_id: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          student_id: string
+          student_message: string | null
+          teacher_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          booking_date: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          duration_minutes?: number
+          id?: string
+          lesson_id?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          student_id: string
+          student_message?: string | null
+          teacher_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          booking_date?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          duration_minutes?: number
+          id?: string
+          lesson_id?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          student_id?: string
+          student_message?: string | null
+          teacher_id?: string | null
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           assigned_at: string
@@ -79,6 +157,7 @@ export type Database = {
           lesson_time: string
           notes: string | null
           student_id: string
+          teacher_id: string | null
           teams_link: string | null
           topic: string
           zoom_link: string | null
@@ -93,6 +172,7 @@ export type Database = {
           lesson_time?: string
           notes?: string | null
           student_id: string
+          teacher_id?: string | null
           teams_link?: string | null
           topic?: string
           zoom_link?: string | null
@@ -107,6 +187,7 @@ export type Database = {
           lesson_time?: string
           notes?: string | null
           student_id?: string
+          teacher_id?: string | null
           teams_link?: string | null
           topic?: string
           zoom_link?: string | null
@@ -253,6 +334,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "student" | "teacher"
       attendance_status: "present" | "absent" | "late" | "scheduled"
+      booking_status: "pending" | "approved" | "declined" | "cancelled"
       cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
     }
     CompositeTypes: {
@@ -383,6 +465,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "student", "teacher"],
       attendance_status: ["present", "absent", "late", "scheduled"],
+      booking_status: ["pending", "approved", "declined", "cancelled"],
       cefr_level: ["A1", "A2", "B1", "B2", "C1", "C2"],
     },
   },

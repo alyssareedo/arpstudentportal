@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -25,6 +25,7 @@ const adminItems = [
 const studentItems = [
   { title: "Book a lesson", url: "/book", icon: CalendarPlus },
   { title: "My schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Free CEFR test", url: "/cefr-test", icon: GraduationCap },
   { title: "My profile", url: "/my-profile", icon: UserCircle },
 ];
 

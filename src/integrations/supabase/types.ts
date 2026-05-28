@@ -92,6 +92,87 @@ export type Database = {
         }
         Relationships: []
       }
+      cefr_assessments: {
+        Row: {
+          age: number | null
+          answers: Json | null
+          cefr_level: string | null
+          course_interest: string | null
+          created_at: string
+          filled_by: string | null
+          full_name: string
+          goal_level: string | null
+          id: string
+          learner_type: string | null
+          line_id: string | null
+          main_goal: string | null
+          phone: string
+          score_grammar: number | null
+          score_listening: number | null
+          score_reading: number | null
+          score_vocabulary: number | null
+          self_level: string | null
+          speech_confidence: number | null
+          total_questions: number | null
+          total_score: number | null
+          urgency: string | null
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          age?: number | null
+          answers?: Json | null
+          cefr_level?: string | null
+          course_interest?: string | null
+          created_at?: string
+          filled_by?: string | null
+          full_name: string
+          goal_level?: string | null
+          id?: string
+          learner_type?: string | null
+          line_id?: string | null
+          main_goal?: string | null
+          phone: string
+          score_grammar?: number | null
+          score_listening?: number | null
+          score_reading?: number | null
+          score_vocabulary?: number | null
+          self_level?: string | null
+          speech_confidence?: number | null
+          total_questions?: number | null
+          total_score?: number | null
+          urgency?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          age?: number | null
+          answers?: Json | null
+          cefr_level?: string | null
+          course_interest?: string | null
+          created_at?: string
+          filled_by?: string | null
+          full_name?: string
+          goal_level?: string | null
+          id?: string
+          learner_type?: string | null
+          line_id?: string | null
+          main_goal?: string | null
+          phone?: string
+          score_grammar?: number | null
+          score_listening?: number | null
+          score_reading?: number | null
+          score_vocabulary?: number | null
+          self_level?: string | null
+          speech_confidence?: number | null
+          total_questions?: number | null
+          total_score?: number | null
+          urgency?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           assigned_at: string

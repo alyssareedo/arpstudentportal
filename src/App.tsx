@@ -20,6 +20,7 @@ import Availability from "./pages/Availability";
 import Bookings from "./pages/Bookings";
 import BookLesson from "./pages/BookLesson";
 import Schedule from "./pages/Schedule";
+import CefrTest from "./pages/CefrTest";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/cefr-test" element={<CefrTest />} />
           <Route path="/" element={<RoleRedirect />} />
           <Route path="/index" element={<Index />} />
 

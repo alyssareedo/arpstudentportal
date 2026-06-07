@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_comments: {
+        Row: {
+          assessment_id: string
+          assessment_type: string
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          assessment_id: string
+          assessment_type?: string
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          assessment_id?: string
+          assessment_type?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       availability_slots: {
         Row: {
           created_at: string
@@ -378,6 +405,159 @@ export type Database = {
           },
         ]
       }
+      toeic_assessment_answers: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          section: Database["public"]["Enums"]["toeic_section"]
+          selected_answer: string | null
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          section: Database["public"]["Enums"]["toeic_section"]
+          selected_answer?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          section?: Database["public"]["Enums"]["toeic_section"]
+          selected_answer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "toeic_assessment_answers_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "toeic_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "toeic_assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "toeic_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      toeic_assessments: {
+        Row: {
+          cefr_level: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          recommendations: string | null
+          score_business: number
+          score_grammar: number
+          score_listening: number
+          score_reading: number
+          score_vocabulary: number
+          started_at: string
+          strengths: Json | null
+          student_id: string
+          toeic_score: number
+          total_business: number
+          total_correct: number
+          total_grammar: number
+          total_listening: number
+          total_questions: number
+          total_reading: number
+          total_vocabulary: number
+          weaknesses: Json | null
+        }
+        Insert: {
+          cefr_level?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          recommendations?: string | null
+          score_business?: number
+          score_grammar?: number
+          score_listening?: number
+          score_reading?: number
+          score_vocabulary?: number
+          started_at?: string
+          strengths?: Json | null
+          student_id: string
+          toeic_score?: number
+          total_business?: number
+          total_correct?: number
+          total_grammar?: number
+          total_listening?: number
+          total_questions?: number
+          total_reading?: number
+          total_vocabulary?: number
+          weaknesses?: Json | null
+        }
+        Update: {
+          cefr_level?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          recommendations?: string | null
+          score_business?: number
+          score_grammar?: number
+          score_listening?: number
+          score_reading?: number
+          score_vocabulary?: number
+          started_at?: string
+          strengths?: Json | null
+          student_id?: string
+          toeic_score?: number
+          total_business?: number
+          total_correct?: number
+          total_grammar?: number
+          total_listening?: number
+          total_questions?: number
+          total_reading?: number
+          total_vocabulary?: number
+          weaknesses?: Json | null
+        }
+        Relationships: []
+      }
+      toeic_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          difficulty: Database["public"]["Enums"]["toeic_difficulty"]
+          explanation: string | null
+          id: string
+          options: Json
+          prompt: string
+          section: Database["public"]["Enums"]["toeic_section"]
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["toeic_difficulty"]
+          explanation?: string | null
+          id?: string
+          options: Json
+          prompt: string
+          section: Database["public"]["Enums"]["toeic_section"]
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          difficulty?: Database["public"]["Enums"]["toeic_difficulty"]
+          explanation?: string | null
+          id?: string
+          options?: Json
+          prompt?: string
+          section?: Database["public"]["Enums"]["toeic_section"]
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -417,6 +597,13 @@ export type Database = {
       attendance_status: "present" | "absent" | "late" | "scheduled"
       booking_status: "pending" | "approved" | "declined" | "cancelled"
       cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+      toeic_difficulty: "beginner" | "intermediate" | "advanced"
+      toeic_section:
+        | "listening"
+        | "reading"
+        | "vocabulary"
+        | "grammar"
+        | "business_english"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -548,6 +735,14 @@ export const Constants = {
       attendance_status: ["present", "absent", "late", "scheduled"],
       booking_status: ["pending", "approved", "declined", "cancelled"],
       cefr_level: ["A1", "A2", "B1", "B2", "C1", "C2"],
+      toeic_difficulty: ["beginner", "intermediate", "advanced"],
+      toeic_section: [
+        "listening",
+        "reading",
+        "vocabulary",
+        "grammar",
+        "business_english",
+      ],
     },
   },
 } as const

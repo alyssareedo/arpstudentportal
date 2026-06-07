@@ -21,6 +21,10 @@ import Bookings from "./pages/Bookings";
 import BookLesson from "./pages/BookLesson";
 import Schedule from "./pages/Schedule";
 import CefrTest from "./pages/CefrTest";
+import Assessments from "./pages/Assessments";
+import ToeicTest from "./pages/ToeicTest";
+import ToeicResult from "./pages/ToeicResult";
+import AdminAssessments from "./pages/AdminAssessments";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +46,9 @@ const App = () => (
               <Route path="/my-profile" element={<MyProfile />} />
               <Route path="/book" element={<BookLesson />} />
               <Route path="/schedule" element={<Schedule />} />
+              <Route path="/assessments" element={<Assessments />} />
+              <Route path="/assessments/toeic" element={<ToeicTest />} />
+              <Route path="/assessments/toeic/:id" element={<ToeicResult />} />
             </Route>
           </Route>
 
@@ -54,6 +61,7 @@ const App = () => (
               <Route path="/reports" element={<Reports />} />
               <Route path="/availability" element={<Availability />} />
               <Route path="/bookings" element={<Bookings />} />
+              <Route path="/admin/assessments" element={<AdminAssessments />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

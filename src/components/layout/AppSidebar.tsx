@@ -20,6 +20,7 @@ const adminItems = [
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Assessments", url: "/admin/assessments", icon: Award },
+  { title: "Take TOEIC test", url: "/assessments/toeic", icon: GraduationCap },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

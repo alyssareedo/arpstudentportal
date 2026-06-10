@@ -200,6 +200,47 @@ export type Database = {
         }
         Relationships: []
       }
+      course_packages: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          lessons_count: number
+          notes: string | null
+          start_date: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          lessons_count: number
+          notes?: string | null
+          start_date?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          lessons_count?: number
+          notes?: string | null
+          start_date?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_packages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homework: {
         Row: {
           assigned_at: string

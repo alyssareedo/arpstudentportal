@@ -364,7 +364,6 @@ export type Database = {
           joined_at: string
           lessons_purchased: number | null
           level: Database["public"]["Enums"]["cefr_level"] | null
-          notes: string | null
           phone: string | null
           updated_at: string
         }
@@ -380,7 +379,6 @@ export type Database = {
           joined_at?: string
           lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
-          notes?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -396,7 +394,6 @@ export type Database = {
           joined_at?: string
           lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
-          notes?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -445,6 +442,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_notes: {
+        Row: {
+          notes: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          notes?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          notes?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       toeic_assessment_answers: {
         Row: {
@@ -625,12 +640,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
+      get_toeic_questions: {
+        Args: never
+        Returns: {
+          difficulty: Database["public"]["Enums"]["toeic_difficulty"]
+          id: string
+          options: Json
+          prompt: string
+          section: Database["public"]["Enums"]["toeic_section"]
+        }[]
       }
     }
     Enums: {

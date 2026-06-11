@@ -25,7 +25,7 @@ export default function Students() {
   const [level, setLevel] = useState<"all" | Level>("all");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ full_name: "", email: "", password: "ARPspeak2026!", level: "A1", goals: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", level: "A1", goals: "" });
 
   const filtered = useMemo(() => students.filter((s) =>
     (level === "all" || s.level === level) &&
@@ -38,9 +38,15 @@ export default function Students() {
     const { data, error } = await supabase.functions.invoke("admin-create-student", { body: form });
     setBusy(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
-    toast.success(`Student created — password: ${form.password}`);
+    const link = (data as any)?.invite_link;
+    if (link) {
+      await navigator.clipboard.writeText(link).catch(() => {});
+      toast.success("Student created — invite link copied to clipboard");
+    } else {
+      toast.success("Student created — they can use 'Forgot password' to set their password");
+    }
     setOpen(false);
-    setForm({ full_name: "", email: "", password: "ARPspeak2026!", level: "A1", goals: "" });
+    setForm({ full_name: "", email: "", level: "A1", goals: "" });
     reload();
   };
 
@@ -51,14 +57,15 @@ export default function Students() {
     if (error) return toast.error(error.message);
     const list = (data as any)?.students ?? [];
     const created = list.filter((s: any) => s.status === "created").length;
-    toast.success(`Seeded ${created} new students (default password: ARPspeak2026!)`);
+    toast.success(`Seeded ${created} new students. Send each one a password-reset email to set their password.`);
     reload();
   };
 
-  const copyCreds = (email: string) => {
-    navigator.clipboard.writeText(`${email} / ARPspeak2026!`);
-    toast.success("Login copied");
+  const copyEmail = (email: string) => {
+    navigator.clipboard.writeText(email);
+    toast.success("Email copied");
   };
+
 
   return (
     <div className="space-y-6">
@@ -90,7 +97,7 @@ export default function Students() {
                 <div className="grid gap-3">
                   <div className="grid gap-2"><Label>Full name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
                   <div className="grid gap-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                  <div className="grid gap-2"><Label>Temporary password</Label><Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+                  <p className="text-xs text-muted-foreground">A secure password is generated automatically. The student receives a password-reset email to set their own password on first login.</p>
                   <div className="grid gap-2"><Label>Level</Label>
                     <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -130,9 +137,10 @@ export default function Students() {
                     {s.goals && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{s.goals}</p>}
                   </div>
                 </Link>
-                <Button variant="ghost" size="sm" className="mt-3 w-full text-xs" onClick={() => copyCreds(s.email)}>
-                  <Copy className="mr-1 h-3 w-3" /> Copy login
+                <Button variant="ghost" size="sm" className="mt-3 w-full text-xs" onClick={() => copyEmail(s.email)}>
+                  <Copy className="mr-1 h-3 w-3" /> Copy email
                 </Button>
+
               </CardContent>
             </Card>
           ))}

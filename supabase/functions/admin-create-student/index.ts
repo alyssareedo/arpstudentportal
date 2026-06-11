@@ -5,6 +5,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function randomPassword(): string {
+  // 24-char base64url password from 18 random bytes
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -34,10 +42,14 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { full_name, email, password, level, goals, phone } = body ?? {};
-    if (!full_name || !email || !password) {
-      return new Response(JSON.stringify({ error: "full_name, email, password required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { full_name, email, level, goals, phone } = body ?? {};
+    if (!full_name || !email) {
+      return new Response(JSON.stringify({ error: "full_name and email required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // Always generate a strong server-side password. Never accept one from the client,
+    // and never return it in the response (don't log credentials).
+    const password = randomPassword();
 
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
@@ -49,7 +61,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: createErr?.message ?? "create failed" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Update profile fields (profile was auto-created via trigger; role defaults to student since admin exists)
     await admin.from("profiles").update({
       full_name,
       phone: phone ?? null,
@@ -57,7 +68,15 @@ Deno.serve(async (req) => {
       goals: goals ?? "",
     }).eq("id", created.user.id);
 
-    return new Response(JSON.stringify({ id: created.user.id, email, password }), {
+    // Generate a one-time invite/recovery link the admin can share out-of-band.
+    let invite_link: string | null = null;
+    const { data: linkData } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+    });
+    invite_link = linkData?.properties?.action_link ?? null;
+
+    return new Response(JSON.stringify({ id: created.user.id, email, invite_link }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

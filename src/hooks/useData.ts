@@ -83,6 +83,7 @@ export function useStudents() {
 
 export function useStudent(id: string | undefined) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [notes, setNotes] = useState<string>("");
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [scores, setScores] = useState<Score[]>([]);
   const [homework, setHomework] = useState<Homework[]>([]);
@@ -91,13 +92,15 @@ export function useStudent(id: string | undefined) {
   const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    const [{ data: p }, { data: l }, { data: s }, { data: h }] = await Promise.all([
+    const [{ data: p }, { data: l }, { data: s }, { data: h }, { data: n }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
       supabase.from("lessons").select("*").eq("student_id", id).order("lesson_date", { ascending: false }),
       supabase.from("scores").select("*").eq("student_id", id).order("year").order("month"),
       supabase.from("homework").select("*").eq("student_id", id).order("assigned_at", { ascending: false }),
+      supabase.from("student_notes").select("notes").eq("student_id", id).maybeSingle(),
     ]);
     setProfile(p as Profile | null);
+    setNotes((n as { notes: string } | null)?.notes ?? "");
     setLessons((l as Lesson[]) ?? []);
     setScores((s as Score[]) ?? []);
     setHomework((h as Homework[]) ?? []);
@@ -105,8 +108,9 @@ export function useStudent(id: string | undefined) {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
-  return { profile, lessons, scores, homework, loading, reload: load };
+  return { profile, notes, lessons, scores, homework, loading, reload: load };
 }
+
 
 export function useAllLessons() {
   const [lessons, setLessons] = useState<(Lesson & { profiles: Pick<Profile, "id" | "full_name" | "avatar_url" | "level"> })[]>([]);

@@ -54,14 +54,19 @@ const App = () => (
             </Route>
           </Route>
 
-          <Route element={<ProtectedRoute adminOnly />}>
+          <Route element={<ProtectedRoute roles={["admin", "teacher"]} />}>
             <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/students" element={<Students />} />
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/lessons" element={<Lessons />} />
-              <Route path="/reports" element={<Reports />} />
               <Route path="/availability" element={<Availability />} />
+            </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute adminOnly />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/admin/assessments" element={<AdminAssessments />} />
               <Route path="/renewals" element={<Renewals />} />

@@ -137,9 +137,10 @@ export default function Students() {
                     {s.goals && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{s.goals}</p>}
                   </div>
                 </Link>
-                <Button variant="ghost" size="sm" className="mt-3 w-full text-xs" onClick={() => copyCreds(s.email)}>
-                  <Copy className="mr-1 h-3 w-3" /> Copy login
+                <Button variant="ghost" size="sm" className="mt-3 w-full text-xs" onClick={() => copyEmail(s.email)}>
+                  <Copy className="mr-1 h-3 w-3" /> Copy email
                 </Button>
+
               </CardContent>
             </Card>
           ))}

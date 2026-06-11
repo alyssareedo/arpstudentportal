@@ -48,7 +48,7 @@ export function AppSidebar() {
   const { pathname } = useLocation();
   const { role, signOut } = useAuth();
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/");
-  const items = role === "admin" ? adminItems : studentItems;
+  const items = role === "admin" ? adminItems : role === "teacher" ? teacherItems : studentItems;
 
   return (
     <Sidebar collapsible="icon" className="border-r">

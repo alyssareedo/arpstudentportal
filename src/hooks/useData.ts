@@ -11,12 +11,12 @@ export interface Profile {
   avatar_url: string | null;
   level: Level;
   goals: string;
-  notes: string;
   joined_at: string;
   gender: string | null;
   course_start_date: string | null;
   lessons_purchased: number | null;
 }
+
 
 export interface Lesson {
   id: string;

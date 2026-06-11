@@ -13,5 +13,6 @@ export function RoleRedirect() {
   const { user, role, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  return <Navigate to={role === "admin" ? "/dashboard" : "/my-profile"} replace />;
+  const dest = role === "admin" ? "/dashboard" : role === "teacher" ? "/schedule" : "/my-profile";
+  return <Navigate to={dest} replace />;
 }

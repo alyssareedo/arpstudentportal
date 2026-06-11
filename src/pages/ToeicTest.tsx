@@ -13,10 +13,9 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import {
   SECTION_LABELS,
   type ToeicSection,
-  calculateToeic,
   pickQuestions,
-  type SectionScore,
 } from "@/lib/toeic-scoring";
+
 
 interface QuestionRow {
   id: string;

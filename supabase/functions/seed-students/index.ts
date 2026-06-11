@@ -23,6 +23,13 @@ const SEED = [
 const slug = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20) || "student";
 
+function randomPassword(): string {
+  const bytes = new Uint8Array(18);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -44,19 +51,20 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  const created: { name: string; email: string; password: string; status: string }[] = [];
+  // Never return passwords; each user gets a unique strong password generated server-side.
+  // Admin should send a password-reset email to let students set their own passwords.
+  const created: { name: string; email: string; status: string }[] = [];
 
   for (const name of SEED) {
     const email = `${slug(name)}@arpspeak.app`;
-    const password = "ARPspeak2026!";
 
-    // Skip if exists
     const { data: existing } = await admin.from("profiles").select("id").eq("email", email).maybeSingle();
     if (existing) {
-      created.push({ name, email, password, status: "exists" });
+      created.push({ name, email, status: "exists" });
       continue;
     }
 
+    const password = randomPassword();
     const { data: u, error } = await admin.auth.admin.createUser({
       email,
       password,
@@ -64,11 +72,11 @@ Deno.serve(async (req) => {
       user_metadata: { full_name: name },
     });
     if (error || !u.user) {
-      created.push({ name, email, password, status: `error: ${error?.message}` });
+      created.push({ name, email, status: `error: ${error?.message}` });
       continue;
     }
     await admin.from("profiles").update({ full_name: name }).eq("id", u.user.id);
-    created.push({ name, email, password, status: "created" });
+    created.push({ name, email, status: "created" });
   }
 
   return new Response(JSON.stringify({ students: created }), {

@@ -236,6 +236,13 @@ export type Database = {
             foreignKeyName: "course_packages_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "my_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_packages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -284,6 +291,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "my_profile"
             referencedColumns: ["id"]
           },
           {
@@ -346,6 +360,13 @@ export type Database = {
             foreignKeyName: "lessons_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "my_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -364,7 +385,6 @@ export type Database = {
           joined_at: string
           lessons_purchased: number | null
           level: Database["public"]["Enums"]["cefr_level"] | null
-          notes: string | null
           phone: string | null
           updated_at: string
         }
@@ -380,7 +400,6 @@ export type Database = {
           joined_at?: string
           lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
-          notes?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -396,7 +415,6 @@ export type Database = {
           joined_at?: string
           lessons_purchased?: number | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
-          notes?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -441,10 +459,35 @@ export type Database = {
             foreignKeyName: "scores_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
+            referencedRelation: "my_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scores_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_notes: {
+        Row: {
+          notes: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          notes?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          notes?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       toeic_assessment_answers: {
         Row: {
@@ -487,6 +530,13 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "toeic_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "toeic_assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "toeic_questions_public"
             referencedColumns: ["id"]
           },
         ]
@@ -622,16 +672,81 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      my_profile: {
+        Row: {
+          avatar_url: string | null
+          course_start_date: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          goals: string | null
+          id: string | null
+          joined_at: string | null
+          lessons_purchased: number | null
+          level: Database["public"]["Enums"]["cefr_level"] | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          course_start_date?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          goals?: string | null
+          id?: string | null
+          joined_at?: string | null
+          lessons_purchased?: number | null
+          level?: Database["public"]["Enums"]["cefr_level"] | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          course_start_date?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          goals?: string | null
+          id?: string | null
+          joined_at?: string | null
+          lessons_purchased?: number | null
+          level?: Database["public"]["Enums"]["cefr_level"] | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      toeic_questions_public: {
+        Row: {
+          difficulty: Database["public"]["Enums"]["toeic_difficulty"] | null
+          id: string | null
+          options: Json | null
+          prompt: string | null
+          section: Database["public"]["Enums"]["toeic_section"] | null
+        }
+        Insert: {
+          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+          section?: Database["public"]["Enums"]["toeic_section"] | null
+        }
+        Update: {
+          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
+          id?: string | null
+          options?: Json | null
+          prompt?: string | null
+          section?: Database["public"]["Enums"]["toeic_section"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "student" | "teacher"

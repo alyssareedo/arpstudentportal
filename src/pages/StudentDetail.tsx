@@ -27,7 +27,7 @@ export default function StudentDetail() {
   const { id = "" } = useParams();
   const { role } = useAuth();
   const isAdmin = role === "admin";
-  const { profile, lessons, scores, homework, loading, reload } = useStudent(id);
+  const { profile, notes: loadedNotes, lessons, scores, homework, loading, reload } = useStudent(id);
   const [notes, setNotes] = useState("");
   const [goals, setGoals] = useState("");
   const [level, setLevel] = useState("A1");
@@ -45,7 +45,7 @@ export default function StudentDetail() {
   );
 
   if (!initialized) {
-    setNotes(profile.notes || "");
+    setNotes(loadedNotes || "");
     setGoals(profile.goals || "");
     setLevel(profile.level);
     setGender(profile.gender || "unspecified");
@@ -61,16 +61,23 @@ export default function StudentDetail() {
   const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsUsed);
 
   const saveProfile = async () => {
-    const { error } = await supabase.from("profiles").update({
-      notes, goals, level: level as any,
+    const { error: pErr } = await supabase.from("profiles").update({
+      goals, level: level as any,
       gender: gender === "unspecified" ? null : gender,
       course_start_date: courseStart || null,
       lessons_purchased: parseInt(lessonsPurchased) || 0,
     }).eq("id", profile.id);
-    if (error) return toast.error(error.message);
+    if (pErr) return toast.error(pErr.message);
+    const { error: nErr } = await supabase.from("student_notes").upsert({
+      student_id: profile.id,
+      notes,
+      updated_at: new Date().toISOString(),
+    });
+    if (nErr) return toast.error(nErr.message);
     toast.success("Profile saved");
     reload();
   };
+
 
   const chartData = scores.map((s) => ({ month: s.month, speaking: s.speaking, grammar: s.grammar }));
 

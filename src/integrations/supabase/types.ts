@@ -236,13 +236,6 @@ export type Database = {
             foreignKeyName: "course_packages_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "my_profile"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "course_packages_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -291,13 +284,6 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "homework_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "my_profile"
             referencedColumns: ["id"]
           },
           {
@@ -356,13 +342,6 @@ export type Database = {
           zoom_link?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "lessons_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "my_profile"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "lessons_student_id_fkey"
             columns: ["student_id"]
@@ -459,13 +438,6 @@ export type Database = {
             foreignKeyName: "scores_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
-            referencedRelation: "my_profile"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scores_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -530,13 +502,6 @@ export type Database = {
             columns: ["question_id"]
             isOneToOne: false
             referencedRelation: "toeic_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "toeic_assessment_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "toeic_questions_public"
             referencedColumns: ["id"]
           },
         ]
@@ -672,81 +637,19 @@ export type Database = {
       }
     }
     Views: {
-      my_profile: {
-        Row: {
-          avatar_url: string | null
-          course_start_date: string | null
-          created_at: string | null
-          email: string | null
-          full_name: string | null
-          gender: string | null
-          goals: string | null
-          id: string | null
-          joined_at: string | null
-          lessons_purchased: number | null
-          level: Database["public"]["Enums"]["cefr_level"] | null
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          course_start_date?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          gender?: string | null
-          goals?: string | null
-          id?: string | null
-          joined_at?: string | null
-          lessons_purchased?: number | null
-          level?: Database["public"]["Enums"]["cefr_level"] | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          course_start_date?: string | null
-          created_at?: string | null
-          email?: string | null
-          full_name?: string | null
-          gender?: string | null
-          goals?: string | null
-          id?: string | null
-          joined_at?: string | null
-          lessons_purchased?: number | null
-          level?: Database["public"]["Enums"]["cefr_level"] | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      toeic_questions_public: {
-        Row: {
-          difficulty: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id: string | null
-          options: Json | null
-          prompt: string | null
-          section: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Insert: {
-          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id?: string | null
-          options?: Json | null
-          prompt?: string | null
-          section?: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Update: {
-          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id?: string | null
-          options?: Json | null
-          prompt?: string | null
-          section?: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_toeic_questions: {
+        Args: never
+        Returns: {
+          difficulty: Database["public"]["Enums"]["toeic_difficulty"]
+          id: string
+          options: Json
+          prompt: string
+          section: Database["public"]["Enums"]["toeic_section"]
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "student" | "teacher"

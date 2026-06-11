@@ -51,10 +51,8 @@ export default function ToeicTest() {
 
   async function start() {
     setStep("loading");
-    const { data, error } = await supabase
-      .from("toeic_questions")
-      .select("id, section, difficulty, prompt, options, correct_answer")
-      .limit(1000);
+    // Fetch sanitized questions via RPC. The answer key is never sent to the browser.
+    const { data, error } = await supabase.rpc("get_toeic_questions");
     if (error) {
       toast.error("Could not load questions");
       setStep("intro");
@@ -81,71 +79,21 @@ export default function ToeicTest() {
   async function submit() {
     if (!user) return;
     setStep("submitting");
-    const bySection: Record<ToeicSection, { correct: number; total: number }> = {
-      listening: { correct: 0, total: 0 },
-      reading: { correct: 0, total: 0 },
-      vocabulary: { correct: 0, total: 0 },
-      grammar: { correct: 0, total: 0 },
-      business_english: { correct: 0, total: 0 },
+    const payload = {
+      answers: questions.map((q) => ({
+        question_id: q.id,
+        selected_answer: answers[q.id] ?? null,
+      })),
     };
-    questions.forEach((q) => {
-      bySection[q.section].total += 1;
-      if (answers[q.id] === q.correct_answer) bySection[q.section].correct += 1;
-    });
-    const sections: SectionScore[] = (Object.keys(bySection) as ToeicSection[])
-      .filter((s) => bySection[s].total > 0)
-      .map((s) => ({
-        section: s,
-        correct: bySection[s].correct,
-        total: bySection[s].total,
-        percent: bySection[s].correct / bySection[s].total,
-      }));
-
-    const result = calculateToeic(sections);
-
-    const { data: inserted, error } = await supabase
-      .from("toeic_assessments")
-      .insert({
-        student_id: user.id,
-        completed_at: new Date().toISOString(),
-        score_listening: bySection.listening.correct,
-        score_reading: bySection.reading.correct,
-        score_vocabulary: bySection.vocabulary.correct,
-        score_grammar: bySection.grammar.correct,
-        score_business: bySection.business_english.correct,
-        total_listening: bySection.listening.total,
-        total_reading: bySection.reading.total,
-        total_vocabulary: bySection.vocabulary.total,
-        total_grammar: bySection.grammar.total,
-        total_business: bySection.business_english.total,
-        total_correct: result.totalCorrect,
-        total_questions: result.totalQuestions,
-        toeic_score: result.toeicScore,
-        cefr_level: result.cefr,
-        strengths: result.strengths,
-        weaknesses: result.weaknesses,
-        recommendations: result.recommendations,
-      })
-      .select("id")
-      .single();
-
-    if (error || !inserted) {
-      toast.error("Could not save your result");
+    const { data, error } = await supabase.functions.invoke("grade-toeic", { body: payload });
+    if (error || !(data as any)?.assessment_id) {
+      toast.error((data as any)?.error ?? error?.message ?? "Could not save your result");
       setStep("quiz");
       return;
     }
-
-    const answerRows = questions.map((q) => ({
-      assessment_id: inserted.id,
-      question_id: q.id,
-      section: q.section,
-      selected_answer: answers[q.id] ?? null,
-      is_correct: answers[q.id] === q.correct_answer,
-    }));
-    await supabase.from("toeic_assessment_answers").insert(answerRows);
-
-    navigate(`/assessments/toeic/${inserted.id}`);
+    navigate(`/assessments/toeic/${(data as any).assessment_id}`);
   }
+
 
   const answered = useMemo(
     () => questions.every((q) => answers[q.id] != null),

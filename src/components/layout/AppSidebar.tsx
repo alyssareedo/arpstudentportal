@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -17,11 +17,21 @@ const adminItems = [
   { title: "Bookings", url: "/bookings", icon: Inbox },
   { title: "Availability", url: "/availability", icon: CalendarClock },
   { title: "Students", url: "/students", icon: Users },
+  { title: "Teachers", url: "/teachers", icon: UserCog },
+  { title: "Renewals", url: "/renewals", icon: RefreshCcw },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Assessments", url: "/admin/assessments", icon: Award },
   { title: "Take TOEIC test", url: "/assessments/toeic", icon: GraduationCap },
   { title: "Settings", url: "/settings", icon: Settings },
+];
+
+const teacherItems = [
+  { title: "My Schedule", url: "/schedule", icon: CalendarRange },
+  { title: "My Students", url: "/students", icon: Users },
+  { title: "Lessons", url: "/lessons", icon: CalendarDays },
+  { title: "Availability", url: "/availability", icon: CalendarClock },
+  { title: "My Profile", url: "/my-profile", icon: UserCircle },
 ];
 
 const studentItems = [
@@ -38,7 +48,7 @@ export function AppSidebar() {
   const { pathname } = useLocation();
   const { role, signOut } = useAuth();
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/");
-  const items = role === "admin" ? adminItems : studentItems;
+  const items = role === "admin" ? adminItems : role === "teacher" ? teacherItems : studentItems;
 
   return (
     <Sidebar collapsible="icon" className="border-r">

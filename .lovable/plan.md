@@ -1,92 +1,90 @@
+# ARP Speak — Implementation Plan
 
-# Phase 1: TOEIC Placement Test
+This is a large scope. I'll deliver it in **5 phases** so each phase ships safely without breaking what's live. Please approve the plan, then I'll suggest we tackle phases one at a time (or all at once if you prefer).
 
-Building TOEIC end-to-end first. TOEFL and advanced features (Excel export, teacher study plans, comparison charts) come in later phases.
+---
 
-## What you'll get
+## Phase 0 — Audit (no code changes)
 
-- A full TOEIC Placement Test students can take from their dashboard
-- 5 sections: Listening, Reading, Vocabulary, Grammar, Business English (~100 questions total, randomized per attempt)
-- Auto-calculated TOEIC score (10–990) + CEFR equivalent (A1–C2)
-- Results saved to the student's profile with section-by-section breakdown
-- Printable PDF score report (strengths, weaknesses, recommendations)
-- Admin & teacher view of all past results with filters
-- New "Language Assessments" page for students (CEFR + TOEIC history with progress chart)
+Before any schema changes, I'll verify what already exists vs. what's new:
 
-## User flows
+- Existing tables in use: `profiles`, `user_roles` (admin/student/teacher enum already supports teacher), `lessons`, `homework`, `scores`, `bookings`, `availability_slots`, `course_packages`, `cefr_assessments`, `toeic_assessments`, `toeic_questions`, `toeic_assessment_answers`, `assessment_comments`, `student_notes`.
+- Existing edge functions: `admin-create-student`, `seed-students`, `seed-toeic-questions`, `grade-toeic`.
+- Existing pages already cover: CEFR test, TOEIC test + result, bookings, availability, schedule, students, lessons, reports, settings, profiles, admin assessments.
 
-**Student**
-1. Sidebar → "Language Assessments" → sees CEFR + TOEIC history + progress chart
-2. Clicks "Take TOEIC Placement Test" → randomized 100-question test with section progress bar
-3. Submits → instant result screen (TOEIC score, CEFR level, per-section bars, strengths/weaknesses, study recommendations)
-4. "Download PDF report" button
+**Gaps to fill** (the actual work):
+1. Teacher role UI + RLS (role exists; UI/policies don't fully use it)
+2. LINE integration (not present)
+3. Course renewal flow + history (packages exist; renewal UI doesn't)
+4. Demo data expansion (currently 12 students, need 20 + 2 teachers w/ rich history)
+5. TOEFL scaffolding (tables only, no UI)
+6. Exportable PDF/Excel reports (current reports are screen-only)
 
-**Teacher / Admin**
-1. Sidebar → "Assessments" → table of all TOEIC attempts
-2. Filters: date range, student, CEFR level, TOEIC score range
-3. Click row → full result + ability to add private comments/recommendations
-4. PDF export per result
+---
 
-## Technical details
+## Phase 1 — Teacher role + Renewals
 
-### Database (new migration)
+**Schema additions** (additive, no breaking changes):
+- `course_enrollments` table: student_id, package_id, lessons_total, lessons_used, starts_at, expires_at, status, purchased_at, amount_paid. Replaces ad-hoc `lessons_purchased` on profile (kept for backward compat).
+- `teacher_assignments` table: teacher_id, student_id, assigned_at.
+- RLS: teachers can SELECT students/lessons/homework/scores **only** where a matching `teacher_assignments` row exists. Uses a `has_teacher_access(student_id)` security-definer function to avoid recursion.
 
-- `toeic_questions` — question bank
-  - `section` (listening | reading | vocabulary | grammar | business_english)
-  - `difficulty` (beginner | intermediate | advanced)
-  - `prompt`, `options` (jsonb array), `correct_answer`, `explanation`
-- `toeic_assessments` — one row per attempt
-  - `student_id`, `started_at`, `completed_at`
-  - per-section scores + `total_correct`, `total_questions`
-  - `toeic_score` (10–990), `cefr_level`
-  - `strengths` / `weaknesses` (jsonb), `recommendations` (text)
-- `toeic_assessment_answers` — per-question record (for review)
-- `assessment_comments` — teacher/admin notes attached to an assessment (designed to also serve future TOEFL)
+**UI**:
+- New admin page `/renewals` — list enrollments per student, "Add new package" dialog, history table.
+- Teacher dashboard: filtered Students/Schedule/Homework pages (reuse existing pages, gated by role).
+- Sidebar: third role variant for teacher.
 
-RLS: students read/insert own; teachers read all; admins full access. Standard GRANTs included.
+---
 
-### Question bank seeding
+## Phase 2 — LINE integration
 
-A one-time edge function `seed-toeic-questions` calls Lovable AI (Gemini) to generate ~100 TOEIC-style questions across the 5 sections and 3 difficulty tiers, then inserts them. Admin-only trigger button in Settings. Re-runnable to top up.
+**Schema**:
+- Add `line_user_id`, `line_notifications_enabled` to `profiles`.
+- New `line_settings` table (single row, admin-only) for channel access token + admin group ID.
+- New `notification_log` table for delivery audit.
 
-### Scoring logic (`src/lib/toeic-scoring.ts`)
-- Listening + Reading each contribute up to 495 (TOEIC official range) using a simple linear map from % correct
-- Vocabulary / Grammar / Business English roll into a composite that nudges Listening/Reading bands
-- CEFR mapping: <225 A1, 225–549 A2, 550–784 B1, 785–944 B2, 945–989 C1, 990 C2
-- Strengths = top 2 sections by %, weaknesses = bottom 2; recommendations generated from weak sections
+**Edge functions** (new):
+- `line-send` — generic push (uses Messaging API, secret `LINE_CHANNEL_ACCESS_TOKEN`).
+- Hooks invoked from existing flows: CEFR submit, TOEIC submit (`grade-toeic`), booking create, homework feedback, course expiry cron.
 
-### Pages & routes
-- `/assessments` — student hub (CEFR + TOEIC history, line chart of TOEIC score over time)
-- `/assessments/toeic` — test-taking flow (intake check → randomized questions → result)
-- `/assessments/toeic/:id` — single result view + PDF download
-- `/admin/assessments` — admin/teacher list with filters
-- `/admin/assessments/:id` — admin/teacher detail view + comments
+**Admin Settings page**: section to paste/update LINE tokens (stored as Lovable Cloud secrets via the secrets tool, not in DB).
 
-### PDF report
-- Use `jspdf` + `jspdf-autotable` (lightweight, browser-side, no extra service)
-- Includes logo, student info, total + section scores, CEFR badge, strengths/weaknesses, recommendations
+I'll need you to add **`LINE_CHANNEL_ACCESS_TOKEN`** and **`LINE_ADMIN_USER_ID`** (or group ID) when we get to this phase.
 
-### Sidebar updates
-- Student: add "Language Assessments" (replaces standalone CEFR link, which becomes a card inside)
-- Admin: add "Assessments" between Reports and Settings
+---
 
-### Files added
-- `supabase/migrations/<timestamp>_toeic.sql`
-- `supabase/functions/seed-toeic-questions/index.ts`
-- `src/lib/toeic-scoring.ts`
-- `src/lib/toeic-pdf.ts`
-- `src/pages/Assessments.tsx`
-- `src/pages/ToeicTest.tsx`
-- `src/pages/ToeicResult.tsx`
-- `src/pages/AdminAssessments.tsx`
-- `src/pages/AdminAssessmentDetail.tsx`
+## Phase 3 — Demo data + TOEFL scaffolding
 
-### Files edited
-- `src/App.tsx` (routes)
-- `src/components/layout/AppSidebar.tsx` (nav items)
+- Extend `seed-students` to create 20 students with varied levels, plus 2 teachers, assignments, sample bookings, lessons, homework, scores, CEFR + TOEIC attempts.
+- New tables: `toefl_assessments`, `toefl_questions`, `toefl_assessment_answers` mirroring TOEIC shape with sections (listening/reading/writing/speaking). RLS + grants. No UI yet — flag in admin settings says "coming soon".
 
-## Not in this phase (will follow)
-- TOEFL test, writing AI grading
-- Excel export
-- Teacher-authored study plans (separate workflow)
-- Cross-test comparison charts
+---
+
+## Phase 4 — Exportable reports
+
+- Reuse existing `src/lib/toeic-pdf.ts` pattern (jsPDF) for: student transcript PDF, admin revenue PDF.
+- Add Excel export via `xlsx` (already common) for tabular reports.
+- New buttons on Reports + StudentDetail.
+
+---
+
+## Phase 5 — QA pass
+
+- Run Supabase linter, security scan.
+- Verify existing RLS unaffected.
+- Smoke-test: admin login, student login, teacher login, CEFR submit, TOEIC submit, booking, renewal, LINE delivery (mock if no token yet).
+
+---
+
+## Technical notes
+
+- All new tables follow the GRANT → RLS → POLICY pattern; teacher access via `has_teacher_access(uuid)` security-definer function (avoids recursion like existing `has_role`).
+- No destructive migrations. `profiles.lessons_purchased` kept; new `course_enrollments` is source of truth going forward.
+- LINE tokens stored as edge-function secrets, never in client code or DB plaintext.
+- Cron for expiry alerts uses `pg_cron` + `pg_net` calling a new `check-expiries` edge function.
+
+---
+
+## Question before I start
+
+Do you want me to **execute all 5 phases now in one go** (large, ~1 hour of build, several migrations for you to approve), or **ship phase by phase** so you can review each? I recommend phase-by-phase for a production app.

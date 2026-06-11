@@ -200,6 +200,75 @@ export type Database = {
         }
         Relationships: []
       }
+      course_enrollments: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          expires_at: string | null
+          id: string
+          lessons_total: number
+          lessons_used: number
+          notes: string | null
+          package_id: string | null
+          package_name: string
+          starts_at: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          lessons_total?: number
+          lessons_used?: number
+          notes?: string | null
+          package_id?: string | null
+          package_name: string
+          starts_at?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          lessons_total?: number
+          lessons_used?: number
+          notes?: string | null
+          package_id?: string | null
+          package_name?: string
+          starts_at?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "course_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_packages: {
         Row: {
           created_at: string
@@ -461,6 +530,35 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_assignments: {
+        Row: {
+          assigned_at: string
+          id: string
+          student_id: string
+          teacher_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          student_id: string
+          teacher_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          student_id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       toeic_assessment_answers: {
         Row: {
           assessment_id: string
@@ -650,6 +748,7 @@ export type Database = {
           section: Database["public"]["Enums"]["toeic_section"]
         }[]
       }
+      has_teacher_access: { Args: { _student_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "student" | "teacher"

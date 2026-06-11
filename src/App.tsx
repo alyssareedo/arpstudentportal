@@ -25,6 +25,8 @@ import Assessments from "./pages/Assessments";
 import ToeicTest from "./pages/ToeicTest";
 import ToeicResult from "./pages/ToeicResult";
 import AdminAssessments from "./pages/AdminAssessments";
+import Renewals from "./pages/Renewals";
+import Teachers from "./pages/Teachers";
 
 const queryClient = new QueryClient();
 
@@ -52,16 +54,23 @@ const App = () => (
             </Route>
           </Route>
 
-          <Route element={<ProtectedRoute adminOnly />}>
+          <Route element={<ProtectedRoute roles={["admin", "teacher"]} />}>
             <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/students" element={<Students />} />
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/lessons" element={<Lessons />} />
-              <Route path="/reports" element={<Reports />} />
               <Route path="/availability" element={<Availability />} />
+            </Route>
+          </Route>
+
+          <Route element={<ProtectedRoute adminOnly />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/admin/assessments" element={<AdminAssessments />} />
+              <Route path="/renewals" element={<Renewals />} />
+              <Route path="/teachers" element={<Teachers />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

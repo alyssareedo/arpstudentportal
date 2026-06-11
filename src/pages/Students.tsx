@@ -25,7 +25,7 @@ export default function Students() {
   const [level, setLevel] = useState<"all" | Level>("all");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ full_name: "", email: "", password: "ARPspeak2026!", level: "A1", goals: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", level: "A1", goals: "" });
 
   const filtered = useMemo(() => students.filter((s) =>
     (level === "all" || s.level === level) &&
@@ -38,9 +38,15 @@ export default function Students() {
     const { data, error } = await supabase.functions.invoke("admin-create-student", { body: form });
     setBusy(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
-    toast.success(`Student created — password: ${form.password}`);
+    const link = (data as any)?.invite_link;
+    if (link) {
+      await navigator.clipboard.writeText(link).catch(() => {});
+      toast.success("Student created — invite link copied to clipboard");
+    } else {
+      toast.success("Student created — they can use 'Forgot password' to set their password");
+    }
     setOpen(false);
-    setForm({ full_name: "", email: "", password: "ARPspeak2026!", level: "A1", goals: "" });
+    setForm({ full_name: "", email: "", level: "A1", goals: "" });
     reload();
   };
 
@@ -51,14 +57,15 @@ export default function Students() {
     if (error) return toast.error(error.message);
     const list = (data as any)?.students ?? [];
     const created = list.filter((s: any) => s.status === "created").length;
-    toast.success(`Seeded ${created} new students (default password: ARPspeak2026!)`);
+    toast.success(`Seeded ${created} new students. Send each one a password-reset email to set their password.`);
     reload();
   };
 
-  const copyCreds = (email: string) => {
-    navigator.clipboard.writeText(`${email} / ARPspeak2026!`);
-    toast.success("Login copied");
+  const copyEmail = (email: string) => {
+    navigator.clipboard.writeText(email);
+    toast.success("Email copied");
   };
+
 
   return (
     <div className="space-y-6">

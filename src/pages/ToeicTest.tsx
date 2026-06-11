@@ -24,8 +24,8 @@ interface QuestionRow {
   difficulty: string;
   prompt: string;
   options: string[];
-  correct_answer: string;
 }
+
 
 const PER_SECTION: Partial<Record<ToeicSection, number>> = {
   listening: 20,

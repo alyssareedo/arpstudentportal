@@ -97,7 +97,7 @@ export default function Students() {
                 <div className="grid gap-3">
                   <div className="grid gap-2"><Label>Full name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
                   <div className="grid gap-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                  <div className="grid gap-2"><Label>Temporary password</Label><Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+                  <p className="text-xs text-muted-foreground">A secure password is generated automatically. The student receives a password-reset email to set their own password on first login.</p>
                   <div className="grid gap-2"><Label>Level</Label>
                     <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -76,10 +77,34 @@ export default function Renewals() {
       notes: form.notes || null,
     };
     const { error } = await (supabase.from as any)("course_enrollments").insert(payload);
+    if (error) { setSaving(false); return toast.error(error.message); }
+
+    // Mark earlier active enrollments for this student as completed so the
+    // most-recent renewal becomes the active one. Historical rows stay intact.
+    await (supabase.from as any)("course_enrollments")
+      .update({ status: "completed" })
+      .eq("student_id", selectedStudent)
+      .eq("status", "active")
+      .lt("starts_at", form.starts_at);
+
+    // Reset visible lesson balance to the new package size, and remember the
+    // reset date so lesson usage is counted from this package forward only.
+    await supabase.from("profiles").update({
+      lessons_purchased: Number(form.lessons_total) || 0,
+      lessons_reset_at: form.starts_at,
+      course_start_date: form.starts_at,
+    } as any).eq("id", selectedStudent);
+
     setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Package added");
+    toast.success("Package added — balance reset, history preserved");
     setOpen(false);
+    load();
+  }
+
+  async function deleteEnrollment(id: string) {
+    const { error } = await (supabase.from as any)("course_enrollments").delete().eq("id", id);
+    if (error) throw error;
+    toast.success("Enrollment deleted");
     load();
   }
 
@@ -92,7 +117,7 @@ export default function Renewals() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Course Renewals</h1>
-          <p className="text-sm text-muted-foreground">Add new lesson packages to existing students without creating a new account.</p>
+          <p className="text-sm text-muted-foreground">Adding a new package resets the student's available lesson balance. All previous lessons, tests, homework and history stay in place.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -101,7 +126,7 @@ export default function Renewals() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Renew or add a package</DialogTitle>
-              <DialogDescription>The student keeps all history (lessons, tests, homework). Lesson balance adds on top.</DialogDescription>
+              <DialogDescription>Available lessons reset to the new package count. History is preserved.</DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div className="grid gap-2">
@@ -134,7 +159,7 @@ export default function Renewals() {
       <Card>
         <CardHeader>
           <CardTitle>All enrollments</CardTitle>
-          <CardDescription>Most recent first. Renewals are stacked so previous history stays intact.</CardDescription>
+          <CardDescription>Most recent first. Older enrollments are kept as history.</CardDescription>
         </CardHeader>
         <CardContent>
           {enrollments.length === 0 ? (
@@ -150,6 +175,7 @@ export default function Renewals() {
                   <TableHead>Starts</TableHead>
                   <TableHead>Expires</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,6 +194,13 @@ export default function Renewals() {
                         <Badge variant={expired ? "destructive" : remaining === 0 ? "secondary" : "default"}>
                           {expired ? "expired" : remaining === 0 ? "used up" : e.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <ConfirmDeleteButton
+                          onConfirm={() => deleteEnrollment(e.id)}
+                          title="Delete this enrollment?"
+                          description="The enrollment record is removed. Lessons, tests and homework are kept."
+                        />
                       </TableCell>
                     </TableRow>
                   );

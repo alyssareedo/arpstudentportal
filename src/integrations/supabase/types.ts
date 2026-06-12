@@ -432,8 +432,10 @@ export type Database = {
           id: string
           joined_at: string
           lessons_purchased: number | null
+          lessons_reset_at: string | null
           level: Database["public"]["Enums"]["cefr_level"] | null
           phone: string | null
+          placeholder_email: boolean
           updated_at: string
         }
         Insert: {
@@ -447,8 +449,10 @@ export type Database = {
           id: string
           joined_at?: string
           lessons_purchased?: number | null
+          lessons_reset_at?: string | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
           phone?: string | null
+          placeholder_email?: boolean
           updated_at?: string
         }
         Update: {
@@ -462,8 +466,10 @@ export type Database = {
           id?: string
           joined_at?: string
           lessons_purchased?: number | null
+          lessons_reset_at?: string | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
           phone?: string | null
+          placeholder_email?: boolean
           updated_at?: string
         }
         Relationships: []

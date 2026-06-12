@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
-  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2,
+  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2, KeyRound, UserCog, Copy,
 } from "lucide-react";
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,8 +58,12 @@ export default function StudentDetail() {
   const latest = scores[scores.length - 1];
   const attended = lessons.filter((l) => l.attendance !== "scheduled");
   const presentRate = attended.length ? Math.round((attended.filter((l) => l.attendance === "present").length / attended.length) * 100) : 100;
-  const lessonsUsed = lessons.filter((l) => l.attendance === "present" || l.attendance === "late").length;
-  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsUsed);
+  const resetAt = profile.lessons_reset_at ?? profile.course_start_date ?? null;
+  const lessonsCountedFromReset = lessons.filter((l) =>
+    (l.attendance === "present" || l.attendance === "late") &&
+    (!resetAt || l.lesson_date >= resetAt)
+  ).length;
+  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsCountedFromReset);
 
   const saveProfile = async () => {
     const { error: pErr } = await supabase.from("profiles").update({
@@ -110,7 +115,9 @@ export default function StudentDetail() {
             </div>
           </div>
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <AccountActionsDialog studentId={profile.id} email={profile.email} fullName={profile.full_name} phone={profile.phone} isPlaceholder={!!profile.placeholder_email} onSaved={reload} />
+              <ResetPasswordButton studentId={profile.id} />
               <AddScoreDialog studentId={profile.id} onSaved={reload} />
               <AddLessonDialog studentId={profile.id} onSaved={reload} />
             </div>
@@ -212,6 +219,17 @@ export default function StudentDetail() {
                     {h.description && <p className="text-xs text-muted-foreground">{h.description}</p>}
                     <p className="text-xs text-muted-foreground">Assigned {h.assigned_at}{h.due_at ? ` · Due ${h.due_at}` : ""}</p>
                   </div>
+                  {isAdmin && (
+                    <ConfirmDeleteButton
+                      title="Delete this homework?"
+                      description="The homework entry is permanently removed for this student."
+                      onConfirm={async () => {
+                        const { error } = await supabase.from("homework").delete().eq("id", h.id);
+                        if (error) throw error;
+                        toast.success("Homework deleted"); reload();
+                      }}
+                    />
+                  )}
                 </div>
               ))}
               {homework.length === 0 && <p className="text-center text-sm text-muted-foreground">No homework yet.</p>}
@@ -413,6 +431,89 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
         </div>
         <DialogFooter className="flex-row justify-between sm:justify-between">
           <Button variant="destructive" onClick={remove} disabled={busy}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>
+          <Button onClick={save} disabled={busy} className="gradient-primary text-primary-foreground"><Save className="mr-1 h-4 w-4" /> Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordButton({ studentId }: { studentId: string }) {
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    if (!confirm("Generate a new temporary password for this student? Their current password will stop working.")) return;
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-reset-password", { body: { student_id: studentId } });
+    setBusy(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
+    const pwd = (data as any)?.password as string;
+    await navigator.clipboard.writeText(pwd).catch(() => {});
+    toast.success(`Temporary password copied: ${pwd}`);
+  };
+  return (
+    <Button variant="outline" onClick={run} disabled={busy}>
+      <KeyRound className="mr-1 h-4 w-4" /> Reset password
+    </Button>
+  );
+}
+
+function AccountActionsDialog({ studentId, email, fullName, phone, isPlaceholder, onSaved }: {
+  studentId: string; email: string; fullName: string; phone: string | null; isPlaceholder: boolean; onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ email, full_name: fullName, phone: phone ?? "" });
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-update-student", {
+      body: {
+        student_id: studentId,
+        email: form.email !== email ? form.email : undefined,
+        full_name: form.full_name !== fullName ? form.full_name : undefined,
+        phone: form.phone !== (phone ?? "") ? form.phone : undefined,
+      },
+    });
+    setBusy(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
+    toast.success("Account updated — student history preserved");
+    setOpen(false);
+    onSaved();
+  };
+
+  const copy = () => { navigator.clipboard.writeText(email); toast.success("Email copied"); };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><UserCog className="mr-1 h-4 w-4" /> Account</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Account details</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          {isPlaceholder && (
+            <p className="rounded-md bg-secondary/60 p-2 text-xs text-muted-foreground">
+              This account uses a placeholder email. Replace it with a real address any time — all lessons, tests and homework will stay.
+            </p>
+          )}
+          <div className="grid gap-2">
+            <Label>Full name</Label>
+            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <Label>Email</Label>
+            <div className="flex gap-2">
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Button variant="outline" size="icon" onClick={copy}><Copy className="h-4 w-4" /></Button>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Phone</Label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button onClick={save} disabled={busy} className="gradient-primary text-primary-foreground"><Save className="mr-1 h-4 w-4" /> Save</Button>
         </DialogFooter>
       </DialogContent>

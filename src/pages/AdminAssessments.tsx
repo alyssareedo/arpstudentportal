@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles, Loader2 } from "lucide-react";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 interface Row {
   id: string;
@@ -169,23 +170,36 @@ export default function AdminAssessments() {
           ) : (
             <div className="space-y-2">
               {filtered.map((r) => (
-                <Link
-                  key={r.id}
-                  to={`/assessments/toeic/${r.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-accent"
-                >
-                  <div>
-                    <div className="font-medium">{r.student_name ?? "—"}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {r.student_email ?? ""} ·{" "}
-                      {new Date(r.completed_at ?? r.created_at).toLocaleString()}
+                <div key={r.id} className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-accent">
+                  <Link to={`/assessments/toeic/${r.id}`} className="flex flex-1 items-center justify-between">
+                    <div>
+                      <div className="font-medium">{r.student_name ?? "—"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {r.student_email ?? ""} ·{" "}
+                        {new Date(r.completed_at ?? r.created_at).toLocaleString()}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold">{r.toeic_score}</span>
-                    <Badge>{r.cefr_level ?? "—"}</Badge>
-                  </div>
-                </Link>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold">{r.toeic_score}</span>
+                      <Badge>{r.cefr_level ?? "—"}</Badge>
+                    </div>
+                  </Link>
+                  {role === "admin" && (
+                    <div className="ml-2">
+                      <ConfirmDeleteButton
+                        title="Delete this TOEIC result?"
+                        description="The test attempt and its answers are permanently removed for this student."
+                        onConfirm={async () => {
+                          await supabase.from("toeic_assessment_answers").delete().eq("assessment_id", r.id);
+                          const { error } = await supabase.from("toeic_assessments").delete().eq("id", r.id);
+                          if (error) throw error;
+                          toast.success("Result deleted");
+                          load();
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}

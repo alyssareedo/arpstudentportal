@@ -6,11 +6,17 @@ const corsHeaders = {
 };
 
 function randomPassword(): string {
-  // 24-char base64url password from 18 random bytes
-  const bytes = new Uint8Array(18);
+  const bytes = new Uint8Array(9);
   crypto.getRandomValues(bytes);
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const base = btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "x").replace(/\//g, "y").replace(/=+$/, "");
+  return `Arp${base}!9`;
+}
+
+function placeholderEmail(full_name: string): string {
+  const slug = (full_name || "student").toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20) || "student";
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `${slug}${rand}@arpspeak.local`;
 }
 
 Deno.serve(async (req) => {
@@ -42,13 +48,19 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { full_name, email, level, goals, phone } = body ?? {};
-    if (!full_name || !email) {
-      return new Response(JSON.stringify({ error: "full_name and email required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { full_name, level, goals, phone, use_placeholder_email } = body ?? {};
+    let { email } = body ?? {};
+
+    if (!full_name) {
+      return new Response(JSON.stringify({ error: "full_name required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Always generate a strong server-side password. Never accept one from the client,
-    // and never return it in the response (don't log credentials).
+    let isPlaceholder = false;
+    if (!email || use_placeholder_email) {
+      email = placeholderEmail(full_name);
+      isPlaceholder = true;
+    }
+
     const password = randomPassword();
 
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
@@ -66,17 +78,30 @@ Deno.serve(async (req) => {
       phone: phone ?? null,
       level: level ?? "A1",
       goals: goals ?? "",
+      placeholder_email: isPlaceholder,
     }).eq("id", created.user.id);
 
-    // Generate a one-time invite/recovery link the admin can share out-of-band.
+    // For real emails, generate a recovery link admin can share. For placeholder
+    // emails (no inbox), return the temp password so the admin can hand it over.
     let invite_link: string | null = null;
-    const { data: linkData } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-    });
-    invite_link = linkData?.properties?.action_link ?? null;
+    let temp_password: string | null = null;
+    if (isPlaceholder) {
+      temp_password = password;
+    } else {
+      const { data: linkData } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+      });
+      invite_link = linkData?.properties?.action_link ?? null;
+    }
 
-    return new Response(JSON.stringify({ id: created.user.id, email, invite_link }), {
+    return new Response(JSON.stringify({
+      id: created.user.id,
+      email,
+      placeholder_email: isPlaceholder,
+      invite_link,
+      temp_password,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

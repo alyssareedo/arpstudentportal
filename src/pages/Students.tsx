@@ -13,6 +13,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useStudents, Level } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,7 +26,7 @@ export default function Students() {
   const [level, setLevel] = useState<"all" | Level>("all");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ full_name: "", email: "", level: "A1", goals: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", level: "A1", goals: "", use_placeholder_email: false });
 
   const filtered = useMemo(() => students.filter((s) =>
     (level === "all" || s.level === level) &&
@@ -33,20 +34,26 @@ export default function Students() {
   ), [students, q, level]);
 
   const createStudent = async () => {
-    if (!form.full_name || !form.email) return toast.error("Name and email required");
+    if (!form.full_name) return toast.error("Name required");
+    if (!form.use_placeholder_email && !form.email) return toast.error("Enter an email or turn on 'No email — generate one'");
     setBusy(true);
     const { data, error } = await supabase.functions.invoke("admin-create-student", { body: form });
     setBusy(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
     const link = (data as any)?.invite_link;
-    if (link) {
+    const tempPwd = (data as any)?.temp_password;
+    const createdEmail = (data as any)?.email;
+    if (tempPwd) {
+      await navigator.clipboard.writeText(`${createdEmail} / ${tempPwd}`).catch(() => {});
+      toast.success(`Student created. Login copied: ${createdEmail} / ${tempPwd}`);
+    } else if (link) {
       await navigator.clipboard.writeText(link).catch(() => {});
       toast.success("Student created — invite link copied to clipboard");
     } else {
-      toast.success("Student created — they can use 'Forgot password' to set their password");
+      toast.success("Student created");
     }
     setOpen(false);
-    setForm({ full_name: "", email: "", level: "A1", goals: "" });
+    setForm({ full_name: "", email: "", level: "A1", goals: "", use_placeholder_email: false });
     reload();
   };
 
@@ -96,8 +103,17 @@ export default function Students() {
                 <DialogHeader><DialogTitle>Add new student</DialogTitle></DialogHeader>
                 <div className="grid gap-3">
                   <div className="grid gap-2"><Label>Full name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
-                  <div className="grid gap-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                  <p className="text-xs text-muted-foreground">A secure password is generated automatically. The student receives a password-reset email to set their own password on first login.</p>
+                  <div className="flex items-center justify-between rounded-md border border-border/60 p-2">
+                    <div>
+                      <Label className="text-sm">No email — generate one</Label>
+                      <p className="text-xs text-muted-foreground">For younger students or accounts the school manages. Creates something like <code>name1234@arpspeak.local</code>.</p>
+                    </div>
+                    <Switch checked={form.use_placeholder_email} onCheckedChange={(v) => setForm({ ...form, use_placeholder_email: v })} />
+                  </div>
+                  {!form.use_placeholder_email && (
+                    <div className="grid gap-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+                  )}
+                  <p className="text-xs text-muted-foreground">A secure password is generated automatically. For real emails the student gets a password-reset link; for placeholder accounts the temp password is copied to your clipboard.</p>
                   <div className="grid gap-2"><Label>Level</Label>
                     <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>

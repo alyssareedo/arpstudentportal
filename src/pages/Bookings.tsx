@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, XCircle, Clock, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 interface Booking {
   id: string;
@@ -91,6 +92,13 @@ export default function Bookings() {
     load();
   };
 
+  const remove = async (b: Booking) => {
+    const { error } = await supabase.from("bookings").delete().eq("id", b.id);
+    if (error) throw error;
+    toast.success("Booking deleted");
+    load();
+  };
+
   const groups = {
     pending: bookings.filter(b => b.status === "pending"),
     approved: bookings.filter(b => b.status === "approved"),
@@ -111,7 +119,7 @@ export default function Bookings() {
           <TabsContent key={key} value={key} className="space-y-3">
             {groups[key].length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">Nothing here.</p>}
             {groups[key].map(b => (
-              <BookingCard key={b.id} b={b} teachers={teachers} onApprove={approve} onDecline={decline} />
+              <BookingCard key={b.id} b={b} teachers={teachers} onApprove={approve} onDecline={decline} onDelete={remove} />
             ))}
           </TabsContent>
         ))}
@@ -129,11 +137,12 @@ function statusBadge(s: string) {
   }
 }
 
-function BookingCard({ b, teachers, onApprove, onDecline }: {
+function BookingCard({ b, teachers, onApprove, onDecline, onDelete }: {
   b: Booking;
   teachers: { id: string; full_name: string }[];
   onApprove: (b: Booking, tId: string, link: string, topic: string) => void;
   onDecline: (b: Booking) => void;
+  onDelete: (b: Booking) => Promise<void>;
 }) {
   const [teacherId, setTeacherId] = useState(b.teacher_id ?? "");
   const [link, setLink] = useState("");
@@ -147,6 +156,13 @@ function BookingCard({ b, teachers, onApprove, onDecline }: {
           <p className="font-semibold">{b.booking_date} · {b.start_time.slice(0,5)}</p>
           <Badge variant="outline" className="rounded-full">{b.duration_minutes} min</Badge>
           {statusBadge(b.status)}
+          <div className="ml-auto">
+            <ConfirmDeleteButton
+              onConfirm={() => onDelete(b)}
+              title="Delete this booking?"
+              description="The booking is permanently removed. Any linked lesson is kept — delete it separately from the Lessons page if needed."
+            />
+          </div>
         </div>
         <p className="text-sm"><span className="font-medium">Student:</span> {b.student_name ?? b.student_id.slice(0,8)}</p>
         {b.teacher_name && <p className="text-sm"><span className="font-medium">Teacher:</span> {b.teacher_name}</p>}

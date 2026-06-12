@@ -219,6 +219,17 @@ export default function StudentDetail() {
                     {h.description && <p className="text-xs text-muted-foreground">{h.description}</p>}
                     <p className="text-xs text-muted-foreground">Assigned {h.assigned_at}{h.due_at ? ` · Due ${h.due_at}` : ""}</p>
                   </div>
+                  {isAdmin && (
+                    <ConfirmDeleteButton
+                      title="Delete this homework?"
+                      description="The homework entry is permanently removed for this student."
+                      onConfirm={async () => {
+                        const { error } = await supabase.from("homework").delete().eq("id", h.id);
+                        if (error) throw error;
+                        toast.success("Homework deleted"); reload();
+                      }}
+                    />
+                  )}
                 </div>
               ))}
               {homework.length === 0 && <p className="text-center text-sm text-muted-foreground">No homework yet.</p>}

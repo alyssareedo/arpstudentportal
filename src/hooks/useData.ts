@@ -15,6 +15,8 @@ export interface Profile {
   gender: string | null;
   course_start_date: string | null;
   lessons_purchased: number | null;
+  lessons_reset_at: string | null;
+  placeholder_email: boolean | null;
 }
 
 

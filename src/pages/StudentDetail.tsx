@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
-  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2,
+  ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2, KeyRound, UserCog, Copy,
 } from "lucide-react";
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,8 +58,12 @@ export default function StudentDetail() {
   const latest = scores[scores.length - 1];
   const attended = lessons.filter((l) => l.attendance !== "scheduled");
   const presentRate = attended.length ? Math.round((attended.filter((l) => l.attendance === "present").length / attended.length) * 100) : 100;
-  const lessonsUsed = lessons.filter((l) => l.attendance === "present" || l.attendance === "late").length;
-  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsUsed);
+  const resetAt = profile.lessons_reset_at ?? profile.course_start_date ?? null;
+  const lessonsCountedFromReset = lessons.filter((l) =>
+    (l.attendance === "present" || l.attendance === "late") &&
+    (!resetAt || l.lesson_date >= resetAt)
+  ).length;
+  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsCountedFromReset);
 
   const saveProfile = async () => {
     const { error: pErr } = await supabase.from("profiles").update({

@@ -115,7 +115,9 @@ export default function StudentDetail() {
             </div>
           </div>
           {isAdmin && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <AccountActionsDialog studentId={profile.id} email={profile.email} fullName={profile.full_name} phone={profile.phone} isPlaceholder={!!profile.placeholder_email} onSaved={reload} />
+              <ResetPasswordButton studentId={profile.id} />
               <AddScoreDialog studentId={profile.id} onSaved={reload} />
               <AddLessonDialog studentId={profile.id} onSaved={reload} />
             </div>

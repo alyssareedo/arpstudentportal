@@ -437,3 +437,86 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     </Dialog>
   );
 }
+
+function ResetPasswordButton({ studentId }: { studentId: string }) {
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    if (!confirm("Generate a new temporary password for this student? Their current password will stop working.")) return;
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-reset-password", { body: { student_id: studentId } });
+    setBusy(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
+    const pwd = (data as any)?.password as string;
+    await navigator.clipboard.writeText(pwd).catch(() => {});
+    toast.success(`Temporary password copied: ${pwd}`);
+  };
+  return (
+    <Button variant="outline" onClick={run} disabled={busy}>
+      <KeyRound className="mr-1 h-4 w-4" /> Reset password
+    </Button>
+  );
+}
+
+function AccountActionsDialog({ studentId, email, fullName, phone, isPlaceholder, onSaved }: {
+  studentId: string; email: string; fullName: string; phone: string | null; isPlaceholder: boolean; onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ email, full_name: fullName, phone: phone ?? "" });
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-update-student", {
+      body: {
+        student_id: studentId,
+        email: form.email !== email ? form.email : undefined,
+        full_name: form.full_name !== fullName ? form.full_name : undefined,
+        phone: form.phone !== (phone ?? "") ? form.phone : undefined,
+      },
+    });
+    setBusy(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
+    toast.success("Account updated — student history preserved");
+    setOpen(false);
+    onSaved();
+  };
+
+  const copy = () => { navigator.clipboard.writeText(email); toast.success("Email copied"); };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline"><UserCog className="mr-1 h-4 w-4" /> Account</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Account details</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          {isPlaceholder && (
+            <p className="rounded-md bg-secondary/60 p-2 text-xs text-muted-foreground">
+              This account uses a placeholder email. Replace it with a real address any time — all lessons, tests and homework will stay.
+            </p>
+          )}
+          <div className="grid gap-2">
+            <Label>Full name</Label>
+            <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <Label>Email</Label>
+            <div className="flex gap-2">
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Button variant="outline" size="icon" onClick={copy}><Copy className="h-4 w-4" /></Button>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label>Phone</Label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={save} disabled={busy} className="gradient-primary text-primary-foreground"><Save className="mr-1 h-4 w-4" /> Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

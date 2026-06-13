@@ -2,14 +2,10 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, GraduationCap, Clock, Award, ArrowRight, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
@@ -95,7 +91,7 @@ const LEVEL_BANDS: { level: Level; min: number; name: string; description: strin
   { level: "C2", min: 28, name: "Proficient", description: "You understand and use the language almost as a native speaker." },
 ];
 
-type Step = "intake" | "quiz" | "result";
+type Step = "quiz" | "result";
 
 const initialIntake = {
   full_name: "", age: "", learner_type: "", filled_by: "", phone: "", line_id: "",
@@ -110,10 +106,6 @@ export default function CefrTest() {
   const [qIndex, setQIndex] = useState(0);
   const [result, setResult] = useState<{ level: Level; name: string; description: string; total: number; breakdown: Record<Category, { correct: number; total: number }> } | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  const setIntakeField = (k: keyof typeof intake, v: string) => setIntake((s) => ({ ...s, [k]: v }));
-
-  const intakeValid = true;
 
   const current = QUESTIONS[qIndex];
   const progress = ((qIndex + (answers[current?.id] !== undefined ? 1 : 0)) / QUESTIONS.length) * 100;
@@ -203,76 +195,6 @@ export default function CefrTest() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {step === "intake" && (
-          <>
-            <section className="text-center mb-10">
-              <Badge variant="secondary" className="mb-4">100% Free · Worth 500.-</Badge>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                Free CEFR English Level Test
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Discover your English level (A1–C2) in just 10–15 minutes. Get a personalised study plan delivered to LINE within 24 hours.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm">
-                <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> 30 questions</div>
-                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> 10–15 minutes</div>
-                <div className="flex items-center gap-2"><Award className="h-4 w-4 text-primary" /> Instant CEFR result</div>
-                <div className="flex items-center gap-2"><GraduationCap className="h-4 w-4 text-primary" /> 1-on-1 follow-up</div>
-              </div>
-            </section>
-
-            <Card className="shadow-lg">
-              <CardContent className="space-y-4 pt-6">
-                <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground">
-                  This assessment is a preliminary placement for course recommendations, not an official exam transcript.
-                </div>
-                <Button size="lg" className="w-full" onClick={() => setStep("quiz")}>
-                  Start Quiz <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-
-            <section className="mt-12 grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader><CardTitle>What is CEFR?</CardTitle></CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>CEFR (Common European Framework of Reference for Languages) is an international standard for measuring English proficiency, divided into 6 levels — A1 (beginner) to C2 (near-native).</p>
-                  <p>It is used as a reference for IELTS, TOEFL, TOEIC and study/work abroad applications.</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle>How it works</CardTitle></CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>1. Answer 30 questions — grammar, vocabulary, reading & listening cues.</p>
-                  <p>2. Get your CEFR level instantly on screen.</p>
-                  <p>3. Receive a personalised plan on LINE within 24 hours.</p>
-                </CardContent>
-              </Card>
-            </section>
-
-            <section className="mt-8">
-              <Card>
-                <CardHeader><CardTitle>The 6 CEFR levels</CardTitle></CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead><tr className="text-left border-b">
-                      <th className="py-2 pr-4">Level</th><th className="py-2 pr-4">Name</th><th className="py-2 pr-4">What you can do</th><th className="py-2">IELTS</th>
-                    </tr></thead>
-                    <tbody className="text-muted-foreground">
-                      <tr className="border-b"><td className="py-2 pr-4 font-semibold text-foreground">A1</td><td className="py-2 pr-4">Get Started</td><td className="py-2 pr-4">Letters, basic words, greetings, simple questions</td><td className="py-2">—</td></tr>
-                      <tr className="border-b"><td className="py-2 pr-4 font-semibold text-foreground">A2</td><td className="py-2 pr-4">Basics</td><td className="py-2 pr-4">Talk about yourself, family, hobbies</td><td className="py-2">3.0</td></tr>
-                      <tr className="border-b"><td className="py-2 pr-4 font-semibold text-foreground">B1</td><td className="py-2 pr-4">Intermediate</td><td className="py-2 pr-4">Tell stories, explain ideas, follow conversations</td><td className="py-2">4.0–5.0</td></tr>
-                      <tr className="border-b"><td className="py-2 pr-4 font-semibold text-foreground">B2</td><td className="py-2 pr-4">Upper-Intermediate</td><td className="py-2 pr-4">Fluent with natives, work in English</td><td className="py-2">5.5–6.5</td></tr>
-                      <tr className="border-b"><td className="py-2 pr-4 font-semibold text-foreground">C1</td><td className="py-2 pr-4">Advanced</td><td className="py-2 pr-4">Fluent in all contexts, business negotiation</td><td className="py-2">7.0–8.0</td></tr>
-                      <tr><td className="py-2 pr-4 font-semibold text-foreground">C2</td><td className="py-2 pr-4">Proficient</td><td className="py-2 pr-4">Near-native understanding and use</td><td className="py-2">8.5–9.0</td></tr>
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
-            </section>
-          </>
-        )}
-
         {step === "quiz" && current && (
           <Card className="shadow-lg">
             <CardHeader>

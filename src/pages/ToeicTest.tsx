@@ -34,6 +34,14 @@ const PER_SECTION: Partial<Record<ToeicSection, number>> = {
   business_english: 15,
 };
 
+const SECTION_ORDER: ToeicSection[] = [
+  "listening",
+  "reading",
+  "vocabulary",
+  "grammar",
+  "business_english",
+];
+
 type Step = "intro" | "loading" | "quiz" | "submitting";
 
 export default function ToeicTest() {
@@ -48,7 +56,7 @@ export default function ToeicTest() {
   const current = questions[idx];
   const progress = questions.length ? ((idx + 1) / questions.length) * 100 : 0;
 
-  async function start() {
+  async function start(selectedSections: ToeicSection[]) {
     setStep("loading");
     // Fetch sanitized questions via RPC. The answer key is never sent to the browser.
     const { data, error } = await supabase.rpc("get_toeic_questions");
@@ -63,7 +71,10 @@ export default function ToeicTest() {
       setStep("intro");
       return;
     }
-    const picked = pickQuestions(pool, PER_SECTION);
+    const picked = pickQuestions(
+      pool,
+      Object.fromEntries(selectedSections.map((section) => [section, PER_SECTION[section] ?? 0])) as Partial<Record<ToeicSection, number>>
+    );
     if (picked.length === 0) {
       setPoolEmpty(true);
       setStep("intro");
@@ -101,31 +112,44 @@ export default function ToeicTest() {
 
   if (step === "intro") {
     return (
-      <div className="mx-auto max-w-2xl space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>TOEIC Placement Test</CardTitle>
-            <CardDescription>
-              About 95 multiple-choice questions across 5 sections. Takes ~45 minutes. You'll
-              get an estimated TOEIC score (10–990) and CEFR level (A1–C2).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• Listening (20) · Reading (20)</li>
-              <li>• Vocabulary (20) · Grammar (20)</li>
-              <li>• Business English (15)</li>
-            </ul>
-            {poolEmpty && (
-              <p className="text-sm text-destructive">
-                The question bank is empty. Ask an admin to seed questions from Settings.
-              </p>
-            )}
-            <Button onClick={start} disabled={poolEmpty}>
-              Start test <ArrowRight className="ml-2 h-4 w-4" />
+      <div className="mx-auto max-w-3xl space-y-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">Choose a test section</h1>
+          <p className="text-sm text-muted-foreground">Select the part you want to practise today.</p>
+        </div>
+        {poolEmpty && (
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            The question bank is empty. Ask an admin to seed questions from Settings.
+          </p>
+        )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SECTION_ORDER.map((section) => (
+            <Button
+              key={section}
+              variant="outline"
+              className="h-auto justify-between p-4 text-left"
+              onClick={() => start([section])}
+              disabled={poolEmpty}
+            >
+              <span>
+                <span className="block font-semibold">{SECTION_LABELS[section]}</span>
+                <span className="block text-xs font-normal text-muted-foreground">{PER_SECTION[section]} questions</span>
+              </span>
+              <ArrowRight className="ml-3 h-4 w-4" />
             </Button>
-          </CardContent>
-        </Card>
+          ))}
+          <Button
+            className="h-auto justify-between p-4 text-left sm:col-span-2"
+            onClick={() => start(SECTION_ORDER)}
+            disabled={poolEmpty}
+          >
+            <span>
+              <span className="block font-semibold">Full TOEIC placement test</span>
+              <span className="block text-xs font-normal text-primary-foreground/80">All 5 sections · 95 questions</span>
+            </span>
+            <ArrowRight className="ml-3 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     );
   }

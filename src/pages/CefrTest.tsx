@@ -113,7 +113,7 @@ export default function CefrTest() {
 
   const setIntakeField = (k: keyof typeof intake, v: string) => setIntake((s) => ({ ...s, [k]: v }));
 
-  const intakeValid = intake.full_name.trim() && intake.phone.trim() && intake.learner_type && intake.main_goal && intake.speech_confidence;
+  const intakeValid = true;
 
   const current = QUESTIONS[qIndex];
   const progress = ((qIndex + (answers[current?.id] !== undefined ? 1 : 0)) / QUESTIONS.length) * 100;
@@ -222,126 +222,11 @@ export default function CefrTest() {
             </section>
 
             <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle>Your information</CardTitle>
-                <p className="text-sm text-muted-foreground">Fill this in so we can tailor your results. Fields with * are required.</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="full_name">Name *</Label>
-                    <Input id="full_name" value={intake.full_name} onChange={(e) => setIntakeField("full_name", e.target.value)} placeholder="Your full name" />
-                  </div>
-                  <div>
-                    <Label htmlFor="age">Age</Label>
-                    <Input id="age" type="number" value={intake.age} onChange={(e) => setIntakeField("age", e.target.value)} placeholder="Age of learner" />
-                  </div>
-                  <div>
-                    <Label>Learner type *</Label>
-                    <Select value={intake.learner_type} onValueChange={(v) => setIntakeField("learner_type", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="kid">Kid</SelectItem>
-                        <SelectItem value="teen">Teen</SelectItem>
-                        <SelectItem value="adult">Adult</SelectItem>
-                        <SelectItem value="professional">Working Professional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Filling in</Label>
-                    <Select value={intake.filled_by} onValueChange={(v) => setIntakeField("filled_by", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="self">Myself</SelectItem>
-                        <SelectItem value="parent">Parent</SelectItem>
-                        <SelectItem value="other">Someone else</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone *</Label>
-                    <Input id="phone" value={intake.phone} onChange={(e) => setIntakeField("phone", e.target.value)} placeholder="Phone number" />
-                  </div>
-                  <div>
-                    <Label htmlFor="line_id">LINE ID</Label>
-                    <Input id="line_id" value={intake.line_id} onChange={(e) => setIntakeField("line_id", e.target.value)} placeholder="@yourlineid" />
-                  </div>
-                  <div>
-                    <Label>Main goal *</Label>
-                    <Select value={intake.main_goal} onValueChange={(v) => setIntakeField("main_goal", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="conversation">Daily conversation</SelectItem>
-                        <SelectItem value="work">Work / Business</SelectItem>
-                        <SelectItem value="exam">Exam prep (IELTS/TOEFL/TOEIC)</SelectItem>
-                        <SelectItem value="travel">Travel</SelectItem>
-                        <SelectItem value="study">Study abroad</SelectItem>
-                        <SelectItem value="kids">Kids / School</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Courses of interest</Label>
-                    <Select value={intake.course_interest} onValueChange={(v) => setIntakeField("course_interest", v)}>
-                      <SelectTrigger><SelectValue placeholder="If unsure, leave blank" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">General English</SelectItem>
-                        <SelectItem value="business">Business English</SelectItem>
-                        <SelectItem value="conversation">Conversation</SelectItem>
-                        <SelectItem value="ielts">IELTS Prep</SelectItem>
-                        <SelectItem value="kids">Kids Course</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Self-assessed level</Label>
-                    <Select value={intake.self_level} onValueChange={(v) => setIntakeField("self_level", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        {["A1","A2","B1","B2","C1","C2"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Goal level</Label>
-                    <Select value={intake.goal_level} onValueChange={(v) => setIntakeField("goal_level", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        {["A2","B1","B2","C1","C2"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Speech confidence (1–6) *</Label>
-                    <Select value={intake.speech_confidence} onValueChange={(v) => setIntakeField("speech_confidence", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        {[1,2,3,4,5,6].map(n => <SelectItem key={n} value={String(n)}>{n} — {["Very shy","Shy","OK","Confident","Very confident","Native-like"][n-1]}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Urgency</Label>
-                    <Select value={intake.urgency} onValueChange={(v) => setIntakeField("urgency", v)}>
-                      <SelectTrigger><SelectValue placeholder="-- Select --" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="asap">As soon as possible</SelectItem>
-                        <SelectItem value="1m">Within 1 month</SelectItem>
-                        <SelectItem value="3m">Within 3 months</SelectItem>
-                        <SelectItem value="exploring">Just exploring</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="website">Website / where you heard about us</Label>
-                    <Input id="website" value={intake.website} onChange={(e) => setIntakeField("website", e.target.value)} placeholder="Optional" />
-                  </div>
-                </div>
+              <CardContent className="space-y-4 pt-6">
                 <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground">
                   This assessment is a preliminary placement for course recommendations, not an official exam transcript.
                 </div>
-                <Button size="lg" className="w-full" disabled={!intakeValid} onClick={() => setStep("quiz")}>
+                <Button size="lg" className="w-full" onClick={() => setStep("quiz")}>
                   Start Quiz <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </CardContent>
@@ -358,10 +243,9 @@ export default function CefrTest() {
               <Card>
                 <CardHeader><CardTitle>How it works</CardTitle></CardHeader>
                 <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>1. Fill in your info — 1 minute.</p>
-                  <p>2. Answer 30 questions — grammar, vocabulary, reading & listening cues.</p>
-                  <p>3. Get your CEFR level instantly on screen.</p>
-                  <p>4. Receive a personalised plan on LINE within 24 hours.</p>
+                  <p>1. Answer 30 questions — grammar, vocabulary, reading & listening cues.</p>
+                  <p>2. Get your CEFR level instantly on screen.</p>
+                  <p>3. Receive a personalised plan on LINE within 24 hours.</p>
                 </CardContent>
               </Card>
             </section>

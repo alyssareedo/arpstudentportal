@@ -104,7 +104,7 @@ const initialIntake = {
 };
 
 export default function CefrTest() {
-  const [step, setStep] = useState<Step>("intake");
+  const [step, setStep] = useState<Step>("quiz");
   const [intake, setIntake] = useState(initialIntake);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [qIndex, setQIndex] = useState(0);
@@ -180,7 +180,7 @@ export default function CefrTest() {
   }
 
   function restart() {
-    setStep("intake");
+    setStep("quiz");
     setIntake(initialIntake);
     setAnswers({});
     setQIndex(0);

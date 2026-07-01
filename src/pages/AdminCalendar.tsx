@@ -63,7 +63,7 @@ export default function AdminCalendar() {
       supabase.from("user_roles").select("user_id, role").in("role", ["admin", "teacher", "student"]),
       supabase.from("availability_slots").select("*"),
       supabase.from("availability_blocks").select("*").gte("ends_at", monthStart.toISOString()).lte("starts_at", monthEnd.toISOString()),
-      supabase.from("bookings").select("*").in("status", ["confirmed", "pending"]).gte("booking_date", monthStart.toISOString().slice(0, 10)).lte("booking_date", monthEnd.toISOString().slice(0, 10)),
+      supabase.from("bookings").select("*").in("status", ["approved", "pending"]).gte("booking_date", monthStart.toISOString().slice(0, 10)).lte("booking_date", monthEnd.toISOString().slice(0, 10)),
     ]);
 
     const teacherIds = Array.from(new Set((roles ?? []).filter(r => r.role === "admin" || r.role === "teacher").map(r => r.user_id)));
@@ -195,7 +195,7 @@ export default function AdminCalendar() {
         booking_date: format(draft.start, "yyyy-MM-dd"),
         start_time: format(draft.start, "HH:mm:ss"),
         duration_minutes: mins,
-        status: "confirmed",
+        status: "approved",
         decided_by: user!.id,
         decided_at: new Date().toISOString(),
       });

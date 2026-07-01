@@ -41,12 +41,59 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_blocks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ends_at: string
+          id: string
+          reason: string | null
+          starts_at: string
+          teacher_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          ends_at: string
+          id?: string
+          reason?: string | null
+          starts_at: string
+          teacher_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string
+          id?: string
+          reason?: string | null
+          starts_at?: string
+          teacher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_blocks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_blocks_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_slots: {
         Row: {
           created_at: string
           end_time: string
+          google_event_id: string | null
           id: string
           is_active: boolean
+          slot_date: string | null
           start_time: string
           teacher_id: string
           weekday: number
@@ -54,8 +101,10 @@ export type Database = {
         Insert: {
           created_at?: string
           end_time: string
+          google_event_id?: string | null
           id?: string
           is_active?: boolean
+          slot_date?: string | null
           start_time: string
           teacher_id: string
           weekday: number
@@ -63,8 +112,10 @@ export type Database = {
         Update: {
           created_at?: string
           end_time?: string
+          google_event_id?: string | null
           id?: string
           is_active?: boolean
+          slot_date?: string | null
           start_time?: string
           teacher_id?: string
           weekday?: number
@@ -79,6 +130,7 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           duration_minutes: number
+          google_event_id: string | null
           id: string
           lesson_id: string | null
           start_time: string
@@ -94,6 +146,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           duration_minutes?: number
+          google_event_id?: string | null
           id?: string
           lesson_id?: string | null
           start_time: string
@@ -109,6 +162,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           duration_minutes?: number
+          google_event_id?: string | null
           id?: string
           lesson_id?: string | null
           start_time?: string

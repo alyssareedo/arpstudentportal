@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Calendar, dateFnsLocalizer, View, Event as RbcEvent } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, addDays, addWeeks, setHours, setMinutes, startOfMonth, endOfMonth } from "date-fns";
-import enUS from "date-fns/locale/en-US";
+import { enUS } from "date-fns/locale/en-US";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import { supabase } from "@/integrations/supabase/client";

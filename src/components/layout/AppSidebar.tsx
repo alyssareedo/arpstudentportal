@@ -13,9 +13,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 const adminItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Calendar", url: "/calendar", icon: CalendarRange },
   { title: "Bookings", url: "/bookings", icon: Inbox },
-  { title: "Availability", url: "/availability", icon: CalendarClock },
+  { title: "Availability (list)", url: "/availability", icon: CalendarClock },
   { title: "Students", url: "/students", icon: Users },
   { title: "Teachers", url: "/teachers", icon: UserCog },
   { title: "Renewals", url: "/renewals", icon: RefreshCcw },

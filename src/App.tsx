@@ -27,6 +27,7 @@ import ToeicResult from "./pages/ToeicResult";
 import AdminAssessments from "./pages/AdminAssessments";
 import Renewals from "./pages/Renewals";
 import Teachers from "./pages/Teachers";
+import AdminCalendar from "./pages/AdminCalendar";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/admin/assessments" element={<AdminAssessments />} />
               <Route path="/renewals" element={<Renewals />} />
               <Route path="/teachers" element={<Teachers />} />
+              <Route path="/calendar" element={<AdminCalendar />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

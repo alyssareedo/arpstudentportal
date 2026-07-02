@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog, BookOpen, Receipt, Map,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {

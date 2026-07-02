@@ -28,6 +28,11 @@ import AdminAssessments from "./pages/AdminAssessments";
 import Renewals from "./pages/Renewals";
 import Teachers from "./pages/Teachers";
 import AdminCalendar from "./pages/AdminCalendar";
+import AdminMaterials from "./pages/AdminMaterials";
+import Materials from "./pages/Materials";
+import AdminInvoices from "./pages/AdminInvoices";
+import MyInvoices from "./pages/MyInvoices";
+import Roadmap from "./pages/Roadmap";
 
 const queryClient = new QueryClient();
 

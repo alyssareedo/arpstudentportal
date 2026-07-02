@@ -57,6 +57,9 @@ const App = () => (
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/toeic" element={<ToeicTest />} />
               <Route path="/assessments/toeic/:id" element={<ToeicResult />} />
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/my-invoices" element={<MyInvoices />} />
+              <Route path="/roadmap" element={<Roadmap />} />
             </Route>
           </Route>
 

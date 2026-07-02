@@ -28,6 +28,11 @@ import AdminAssessments from "./pages/AdminAssessments";
 import Renewals from "./pages/Renewals";
 import Teachers from "./pages/Teachers";
 import AdminCalendar from "./pages/AdminCalendar";
+import AdminMaterials from "./pages/AdminMaterials";
+import Materials from "./pages/Materials";
+import AdminInvoices from "./pages/AdminInvoices";
+import MyInvoices from "./pages/MyInvoices";
+import Roadmap from "./pages/Roadmap";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +57,9 @@ const App = () => (
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/toeic" element={<ToeicTest />} />
               <Route path="/assessments/toeic/:id" element={<ToeicResult />} />
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/my-invoices" element={<MyInvoices />} />
+              <Route path="/roadmap" element={<Roadmap />} />
             </Route>
           </Route>
 
@@ -73,6 +81,8 @@ const App = () => (
               <Route path="/renewals" element={<Renewals />} />
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/calendar" element={<AdminCalendar />} />
+              <Route path="/admin/materials" element={<AdminMaterials />} />
+              <Route path="/admin/invoices" element={<AdminInvoices />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

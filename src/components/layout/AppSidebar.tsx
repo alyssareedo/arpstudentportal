@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog, BookOpen, Receipt, Map,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -20,6 +20,8 @@ const adminItems = [
   { title: "Teachers", url: "/teachers", icon: UserCog },
   { title: "Renewals", url: "/renewals", icon: RefreshCcw },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
+  { title: "Materials", url: "/admin/materials", icon: BookOpen },
+  { title: "Invoices", url: "/admin/invoices", icon: Receipt },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Assessments", url: "/admin/assessments", icon: Award },
   { title: "Take TOEIC test", url: "/assessments/toeic", icon: GraduationCap },
@@ -30,13 +32,17 @@ const teacherItems = [
   { title: "My Schedule", url: "/schedule", icon: CalendarRange },
   { title: "My Students", url: "/students", icon: Users },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
+  { title: "Materials", url: "/admin/materials", icon: BookOpen },
   { title: "Availability", url: "/availability", icon: CalendarClock },
   { title: "My Profile", url: "/my-profile", icon: UserCircle },
 ];
 
 const studentItems = [
+  { title: "My roadmap", url: "/roadmap", icon: Map },
   { title: "Book a lesson", url: "/book", icon: CalendarPlus },
   { title: "My schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Materials", url: "/materials", icon: BookOpen },
+  { title: "Invoices", url: "/my-invoices", icon: Receipt },
   { title: "Language Assessments", url: "/assessments", icon: Award },
   { title: "Free CEFR test", url: "/cefr-test", icon: GraduationCap },
   { title: "My profile", url: "/my-profile", icon: UserCircle },

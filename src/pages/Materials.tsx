@@ -145,7 +145,7 @@ export default function Materials() {
               {m.type === "link" ? <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />} Open
             </Button>
             <Button size="sm" variant={done ? "secondary" : "default"}
-              onClick={() => upsertProgress(m.id, { status: done ? "in_progress" : "completed", completed_at: done ? null : new Date().toISOString() })}>
+              onClick={() => { upsertProgress(m.id, { status: done ? "in_progress" : "completed", completed_at: done ? null : new Date().toISOString() }); }}>
               <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> {done ? "Mark incomplete" : "Mark complete"}
             </Button>
           </div>

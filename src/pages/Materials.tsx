@@ -137,7 +137,7 @@ export default function Materials() {
               <Button variant="ghost" size="icon" onClick={() => upsertProgress(m.id, { favorited: !m.prog?.favorited })}>
                 {m.prog?.favorited ? <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> : <StarOff className="h-4 w-4" />}
               </Button>
-              {owner && <ConfirmDeleteButton onConfirm={() => deleteMaterial(m)} />}
+              {owner && <ConfirmDeleteButton onConfirm={async () => { await deleteMaterial(m); }} />}
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">

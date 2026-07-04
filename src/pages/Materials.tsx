@@ -20,7 +20,8 @@ const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const SKILLS = ["listening", "reading", "speaking", "writing", "grammar", "vocabulary"];
 
 export default function Materials() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canUpload = role === "admin" || role === "teacher";
   const [materials, setMaterials] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [progress, setProgress] = useState<Record<string, any>>({});
@@ -163,6 +164,7 @@ export default function Materials() {
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> Learning materials</CardTitle>
+          {canUpload && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button size="sm"><Plus className="mr-2 h-4 w-4" /> Upload material</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -199,6 +201,7 @@ export default function Materials() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
         <div className="mt-3">
           <div className="mb-1 flex justify-between text-xs text-muted-foreground">

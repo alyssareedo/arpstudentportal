@@ -20,7 +20,8 @@ const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const SKILLS = ["listening", "reading", "speaking", "writing", "grammar", "vocabulary"];
 
 export default function Materials() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canUpload = role === "admin" || role === "teacher";
   const [materials, setMaterials] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [progress, setProgress] = useState<Record<string, any>>({});

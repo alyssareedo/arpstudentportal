@@ -164,6 +164,7 @@ export default function Materials() {
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> Learning materials</CardTitle>
+          {canUpload && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button size="sm"><Plus className="mr-2 h-4 w-4" /> Upload material</Button></DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">

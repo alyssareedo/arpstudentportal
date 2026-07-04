@@ -201,6 +201,7 @@ export default function Materials() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
         <div className="mt-3">
           <div className="mb-1 flex justify-between text-xs text-muted-foreground">

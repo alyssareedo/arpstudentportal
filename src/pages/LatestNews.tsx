@@ -131,7 +131,7 @@ export default function LatestNews() {
                             <Button size="icon" variant="ghost" onClick={() => move(n, -1)}><ArrowUp className="h-3.5 w-3.5" /></Button>
                             <Button size="icon" variant="ghost" onClick={() => move(n, 1)}><ArrowDown className="h-3.5 w-3.5" /></Button>
                             <Button size="icon" variant="ghost" onClick={() => openEdit(n)}><Pencil className="h-3.5 w-3.5" /></Button>
-                            <ConfirmDeleteButton onConfirm={() => remove(n.id)} />
+                            <ConfirmDeleteButton onConfirm={async () => { await remove(n.id); }} />
                           </div>
                         )}
                       </div>

@@ -75,7 +75,7 @@ export default function Assessments() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -104,7 +104,7 @@ export default function Assessments() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-emerald-600" /> Free CEFR Test
+                <GraduationCap className="h-5 w-5 text-emerald-600" /> CEFR Assessment
               </CardTitle>
               <Badge variant="secondary">A1–C2</Badge>
             </div>
@@ -112,13 +112,28 @@ export default function Assessments() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Repeat every 3–6 months to see your growth.
+              Free CEFR level test. Repeat every 3–6 months to see your growth.
             </p>
             <Button asChild variant="outline">
               <Link to="/cefr-test">
                 Take CEFR test <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-muted bg-muted/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-muted-foreground" /> TOEFL Assessment
+              </CardTitle>
+              <Badge variant="outline">Coming soon</Badge>
+            </div>
+            <CardDescription>iBT-style practice — in development</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">Available in a future release.</p>
           </CardContent>
         </Card>
       </div>

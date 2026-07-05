@@ -33,6 +33,7 @@ import Materials from "./pages/Materials";
 import AdminInvoices from "./pages/AdminInvoices";
 import MyInvoices from "./pages/MyInvoices";
 import Roadmap from "./pages/Roadmap";
+import LatestNews from "./pages/LatestNews";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/materials" element={<Materials />} />
               <Route path="/my-invoices" element={<MyInvoices />} />
               <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/news" element={<LatestNews />} />
             </Route>
           </Route>
 

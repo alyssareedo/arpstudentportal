@@ -11,31 +11,37 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
-import { BookOpen, Plus, Upload, Users, ExternalLink, FileText } from "lucide-react";
+import { BookOpen, Plus, Upload, Users, ExternalLink, FileText, Pencil, Copy } from "lucide-react";
 
 const TYPES = ["pdf", "doc", "pptx", "image", "audio", "video", "link"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const SKILLS = ["listening", "reading", "speaking", "writing", "grammar", "vocabulary"];
 
+const emptyForm = { title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "", category_id: "", tags: "" };
+
 export default function AdminMaterials() {
   const { user } = useAuth();
   const [materials, setMaterials] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [form, setForm] = useState<any>({ title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "" });
+  const [form, setForm] = useState<any>({ ...emptyForm });
   const [assignFor, setAssignFor] = useState<any>(null);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState("");
+  const [folderFilter, setFolderFilter] = useState<string>("all");
 
   useEffect(() => { if (user) load(); }, [user]);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: mats }, { data: roles }, { data: assigns }] = await Promise.all([
+    const [{ data: mats }, { data: cats }, { data: roles }, { data: assigns }] = await Promise.all([
       supabase.from("materials").select("*").order("created_at", { ascending: false }),
+      supabase.from("material_categories").select("*").order("name"),
       supabase.from("user_roles").select("user_id").eq("role", "student"),
       supabase.from("material_assignments").select("*"),
     ]);
@@ -44,41 +50,75 @@ export default function AdminMaterials() {
       ? await supabase.from("profiles").select("id, full_name").in("id", studentIds)
       : { data: [] as any[] };
     setMaterials(mats ?? []);
+    setCategories(cats ?? []);
     setStudents(profs ?? []);
     setAssignments(assigns ?? []);
     setLoading(false);
   };
 
-  const createMaterial = async () => {
+  const openNew = () => { setEditingId(null); setForm({ ...emptyForm }); setFile(null); setOpen(true); };
+  const openEdit = (m: any) => {
+    setEditingId(m.id);
+    setForm({
+      title: m.title ?? "", description: m.description ?? "", type: m.type ?? "pdf",
+      cefr_level: m.cefr_level ?? "", skill: m.skill ?? "", external_url: m.external_url ?? "",
+      objectives: m.objectives ?? "", lesson_plan: m.lesson_plan ?? "",
+      category_id: m.category_id ?? "", tags: (m.tags ?? []).join(", "),
+    });
+    setFile(null);
+    setOpen(true);
+  };
+
+  const saveMaterial = async () => {
     if (!form.title) return toast.error("Title required");
-    let storage_path = null;
-    if (file && form.type !== "link") {
-      const path = `${crypto.randomUUID()}-${file.name}`;
-      const { error } = await supabase.storage.from("materials").upload(path, file);
-      if (error) return toast.error(error.message);
-      storage_path = path;
-    }
-    const { error } = await supabase.from("materials").insert({
-      ...form,
-      storage_path,
+    const payload: any = {
+      title: form.title,
+      description: form.description || null,
+      type: form.type,
       cefr_level: form.cefr_level || null,
       skill: form.skill || null,
       external_url: form.external_url || null,
-      created_by: user!.id,
-    });
+      objectives: form.objectives || null,
+      lesson_plan: form.lesson_plan || null,
+      category_id: form.category_id || null,
+      tags: form.tags ? form.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+    };
+    if (editingId) {
+      if (file && form.type !== "link") {
+        const path = `${crypto.randomUUID()}-${file.name}`;
+        const { error } = await supabase.storage.from("materials").upload(path, file);
+        if (error) return toast.error(error.message);
+        payload.storage_path = path;
+      }
+      const { error } = await supabase.from("materials").update(payload).eq("id", editingId);
+      if (error) return toast.error(error.message);
+      toast.success("Updated");
+    } else {
+      if (file && form.type !== "link") {
+        const path = `${crypto.randomUUID()}-${file.name}`;
+        const { error } = await supabase.storage.from("materials").upload(path, file);
+        if (error) return toast.error(error.message);
+        payload.storage_path = path;
+      }
+      payload.created_by = user!.id;
+      const { error } = await supabase.from("materials").insert(payload);
+      if (error) return toast.error(error.message);
+      toast.success("Material added");
+    }
+    setOpen(false); setForm({ ...emptyForm }); setFile(null); setEditingId(null); load();
+  };
+
+  const duplicate = async (m: any) => {
+    const { id, created_at, updated_at, ...rest } = m;
+    const { error } = await supabase.from("materials").insert({ ...rest, title: `${m.title} (copy)`, created_by: user!.id });
     if (error) return toast.error(error.message);
-    toast.success("Material added");
-    setOpen(false);
-    setForm({ title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "" });
-    setFile(null);
-    load();
+    toast.success("Duplicated"); load();
   };
 
   const deleteMaterial = async (m: any) => {
     if (m.storage_path) await supabase.storage.from("materials").remove([m.storage_path]);
     await supabase.from("materials").delete().eq("id", m.id);
-    toast.success("Deleted");
-    load();
+    toast.success("Deleted"); load();
   };
 
   const openAssign = (m: any) => {
@@ -100,9 +140,7 @@ export default function AdminMaterials() {
     if (toRemove.length) {
       await supabase.from("material_assignments").delete().eq("material_id", assignFor.id).in("student_id", toRemove);
     }
-    toast.success("Assignments updated");
-    setAssignFor(null);
-    load();
+    toast.success("Assignments updated"); setAssignFor(null); load();
   };
 
   const openFile = async (m: any) => {
@@ -112,70 +150,99 @@ export default function AdminMaterials() {
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
 
+  const shown = folderFilter === "all"
+    ? materials
+    : folderFilter === "uncat" ? materials.filter(m => !m.category_id) : materials.filter(m => m.category_id === folderFilter);
+
   return (
     <div className="space-y-4">
       <Card className="shadow-elegant">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> Learning materials</CardTitle>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> Add material</Button></DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>New learning material</DialogTitle></DialogHeader>
-              <div className="grid gap-3">
-                <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
-                <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div><Label>Type</Label>
-                    <Select value={form.type} onValueChange={v => setForm({ ...form, type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                    </Select></div>
-                  <div><Label>CEFR</Label>
-                    <Select value={form.cefr_level || "none"} onValueChange={v => setForm({ ...form, cefr_level: v === "none" ? "" : v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="none">Any</SelectItem>{LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                    </Select></div>
-                  <div><Label>Skill</Label>
-                    <Select value={form.skill || "none"} onValueChange={v => setForm({ ...form, skill: v === "none" ? "" : v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="none">Any</SelectItem>{SKILLS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                    </Select></div>
+          <div className="flex gap-2">
+            <Select value={folderFilter} onValueChange={setFolderFilter}>
+              <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All folders</SelectItem>
+                <SelectItem value="uncat">Uncategorized</SelectItem>
+                {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditingId(null); setForm({ ...emptyForm }); } }}>
+              <DialogTrigger asChild><Button onClick={openNew}><Plus className="mr-2 h-4 w-4" /> Add material</Button></DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>{editingId ? "Edit material" : "New learning material"}</DialogTitle></DialogHeader>
+                <div className="grid gap-3">
+                  <div><Label>Title</Label><Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} /></div>
+                  <div><Label>Description</Label><Textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><Label>Folder / Category</Label>
+                      <Select value={form.category_id || "none"} onValueChange={v => setForm({ ...form, category_id: v === "none" ? "" : v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="none">Uncategorized</SelectItem>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                      </Select></div>
+                    <div><Label>Type</Label>
+                      <Select value={form.type} onValueChange={v => setForm({ ...form, type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                      </Select></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><Label>CEFR</Label>
+                      <Select value={form.cefr_level || "none"} onValueChange={v => setForm({ ...form, cefr_level: v === "none" ? "" : v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="none">Any</SelectItem>{LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                      </Select></div>
+                    <div><Label>Skill</Label>
+                      <Select value={form.skill || "none"} onValueChange={v => setForm({ ...form, skill: v === "none" ? "" : v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="none">Any</SelectItem>{SKILLS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      </Select></div>
+                  </div>
+                  <div><Label>Tags (comma-separated)</Label><Input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="beginner, business, unit1" /></div>
+                  {form.type === "link" ? (
+                    <div><Label>External URL</Label><Input value={form.external_url} onChange={e => setForm({ ...form, external_url: e.target.value })} placeholder="https://..." /></div>
+                  ) : (
+                    <div><Label>{editingId ? "Replace file (optional)" : "File"}</Label><Input type="file" onChange={e => setFile(e.target.files?.[0] ?? null)} /></div>
+                  )}
+                  <div><Label>Learning objectives</Label><Textarea value={form.objectives} onChange={e => setForm({ ...form, objectives: e.target.value })} rows={2} /></div>
+                  <div><Label>Lesson plan / notes</Label><Textarea value={form.lesson_plan} onChange={e => setForm({ ...form, lesson_plan: e.target.value })} rows={3} /></div>
                 </div>
-                {form.type === "link" ? (
-                  <div><Label>External URL</Label><Input value={form.external_url} onChange={e => setForm({ ...form, external_url: e.target.value })} placeholder="https://..." /></div>
-                ) : (
-                  <div><Label>File</Label><Input type="file" onChange={e => setFile(e.target.files?.[0] ?? null)} /></div>
-                )}
-                <div><Label>Learning objectives</Label><Textarea value={form.objectives} onChange={e => setForm({ ...form, objectives: e.target.value })} rows={2} /></div>
-                <div><Label>Lesson plan / notes</Label><Textarea value={form.lesson_plan} onChange={e => setForm({ ...form, lesson_plan: e.target.value })} rows={3} /></div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button onClick={createMaterial}><Upload className="mr-2 h-4 w-4" /> Save</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                  <Button onClick={saveMaterial}><Upload className="mr-2 h-4 w-4" /> Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
-          {loading ? <p>Loading…</p> : materials.length === 0 ? <p className="text-muted-foreground">No materials yet.</p> : (
+          {loading ? <p>Loading…</p> : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
             <div className="grid gap-3 md:grid-cols-2">
-              {materials.map(m => {
+              {shown.map(m => {
                 const count = assignments.filter(a => a.material_id === m.id).length;
+                const cat = categories.find(c => c.id === m.category_id);
                 return (
                   <Card key={m.id} className="border-border/60">
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-semibold">{m.title}</h3>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold break-words">{m.title}</h3>
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             <Badge variant="secondary">{m.type}</Badge>
+                            {cat && <Badge variant="outline">{cat.name}</Badge>}
                             {m.cefr_level && <Badge variant="outline">{m.cefr_level}</Badge>}
                             {m.skill && <Badge variant="outline">{m.skill}</Badge>}
+                            {(m.tags ?? []).map((t: string) => <Badge key={t} variant="outline" className="text-xs">#{t}</Badge>)}
                             <Badge className="bg-primary/10 text-primary" variant="outline">{count} assigned</Badge>
                           </div>
-                          {m.description && <p className="mt-2 text-sm text-muted-foreground">{m.description}</p>}
+                          {m.description && <p className="mt-2 text-sm text-muted-foreground break-words">{m.description}</p>}
                         </div>
-                        <ConfirmDeleteButton onConfirm={() => deleteMaterial(m)} />
+                        <div className="flex flex-col gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => duplicate(m)}><Copy className="h-3.5 w-3.5" /></Button>
+                          <ConfirmDeleteButton onConfirm={() => deleteMaterial(m)} />
+                        </div>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button size="sm" variant="outline" onClick={() => openFile(m)}>

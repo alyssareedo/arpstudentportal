@@ -700,6 +700,7 @@ export type Database = {
           objectives: string | null
           skill: string | null
           storage_path: string | null
+          tags: string[] | null
           title: string
           type: string
           updated_at: string
@@ -716,6 +717,7 @@ export type Database = {
           objectives?: string | null
           skill?: string | null
           storage_path?: string | null
+          tags?: string[] | null
           title: string
           type: string
           updated_at?: string
@@ -732,6 +734,7 @@ export type Database = {
           objectives?: string | null
           skill?: string | null
           storage_path?: string | null
+          tags?: string[] | null
           title?: string
           type?: string
           updated_at?: string
@@ -745,6 +748,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      news_links: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       outbound_notifications: {
         Row: {

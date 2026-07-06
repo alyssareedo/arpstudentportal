@@ -756,6 +756,8 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          image_url: string | null
+          notes: string | null
           sort_order: number
           title: string
           updated_at: string
@@ -767,6 +769,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
+          notes?: string | null
           sort_order?: number
           title: string
           updated_at?: string
@@ -778,6 +782,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
+          notes?: string | null
           sort_order?: number
           title?: string
           updated_at?: string

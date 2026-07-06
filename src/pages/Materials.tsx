@@ -89,6 +89,26 @@ export default function Materials() {
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
 
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renaming, setRenaming] = useState<any>(null);
+  const [renameTitle, setRenameTitle] = useState("");
+
+  const openRename = (m: any) => { setRenaming(m); setRenameTitle(m.title); setRenameOpen(true); };
+  const saveRename = async () => {
+    if (!renaming || !renameTitle.trim()) return;
+    const { error } = await supabase.from("materials").update({ title: renameTitle.trim() }).eq("id", renaming.id);
+    if (error) return toast.error(error.message);
+    toast.success("Renamed"); setRenameOpen(false); load();
+  };
+
+  const deleteMaterial = async (m: any) => {
+    if (m.storage_path) await supabase.storage.from("materials").remove([m.storage_path]);
+    const { error } = await supabase.from("materials").delete().eq("id", m.id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted"); load();
+  };
+
+
   const assignedIds = useMemo(() => new Set(assignments.map(a => a.material_id)), [assignments]);
 
   const enriched = useMemo(() => materials.map(m => ({

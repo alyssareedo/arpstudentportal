@@ -4,14 +4,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
 import {
   BookOpen, Star, StarOff, CheckCircle2, ExternalLink, Search,
-  Folder, FileText, FileImage, FileVideo, FileAudio, Link2, Presentation, Download, ChevronLeft, LayoutGrid, List,
+  Folder, FileText, FileImage, FileVideo, FileAudio, Link2, Presentation, Download, ChevronLeft, LayoutGrid, List, Pencil,
 } from "lucide-react";
 
 const typeIcon = (t: string) => {
@@ -31,7 +34,9 @@ const typeIcon = (t: string) => {
 type Sort = "name" | "date" | "cefr" | "category" | "status";
 
 export default function Materials() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const canManage = role === "admin" || role === "teacher";
+
   const [materials, setMaterials] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);

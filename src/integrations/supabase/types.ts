@@ -323,6 +323,72 @@ export type Database = {
           },
         ]
       }
+      course_offers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          featured: boolean
+          id: string
+          is_active: boolean
+          is_promotion: boolean
+          lesson_minutes: number | null
+          lessons_count: number | null
+          original_price: number | null
+          period_label: string | null
+          price: number
+          promo_tag: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          is_active?: boolean
+          is_promotion?: boolean
+          lesson_minutes?: number | null
+          lessons_count?: number | null
+          original_price?: number | null
+          period_label?: string | null
+          price?: number
+          promo_tag?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          is_active?: boolean
+          is_promotion?: boolean
+          lesson_minutes?: number | null
+          lessons_count?: number | null
+          original_price?: number | null
+          period_label?: string | null
+          price?: number
+          promo_tag?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       course_packages: {
         Row: {
           created_at: string

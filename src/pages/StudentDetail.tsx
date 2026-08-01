@@ -36,6 +36,16 @@ export default function StudentDetail() {
   const [courseStart, setCourseStart] = useState("");
   const [lessonsPurchased, setLessonsPurchased] = useState("0");
   const [initialized, setInitialized] = useState(false);
+  const [lessonQuery, setLessonQuery] = useState("");
+  const [lessonStatus, setLessonStatus] = useState("all");
+
+  const q = lessonQuery.trim().toLowerCase();
+  const filteredLessons = lessons.filter((l) => {
+    if (lessonStatus !== "all" && l.attendance !== lessonStatus) return false;
+    if (!q) return true;
+    return [l.topic, l.homework, l.notes, l.lesson_date, l.lesson_time]
+      .some((v) => (v ?? "").toString().toLowerCase().includes(q));
+  });
 
   if (loading) return <p className="text-center text-muted-foreground">Loading…</p>;
   if (!profile) return (

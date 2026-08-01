@@ -178,9 +178,31 @@ export default function StudentDetail() {
 
         <TabsContent value="lessons">
           <Card className="border-border/60 shadow-elegant">
-            <CardContent className="p-6">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  value={lessonQuery}
+                  onChange={(e) => setLessonQuery(e.target.value)}
+                  placeholder="Search topic, homework, notes or date…"
+                  className="h-9 max-w-sm rounded-full"
+                />
+                <Select value={lessonStatus} onValueChange={setLessonStatus}>
+                  <SelectTrigger className="h-9 w-40 rounded-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="present">Present</SelectItem>
+                    <SelectItem value="absent">Absent</SelectItem>
+                    <SelectItem value="late">Late</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(lessonQuery || lessonStatus !== "all") && (
+                  <Button variant="ghost" size="sm" className="rounded-full" onClick={() => { setLessonQuery(""); setLessonStatus("all"); }}>Clear</Button>
+                )}
+                <span className="text-xs text-muted-foreground">{filteredLessons.length} of {lessons.length}</span>
+              </div>
               <div className="relative space-y-4 border-l-2 border-border pl-6">
-                {lessons.map((l) => (
+                {filteredLessons.map((l) => (
                   <div key={l.id} className="relative">
                     <span className="absolute -left-[31px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
                       {l.attendance === "present" && <CheckCircle2 className="h-3 w-3" />}
@@ -202,11 +224,12 @@ export default function StudentDetail() {
                     </div>
                   </div>
                 ))}
-                {lessons.length === 0 && <p className="text-sm text-muted-foreground">No lessons yet.</p>}
+                {filteredLessons.length === 0 && <p className="text-sm text-muted-foreground">{lessons.length === 0 ? "No lessons yet." : "No lessons match your search."}</p>}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="homework">
           <Card className="border-border/60 shadow-elegant">

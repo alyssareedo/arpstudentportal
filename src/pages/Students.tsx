@@ -28,6 +28,7 @@ export default function Students() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ full_name: "", email: "", level: "A1", goals: "", use_placeholder_email: false });
+  const [newCredential, setNewCredential] = useState<{ email: string; password: string } | null>(null);
 
   const filtered = useMemo(() => students.filter((s) =>
     (level === "all" || s.level === level) &&
@@ -77,6 +78,13 @@ export default function Students() {
 
   return (
     <div className="space-y-6">
+      <RevealCredentialDialog
+        open={!!newCredential}
+        onOpenChange={(v) => !v && setNewCredential(null)}
+        title="Student login"
+        description={newCredential ? `Sign-in email: ${newCredential.email}` : undefined}
+        value={newCredential?.password ?? ""}
+      />
       <Card className="border-border/60 shadow-elegant">
         <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center">
           <div className="relative flex-1">

@@ -1227,7 +1227,6 @@ export type Database = {
           section: Database["public"]["Enums"]["toeic_section"]
         }[]
       }
-      has_teacher_access: { Args: { _student_id: string }; Returns: boolean }
       next_invoice_number: { Args: never; Returns: string }
     }
     Enums: {

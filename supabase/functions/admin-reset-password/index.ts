@@ -40,12 +40,36 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "student_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Determine whether this account has a real inbox. Accounts with a real
+    // email get a recovery link emailed to them — the password is never
+    // exposed to the browser. Only placeholder accounts (no inbox) receive a
+    // temporary password back, since there is no other way to deliver it.
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("placeholder_email, email")
+      .eq("id", student_id)
+      .maybeSingle();
+
+    const isPlaceholder =
+      profile?.placeholder_email === true ||
+      (profile?.email ?? "").endsWith("@arpspeak.local");
+
+    if (!isPlaceholder && profile?.email) {
+      const { error: linkErr } = await admin.auth.resetPasswordForEmail(profile.email);
+      if (linkErr) {
+        return new Response(JSON.stringify({ error: "Could not send reset email" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ mode: "email_sent", email: profile.email }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const password = tempPassword();
     const { error } = await admin.auth.admin.updateUserById(student_id, { password });
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Could not reset password" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    return new Response(JSON.stringify({ password }), {
+    return new Response(JSON.stringify({ mode: "temp_password", password }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { RevealCredentialDialog } from "@/components/RevealCredentialDialog";
 import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -473,20 +474,31 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
 
 function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [busy, setBusy] = useState(false);
+  const [tempPwd, setTempPwd] = useState<string | null>(null);
   const run = async () => {
-    if (!confirm("Generate a new temporary password for this student? Their current password will stop working.")) return;
+    if (!confirm("Reset this student's password? Their current password will stop working.")) return;
     setBusy(true);
     const { data, error } = await supabase.functions.invoke("admin-reset-password", { body: { student_id: studentId } });
     setBusy(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
-    const pwd = (data as any)?.password as string;
-    await navigator.clipboard.writeText(pwd).catch(() => {});
-    toast.success(`Temporary password copied: ${pwd}`);
+    if ((data as any)?.mode === "email_sent") {
+      return toast.success("Password reset link emailed to the student");
+    }
+    setTempPwd((data as any)?.password as string);
   };
   return (
-    <Button variant="outline" onClick={run} disabled={busy}>
-      <KeyRound className="mr-1 h-4 w-4" /> Reset password
-    </Button>
+    <>
+      <Button variant="outline" onClick={run} disabled={busy}>
+        <KeyRound className="mr-1 h-4 w-4" /> Reset password
+      </Button>
+      <RevealCredentialDialog
+        open={!!tempPwd}
+        onOpenChange={(v) => !v && setTempPwd(null)}
+        title="Temporary password"
+        description="This account has no inbox, so the password must be handed over directly."
+        value={tempPwd ?? ""}
+      />
+    </>
   );
 }
 

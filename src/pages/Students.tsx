@@ -15,6 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useStudents, Level } from "@/hooks/useData";
+import { RevealCredentialDialog } from "@/components/RevealCredentialDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,8 +45,8 @@ export default function Students() {
     const tempPwd = (data as any)?.temp_password;
     const createdEmail = (data as any)?.email;
     if (tempPwd) {
-      await navigator.clipboard.writeText(`${createdEmail} / ${tempPwd}`).catch(() => {});
-      toast.success(`Student created. Login copied: ${createdEmail} / ${tempPwd}`);
+      setNewCredential({ email: createdEmail, password: tempPwd });
+      toast.success("Student created");
     } else if (link) {
       await navigator.clipboard.writeText(link).catch(() => {});
       toast.success("Student created — invite link copied to clipboard");

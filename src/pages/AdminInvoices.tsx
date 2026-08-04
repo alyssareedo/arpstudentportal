@@ -220,6 +220,11 @@ export default function AdminInvoices() {
                         <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
                         <SelectContent>{STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
+                      {Number(i.lessons_count) > 0 && (
+                        <Button size="sm" variant="outline" title={`Reset balance to ${formatLessonsLeft(Number(i.lessons_count))}`} onClick={() => applyBalance(i)}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => { setPayFor(i); setPayAmount(String(Number(i.total) - paidSum)); }}>
                         <DollarSign className="h-3.5 w-3.5" />
                       </Button>

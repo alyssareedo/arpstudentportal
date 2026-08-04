@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatLessonsLeft } from "@/lib/lessons";
 import { Receipt, Plus, Upload, Download, DollarSign, CheckCircle2 } from "lucide-react";
 
 const STATUSES = ["pending", "partial", "paid", "overdue", "cancelled"];

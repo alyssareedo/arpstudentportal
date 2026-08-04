@@ -13,7 +13,7 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatLessonsLeft } from "@/lib/lessons";
-import { Receipt, Plus, Upload, Download, DollarSign, CheckCircle2 } from "lucide-react";
+import { Receipt, Plus, Upload, Download, DollarSign, CheckCircle2, RefreshCw } from "lucide-react";
 
 const STATUSES = ["pending", "partial", "paid", "overdue", "cancelled"];
 
@@ -86,6 +86,18 @@ export default function AdminInvoices() {
     setOpen(false);
     setFile(null);
     load();
+  };
+
+  const applyBalance = async (inv: any) => {
+    const count = Number(inv.lessons_count) || 0;
+    if (!count) return;
+    const { error } = await supabase.from("profiles").update({
+      lessons_purchased: count,
+      lessons_reset_at: inv.issue_date,
+      course_start_date: inv.issue_date,
+    }).eq("id", inv.student_id);
+    if (error) return toast.error(error.message);
+    toast.success(`${nameOf(inv.student_id)} now has ${formatLessonsLeft(count)}`);
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -220,6 +232,11 @@ export default function AdminInvoices() {
                         <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
                         <SelectContent>{STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                       </Select>
+                      {Number(i.lessons_count) > 0 && (
+                        <Button size="sm" variant="outline" title={`Reset balance to ${formatLessonsLeft(Number(i.lessons_count))}`} onClick={() => applyBalance(i)}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => { setPayFor(i); setPayAmount(String(Number(i.total) - paidSum)); }}>
                         <DollarSign className="h-3.5 w-3.5" />
                       </Button>

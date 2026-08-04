@@ -68,7 +68,18 @@ export default function AdminInvoices() {
       ...form, pdf_path, due_date: form.due_date || null, created_by: user!.id,
     });
     if (error) return toast.error(error.message);
-    toast.success("Invoice created");
+
+    if (resetBalance && Number(form.lessons_count) > 0) {
+      const { error: pErr } = await supabase.from("profiles").update({
+        lessons_purchased: Number(form.lessons_count),
+        lessons_reset_at: form.issue_date,
+        course_start_date: form.issue_date,
+      }).eq("id", form.student_id);
+      if (pErr) toast.error(`Invoice saved, but balance reset failed: ${pErr.message}`);
+      else toast.success(`Invoice created — balance reset to ${formatLessonsLeft(Number(form.lessons_count))}`);
+    } else {
+      toast.success("Invoice created");
+    }
     setOpen(false);
     setFile(null);
     load();

@@ -169,6 +169,15 @@ export default function AdminInvoices() {
                     <div><Label>Lessons</Label><Input type="number" value={form.lessons_count} onChange={e => setForm({ ...form, lessons_count: +e.target.value })} /></div>
                     <div><Label>Duration (min)</Label><Input type="number" value={form.lesson_duration_min} onChange={e => setForm({ ...form, lesson_duration_min: +e.target.value })} /></div>
                   </div>
+                  <label className="flex items-start gap-2 rounded-lg border p-3 text-sm">
+                    <Checkbox checked={resetBalance} onCheckedChange={(v) => setResetBalance(!!v)} className="mt-0.5" />
+                    <span>
+                      Reset lesson balance to this package
+                      <span className="block text-xs text-muted-foreground">
+                        Replaces any previous balance — student will show “{formatLessonsLeft(Number(form.lessons_count) || 0)}”. Uncheck to keep the current balance.
+                      </span>
+                    </span>
+                  </label>
                   <div className="grid grid-cols-3 gap-2">
                     <div><Label>Subtotal</Label><Input type="number" value={form.subtotal} onChange={e => setForm({ ...form, subtotal: +e.target.value })} /></div>
                     <div><Label>Discount</Label><Input type="number" value={form.discount} onChange={e => setForm({ ...form, discount: +e.target.value })} /></div>

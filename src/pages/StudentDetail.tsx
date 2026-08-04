@@ -7,6 +7,7 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
+import { formatLessonsLeft } from "@/lib/lessons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,7 +142,7 @@ export default function StudentDetail() {
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
           { label: "Attendance", value: `${presentRate}%`, color: "text-success" },
-          { label: "Lessons left", value: `${lessonsRemaining}/${profile.lessons_purchased ?? 0}`, color: "text-foreground" },
+          { label: "Lesson balance", value: formatLessonsLeft(lessonsRemaining), color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60 shadow-elegant">
             <CardContent className="p-5">

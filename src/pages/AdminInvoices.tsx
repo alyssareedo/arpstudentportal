@@ -29,6 +29,7 @@ export default function AdminInvoices() {
   const [file, setFile] = useState<File | null>(null);
   const [payFor, setPayFor] = useState<any>(null);
   const [payAmount, setPayAmount] = useState("");
+  const [resetBalance, setResetBalance] = useState(true);
   const [payMethod, setPayMethod] = useState("");
   const [form, setForm] = useState<any>({
     student_id: "", package_name: "", lessons_count: 10, lesson_duration_min: 60,

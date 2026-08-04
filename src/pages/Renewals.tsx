@@ -12,6 +12,7 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
 import { Plus, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { formatLessonsLeft } from "@/lib/lessons";
 
 type Student = { id: string; full_name: string; email: string };
 type Enrollment = {
@@ -186,13 +187,13 @@ export default function Renewals() {
                     <TableRow key={e.id}>
                       <TableCell className="font-medium">{studentName(e.student_id)}</TableCell>
                       <TableCell>{e.package_name}</TableCell>
-                      <TableCell>{remaining}/{e.lessons_total}</TableCell>
+                      <TableCell>{formatLessonsLeft(remaining)} <span className="text-xs text-muted-foreground">of {e.lessons_total}</span></TableCell>
                       <TableCell>{e.currency} {e.amount_paid.toLocaleString()}</TableCell>
                       <TableCell>{format(new Date(e.starts_at), "MMM d, yyyy")}</TableCell>
                       <TableCell>{e.expires_at ? format(new Date(e.expires_at), "MMM d, yyyy") : "—"}</TableCell>
                       <TableCell>
                         <Badge variant={expired ? "destructive" : remaining === 0 ? "secondary" : "default"}>
-                          {expired ? "expired" : remaining === 0 ? "used up" : e.status}
+                          {expired ? "expired" : remaining === 0 ? "No Lessons Left" : e.status}
                         </Badge>
                       </TableCell>
                       <TableCell>

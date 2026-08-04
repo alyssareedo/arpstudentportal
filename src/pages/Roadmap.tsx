@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, BookOpen, CalendarDays, Target, Flame } from "lucide-react";
+import { formatLessonsLeft } from "@/lib/lessons";
 
 export default function Roadmap() {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ export default function Roadmap() {
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-4">
         <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Flame className="h-4 w-4" /> Lessons attended</div><div className="text-2xl font-bold">{attended}/{purchased}</div><Progress value={completionPct} className="mt-2 h-1.5" /></CardContent></Card>
-        <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" /> Lessons remaining</div><div className="text-2xl font-bold text-primary">{remaining}</div></CardContent></Card>
+        <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="h-4 w-4" /> Lesson balance</div><div className="text-2xl font-bold text-primary">{formatLessonsLeft(remaining)}</div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><BookOpen className="h-4 w-4" /> Materials completed</div><div className="text-2xl font-bold">{matDone}/{materials.length}</div><Progress value={matPct} className="mt-2 h-1.5" /></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Target className="h-4 w-4" /> Level</div><div className="text-2xl font-bold">{profile?.cefr_level || "—"}</div></CardContent></Card>
       </div>

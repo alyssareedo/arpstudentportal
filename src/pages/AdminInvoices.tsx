@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatLessonsLeft } from "@/lib/lessons";
 import { Receipt, Plus, Upload, Download, DollarSign, CheckCircle2 } from "lucide-react";
 
 const STATUSES = ["pending", "partial", "paid", "overdue", "cancelled"];
@@ -27,6 +29,7 @@ export default function AdminInvoices() {
   const [file, setFile] = useState<File | null>(null);
   const [payFor, setPayFor] = useState<any>(null);
   const [payAmount, setPayAmount] = useState("");
+  const [resetBalance, setResetBalance] = useState(true);
   const [payMethod, setPayMethod] = useState("");
   const [form, setForm] = useState<any>({
     student_id: "", package_name: "", lessons_count: 10, lesson_duration_min: 60,
@@ -68,7 +71,18 @@ export default function AdminInvoices() {
       ...form, pdf_path, due_date: form.due_date || null, created_by: user!.id,
     });
     if (error) return toast.error(error.message);
-    toast.success("Invoice created");
+
+    if (resetBalance && Number(form.lessons_count) > 0) {
+      const { error: pErr } = await supabase.from("profiles").update({
+        lessons_purchased: Number(form.lessons_count),
+        lessons_reset_at: form.issue_date,
+        course_start_date: form.issue_date,
+      }).eq("id", form.student_id);
+      if (pErr) toast.error(`Invoice saved, but balance reset failed: ${pErr.message}`);
+      else toast.success(`Invoice created — balance reset to ${formatLessonsLeft(Number(form.lessons_count))}`);
+    } else {
+      toast.success("Invoice created");
+    }
     setOpen(false);
     setFile(null);
     load();
@@ -155,6 +169,15 @@ export default function AdminInvoices() {
                     <div><Label>Lessons</Label><Input type="number" value={form.lessons_count} onChange={e => setForm({ ...form, lessons_count: +e.target.value })} /></div>
                     <div><Label>Duration (min)</Label><Input type="number" value={form.lesson_duration_min} onChange={e => setForm({ ...form, lesson_duration_min: +e.target.value })} /></div>
                   </div>
+                  <label className="flex items-start gap-2 rounded-lg border p-3 text-sm">
+                    <Checkbox checked={resetBalance} onCheckedChange={(v) => setResetBalance(!!v)} className="mt-0.5" />
+                    <span>
+                      Reset lesson balance to this package
+                      <span className="block text-xs text-muted-foreground">
+                        Replaces any previous balance — student will show “{formatLessonsLeft(Number(form.lessons_count) || 0)}”. Uncheck to keep the current balance.
+                      </span>
+                    </span>
+                  </label>
                   <div className="grid grid-cols-3 gap-2">
                     <div><Label>Subtotal</Label><Input type="number" value={form.subtotal} onChange={e => setForm({ ...form, subtotal: +e.target.value })} /></div>
                     <div><Label>Discount</Label><Input type="number" value={form.discount} onChange={e => setForm({ ...form, discount: +e.target.value })} /></div>

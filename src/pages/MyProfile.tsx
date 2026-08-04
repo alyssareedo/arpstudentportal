@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudent } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { formatLessonsLeft } from "@/lib/lessons";
 
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -26,6 +27,11 @@ export default function MyProfile() {
   const attended = lessons.filter((l) => l.attendance !== "scheduled");
   const presentRate = attended.length ? Math.round((attended.filter((l) => l.attendance === "present").length / attended.length) * 100) : 100;
   const upcoming = lessons.filter((l) => l.attendance === "scheduled");
+  const resetAt = profile.lessons_reset_at ?? profile.course_start_date ?? null;
+  const usedSinceReset = lessons.filter((l) =>
+    (l.attendance === "present" || l.attendance === "late") && (!resetAt || l.lesson_date >= resetAt)
+  ).length;
+  const remaining = Math.max(0, (profile.lessons_purchased ?? 0) - usedSinceReset);
   const chartData = scores.map((s) => ({ month: s.month, speaking: s.speaking, grammar: s.grammar }));
 
   const toggleHw = async (id: string, completed: boolean) => {
@@ -96,7 +102,7 @@ export default function MyProfile() {
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
           { label: "Attendance", value: `${presentRate}%`, color: "text-success" },
-          { label: "Lessons", value: lessons.length, color: "text-foreground" },
+          { label: "Lesson balance", value: formatLessonsLeft(remaining), color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60 shadow-elegant">
             <CardContent className="p-5">

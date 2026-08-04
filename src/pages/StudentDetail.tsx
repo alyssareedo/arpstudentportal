@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { formatLessonsLeft } from "@/lib/lessons";
+import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -152,6 +153,8 @@ export default function StudentDetail() {
           </Card>
         ))}
       </div>
+
+      <BalanceSourceNote studentId={profile.id} resetAt={resetAt} purchased={profile.lessons_purchased ?? 0} used={lessonsCountedFromReset} />
 
       <Tabs defaultValue="overview">
         <TabsList className="rounded-full">

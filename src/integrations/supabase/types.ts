@@ -1081,13 +1081,6 @@ export type Database = {
             referencedRelation: "toeic_questions"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "toeic_assessment_answers_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "toeic_questions_safe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       toeic_assessments: {
@@ -1221,30 +1214,7 @@ export type Database = {
       }
     }
     Views: {
-      toeic_questions_safe: {
-        Row: {
-          difficulty: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id: string | null
-          options: Json | null
-          prompt: string | null
-          section: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Insert: {
-          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id?: string | null
-          options?: Json | null
-          prompt?: string | null
-          section?: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Update: {
-          difficulty?: Database["public"]["Enums"]["toeic_difficulty"] | null
-          id?: string | null
-          options?: Json | null
-          prompt?: string | null
-          section?: Database["public"]["Enums"]["toeic_section"] | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       get_toeic_questions: {

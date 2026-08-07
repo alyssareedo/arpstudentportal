@@ -70,8 +70,9 @@ export default function AdminInvoices() {
       if (error) return toast.error(error.message);
       pdf_path = path;
     }
+    const { offer_id, ...invoiceFields } = form;
     const { error } = await supabase.from("invoices").insert({
-      ...form, pdf_path, due_date: form.due_date || null, created_by: user!.id,
+      ...invoiceFields, pdf_path, due_date: form.due_date || null, created_by: user!.id,
     });
     if (error) return toast.error(error.message);
 

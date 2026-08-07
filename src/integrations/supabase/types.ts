@@ -325,6 +325,8 @@ export type Database = {
       }
       course_offers: {
         Row: {
+          archived: boolean
+          category: string
           created_at: string
           created_by: string | null
           currency: string
@@ -346,6 +348,8 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          archived?: boolean
+          category?: string
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -367,6 +371,8 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          archived?: boolean
+          category?: string
           created_at?: string
           created_by?: string | null
           currency?: string

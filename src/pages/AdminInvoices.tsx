@@ -21,6 +21,7 @@ export default function AdminInvoices() {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
+  const [offers, setOffers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -45,15 +46,17 @@ export default function AdminInvoices() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: inv }, { data: roles }, { data: pays }] = await Promise.all([
+    const [{ data: inv }, { data: roles }, { data: pays }, { data: offs }] = await Promise.all([
       supabase.from("invoices").select("*").order("issue_date", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "student"),
       supabase.from("invoice_payments").select("*"),
+      supabase.from("course_offers").select("*").order("sort_order"),
     ]);
     const ids = (roles ?? []).map((r: any) => r.user_id);
     const { data: profs } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
     setInvoices(inv ?? []);
     setStudents(profs ?? []);
+    setOffers((offs ?? []).filter((o: any) => !o.archived));
     setPayments(pays ?? []);
     setLoading(false);
   };
@@ -67,8 +70,9 @@ export default function AdminInvoices() {
       if (error) return toast.error(error.message);
       pdf_path = path;
     }
+    const { offer_id, ...invoiceFields } = form;
     const { error } = await supabase.from("invoices").insert({
-      ...form, pdf_path, due_date: form.due_date || null, created_by: user!.id,
+      ...invoiceFields, pdf_path, due_date: form.due_date || null, created_by: user!.id,
     });
     if (error) return toast.error(error.message);
 
@@ -176,6 +180,29 @@ export default function AdminInvoices() {
                     <div><Label>Issue date</Label><Input type="date" value={form.issue_date} onChange={e => setForm({ ...form, issue_date: e.target.value })} /></div>
                     <div><Label>Due date</Label><Input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} /></div>
                   </div>
+                  <div><Label>Choose a package</Label>
+                    <Select value={form.offer_id ?? ""} onValueChange={v => {
+                      const o = offers.find((x: any) => x.id === v);
+                      if (!o) return;
+                      setForm((f: any) => ({
+                        ...f,
+                        offer_id: v,
+                        package_name: o.title,
+                        lessons_count: o.lessons_count ?? f.lessons_count,
+                        lesson_duration_min: o.lesson_minutes ?? f.lesson_duration_min,
+                        currency: o.currency || f.currency,
+                        subtotal: Number(o.price) || 0,
+                        discount: 0,
+                        tax: 0,
+                      }));
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Select a package to auto-fill" /></SelectTrigger>
+                      <SelectContent>{offers.map((o: any) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.title} — {o.currency} {Number(o.price).toLocaleString()}{o.category === "membership" ? "/mo" : ""}
+                        </SelectItem>
+                      ))}</SelectContent>
+                    </Select></div>
                   <div><Label>Package name</Label><Input value={form.package_name} onChange={e => setForm({ ...form, package_name: e.target.value })} placeholder="e.g. 20 lessons private" /></div>
                   <div className="grid grid-cols-2 gap-2">
                     <div><Label>Lessons</Label><Input type="number" value={form.lessons_count} onChange={e => setForm({ ...form, lessons_count: +e.target.value })} /></div>

@@ -46,15 +46,17 @@ export default function AdminInvoices() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: inv }, { data: roles }, { data: pays }] = await Promise.all([
+    const [{ data: inv }, { data: roles }, { data: pays }, { data: offs }] = await Promise.all([
       supabase.from("invoices").select("*").order("issue_date", { ascending: false }),
       supabase.from("user_roles").select("user_id").eq("role", "student"),
       supabase.from("invoice_payments").select("*"),
+      supabase.from("course_offers").select("*").order("sort_order"),
     ]);
     const ids = (roles ?? []).map((r: any) => r.user_id);
     const { data: profs } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
     setInvoices(inv ?? []);
     setStudents(profs ?? []);
+    setOffers((offs ?? []).filter((o: any) => !o.archived));
     setPayments(pays ?? []);
     setLoading(false);
   };

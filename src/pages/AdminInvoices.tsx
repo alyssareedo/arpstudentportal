@@ -21,6 +21,7 @@ export default function AdminInvoices() {
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
+  const [offers, setOffers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

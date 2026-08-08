@@ -69,22 +69,8 @@ export default function MyProfile() {
       <Card className="overflow-hidden border-border/60 shadow-elegant">
         <div className="h-24 gradient-hero" />
         <CardContent className="-mt-12 flex flex-col gap-4 p-6 md:flex-row md:items-end">
-          <div className="relative">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-elegant">
-              <AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name}`} />
-              <AvatarFallback>{profile.full_name[0]}</AvatarFallback>
-            </Avatar>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-elegant ring-2 ring-background transition hover:opacity-90 disabled:opacity-60"
-              aria-label="Change profile picture"
-            >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarSelected} />
-          </div>
+          <EditableUserAvatar userId={profile.id} name={profile.full_name} src={profile.avatar_url} onChanged={reload} />
+
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-bold tracking-tight">{profile.full_name}</h2>

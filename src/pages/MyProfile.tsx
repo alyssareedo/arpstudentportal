@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Mail, Calendar, Target, BookOpen, CheckCircle2, Camera, Loader2 } from "lucide-react";
+import { Mail, Calendar, Target, BookOpen, CheckCircle2, } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EditableUserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,8 +16,6 @@ import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
   const { profile, lessons, scores, homework, loading, reload } = useStudent(user?.id);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
 
   if (authLoading || loading) return <p className="text-center text-muted-foreground">Loading…</p>;
   if (!user) return <Navigate to="/auth" replace />;
@@ -39,29 +36,6 @@ export default function MyProfile() {
     const { error } = await supabase.from("homework").update({ completed: !completed, completed_at: !completed ? new Date().toISOString() : null }).eq("id", id);
     if (error) return toast.error(error.message);
     reload();
-  };
-
-  const onAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      const { error: pErr } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
-      if (pErr) throw pErr;
-      toast.success("Profile picture updated");
-      reload();
-    } catch (err: any) {
-      toast.error(err.message ?? "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
   };
 
   return (

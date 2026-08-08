@@ -7,12 +7,12 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { formatLessonsLeft } from "@/lib/lessons";
+import { formatLessonsLeft, nextLessonNumber } from "@/lib/lessons";
 import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EditableUserAvatar } from "@/components/UserAvatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -109,10 +109,7 @@ export default function StudentDetail() {
         <div className="h-24 gradient-hero" />
         <CardContent className="-mt-12 flex flex-col gap-4 p-6 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-4 md:flex-row md:items-end">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-elegant">
-              <AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} />
-              <AvatarFallback>{profile.full_name[0]}</AvatarFallback>
-            </Avatar>
+            <EditableUserAvatar userId={profile.id} name={profile.full_name} src={profile.avatar_url} onChanged={reload} />
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-2xl font-bold tracking-tight">{profile.full_name}</h2>
@@ -227,7 +224,12 @@ export default function StudentDetail() {
                     </span>
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-medium">{l.topic}</p>
+                        <p className="font-medium">
+                          <span className="mr-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                            Lesson {(l as any).lesson_number ?? "—"}
+                          </span>
+                          {l.topic}
+                        </p>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                           {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}
@@ -363,8 +365,11 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
   const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "" });
   const save = async () => {
     if (!form.lesson_date || !form.topic) return toast.error("Date & topic required");
+    const { cycle_start, lesson_number } = await nextLessonNumber(studentId, form.lesson_date);
     const { error } = await supabase.from("lessons").insert({
       student_id: studentId,
+      cycle_start,
+      lesson_number,
       lesson_date: form.lesson_date,
       lesson_time: form.lesson_time,
       topic: form.topic,
@@ -408,6 +413,7 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     homework: lesson.homework ?? "",
     notes: lesson.notes ?? "",
     attendance: lesson.attendance,
+    lesson_number: String((lesson as any).lesson_number ?? ""),
   });
   const [busy, setBusy] = useState(false);
 
@@ -422,7 +428,8 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
       notes: form.notes || null,
       attendance: form.attendance as any,
       completed: form.attendance !== "scheduled",
-    }).eq("id", lesson.id);
+      lesson_number: form.lesson_number === "" ? null : Number(form.lesson_number),
+    } as any).eq("id", lesson.id);
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Lesson updated");
@@ -452,6 +459,11 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
             <div className="grid gap-2"><Label>Time</Label><Input type="time" value={form.lesson_time} onChange={(e) => setForm({ ...form, lesson_time: e.target.value })} /></div>
           </div>
           <div className="grid gap-2"><Label>Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
+          <div className="grid gap-2">
+            <Label>Lesson number</Label>
+            <Input type="number" min={1} value={form.lesson_number} onChange={(e) => setForm({ ...form, lesson_number: e.target.value })} placeholder="e.g. 3" />
+            <p className="text-xs text-muted-foreground">Numbering restarts at 1 for each new course package.</p>
+          </div>
           <div className="grid gap-2"><Label>Attendance</Label>
             <Select value={form.attendance} onValueChange={(v) => setForm({ ...form, attendance: v as any })}>
               <SelectTrigger><SelectValue /></SelectTrigger>

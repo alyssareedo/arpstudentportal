@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -149,10 +149,7 @@ export default function Students() {
             <Card key={s.id} className="group h-full border-border/60 shadow-elegant transition-all hover:-translate-y-0.5 hover:shadow-elevated">
               <CardContent className="p-5">
                 <Link to={`/students/${s.id}`} className="flex items-start gap-3">
-                  <Avatar className="h-14 w-14 ring-2 ring-primary/10">
-                    <AvatarImage src={s.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.full_name}`} />
-                    <AvatarFallback>{s.full_name[0]}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar className="h-14 w-14 ring-2 ring-primary/10" name={s.full_name} src={s.avatar_url} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className="truncate font-semibold">{s.full_name}</h3>

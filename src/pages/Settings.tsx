@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
@@ -14,10 +14,7 @@ export default function Settings() {
         <CardHeader><CardTitle>Profile</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 ring-2 ring-primary/10">
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher" />
-              <AvatarFallback>T</AvatarFallback>
-            </Avatar>
+            <UserAvatar className="h-16 w-16 ring-2 ring-primary/10" name="Teacher" />
             <Button variant="outline">Change avatar</Button>
           </div>
           <Separator />

@@ -3,7 +3,7 @@ import { Bell, LogOut } from "lucide-react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
 
@@ -38,10 +38,7 @@ export default function AppLayout() {
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Bell className="h-4 w-4" />
               </Button>
-              <Avatar className="h-9 w-9 ring-2 ring-primary/10">
-                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
-                <AvatarFallback>{user?.email?.[0]?.toUpperCase()}</AvatarFallback>
-              </Avatar>
+              <UserAvatar className="h-9 w-9 ring-2 ring-primary/10" name={user?.email} fallbackText={user?.email?.[0]?.toUpperCase() ?? "?"} />
               <Button variant="ghost" size="icon" className="rounded-full" onClick={signOut} asChild>
                 <Link to="/auth"><LogOut className="h-4 w-4" /></Link>
               </Button>

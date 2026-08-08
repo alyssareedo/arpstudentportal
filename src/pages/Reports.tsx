@@ -6,7 +6,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useStudents, useStudent } from "@/hooks/useData";
 import logo from "@/assets/logo.png";
@@ -72,7 +72,7 @@ export default function Reports() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <img src={logo} alt="ARP Speak English With Me" className="h-16 w-auto" />
-              <Avatar className="h-14 w-14 ring-2 ring-primary/20"><AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.full_name}`} /><AvatarFallback>{profile.full_name[0]}</AvatarFallback></Avatar>
+              <UserAvatar className="h-14 w-14 ring-2 ring-primary/20" name={profile.full_name} src={profile.avatar_url} />
               <div>
                 <CardTitle className="text-xl">{profile.full_name}</CardTitle>
                 <p className="text-sm text-muted-foreground">{month} progress report · Level {profile.level}</p>

@@ -8,7 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { StatCard } from "@/components/StatCard";
 import { useStudents, useAllLessons } from "@/hooks/useData";
 import { useEffect, useState } from "react";
@@ -111,10 +111,7 @@ export default function Dashboard() {
           <CardContent className="space-y-2">
             {upcoming.map((l) => (
               <div key={l.id} className="flex items-center gap-3 rounded-xl border border-border/60 p-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={l.profiles.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${l.profiles.full_name}`} />
-                  <AvatarFallback>{l.profiles.full_name[0]}</AvatarFallback>
-                </Avatar>
+                <UserAvatar className="h-10 w-10" name={l.profiles.full_name} src={l.profiles.avatar_url} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{l.topic || "Lesson"}</p>
                   <p className="truncate text-xs text-muted-foreground">{l.profiles.full_name} · {l.lesson_date} {l.lesson_time}</p>

@@ -32,6 +32,8 @@ export interface Lesson {
   notes: string | null;
   attendance: "present" | "absent" | "late" | "scheduled";
   completed: boolean;
+  lesson_number: number | null;
+  cycle_start: string | null;
 }
 
 export interface Score {

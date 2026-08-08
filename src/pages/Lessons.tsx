@@ -1,7 +1,7 @@
 import { Video, Calendar, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAllLessons } from "@/hooks/useData";
@@ -51,12 +51,10 @@ export default function Lessons() {
             {items.map((l) => (
               <Card key={l.id} className="border-border/60 shadow-elegant transition-colors hover:bg-secondary/30">
                 <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={l.profiles.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${l.profiles.full_name}`} />
-                    <AvatarFallback>{l.profiles.full_name[0]}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar className="h-12 w-12" name={l.profiles.full_name} src={l.profiles.avatar_url} />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">Lesson {l.lesson_number ?? "—"}</span>
                       <p className="font-semibold">{l.topic || "Untitled lesson"}</p>
                       <Badge variant="outline" className="rounded-full">{l.profiles.level}</Badge>
                     </div>

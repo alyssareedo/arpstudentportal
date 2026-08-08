@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Mail, Calendar, Target, BookOpen, CheckCircle2, Camera, Loader2 } from "lucide-react";
+import { Mail, Calendar, Target, BookOpen, CheckCircle2, } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { EditableUserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,8 +16,6 @@ import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
   const { profile, lessons, scores, homework, loading, reload } = useStudent(user?.id);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
 
   if (authLoading || loading) return <p className="text-center text-muted-foreground">Loading…</p>;
   if (!user) return <Navigate to="/auth" replace />;
@@ -41,50 +38,13 @@ export default function MyProfile() {
     reload();
   };
 
-  const onAvatarSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      const { error: pErr } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
-      if (pErr) throw pErr;
-      toast.success("Profile picture updated");
-      reload();
-    } catch (err: any) {
-      toast.error(err.message ?? "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-border/60 shadow-elegant">
         <div className="h-24 gradient-hero" />
         <CardContent className="-mt-12 flex flex-col gap-4 p-6 md:flex-row md:items-end">
-          <div className="relative">
-            <Avatar className="h-24 w-24 ring-4 ring-background shadow-elegant">
-              <AvatarImage src={profile.avatar_url ?? `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name}`} />
-              <AvatarFallback>{profile.full_name[0]}</AvatarFallback>
-            </Avatar>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              className="absolute -bottom-1 -right-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-elegant ring-2 ring-background transition hover:opacity-90 disabled:opacity-60"
-              aria-label="Change profile picture"
-            >
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onAvatarSelected} />
-          </div>
+          <EditableUserAvatar userId={profile.id} name={profile.full_name} src={profile.avatar_url} onChanged={reload} />
+
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-bold tracking-tight">{profile.full_name}</h2>

@@ -206,6 +206,8 @@ export default function AdminAssessments() {
           )}
         </CardContent>
       </Card>
+
+      <CefrAnswerKey />
     </div>
   );
 }

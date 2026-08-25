@@ -211,7 +211,10 @@ export default function AdminAssessments() {
 
       <AdminCefrResults />
 
+      <ToeicAnswerKey />
+
       <CefrAnswerKey />
+
     </div>
   );
 }

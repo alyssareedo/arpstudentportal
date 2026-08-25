@@ -259,6 +259,63 @@ export default function ToeicResult() {
         </CardContent>
       </Card>
 
+      {review.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Answer review</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {review.map((r, i) => (
+              <div key={r.question_id} className="rounded-lg border p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <Badge variant="secondary">{SECTION_LABELS[r.section]}</Badge>
+                  <span className={`text-xs font-semibold ${r.is_correct ? "text-emerald-600" : "text-destructive"}`}>
+                    {r.is_correct ? "Correct" : "Incorrect"}
+                  </span>
+                </div>
+                <p className="mb-3 whitespace-pre-wrap text-sm font-medium">
+                  {i + 1}. {r.prompt}
+                </p>
+                <div className="space-y-1">
+                  {r.options.map((opt) => {
+                    const isCorrect = opt === r.correct_answer;
+                    const isSelected = opt === r.selected_answer;
+                    return (
+                      <div
+                        key={opt}
+                        className={`rounded-md border px-3 py-2 text-sm ${
+                          isCorrect
+                            ? "border-emerald-500/50 bg-emerald-500/10"
+                            : isSelected
+                            ? "border-destructive/50 bg-destructive/10"
+                            : ""
+                        }`}
+                      >
+                        {opt}
+                        {isCorrect && <span className="ml-2 text-xs text-emerald-600">Correct answer</span>}
+                        {isSelected && !isCorrect && (
+                          <span className="ml-2 text-xs text-destructive">Your answer</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {r.selected_answer == null && (
+                  <p className="mt-2 text-xs text-muted-foreground">No answer given.</p>
+                )}
+                {r.explanation && (
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Why: </span>
+                    {r.explanation}
+                  </p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+
       <div className="flex gap-2">
         <Button onClick={download}>
           <Download className="mr-2 h-4 w-4" /> Download PDF report

@@ -1111,6 +1111,90 @@ export type Database = {
           },
         ]
       }
+      sheet_sync_runs: {
+        Row: {
+          created_at: string
+          details: Json
+          error: string | null
+          finished_at: string | null
+          id: string
+          mode: string
+          rows_pushed: number
+          started_at: string
+          status: string
+          sync_type: string
+          tables_synced: number
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          mode?: string
+          rows_pushed?: number
+          started_at?: string
+          status?: string
+          sync_type?: string
+          tables_synced?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          mode?: string
+          rows_pushed?: number
+          started_at?: string
+          status?: string
+          sync_type?: string
+          tables_synced?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      sheet_sync_targets: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          incremental: boolean
+          last_row_count: number
+          last_synced_at: string | null
+          spreadsheet_id: string | null
+          tab_name: string
+          table_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          incremental?: boolean
+          last_row_count?: number
+          last_synced_at?: string | null
+          spreadsheet_id?: string | null
+          tab_name: string
+          table_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          incremental?: boolean
+          last_row_count?: number
+          last_synced_at?: string | null
+          spreadsheet_id?: string | null
+          tab_name?: string
+          table_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_notes: {
         Row: {
           notes: string
@@ -1337,6 +1421,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      configure_sheets_autosync: {
+        Args: { _enabled: boolean; _minutes?: number }
+        Returns: Json
+      }
       get_cefr_questions: {
         Args: never
         Returns: {
@@ -1365,6 +1453,7 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_sheets_autosync: { Args: never; Returns: Json }
       get_toeic_questions: {
         Args: never
         Returns: {

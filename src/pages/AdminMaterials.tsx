@@ -17,7 +17,7 @@ const TYPES = ["pdf", "doc", "pptx", "image", "audio", "video", "link"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const SKILLS = ["listening", "reading", "speaking", "writing", "grammar", "vocabulary"];
 
-const emptyForm = { title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "", category_id: "", tags: "" };
+const emptyForm = { title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "", category_id: "", tags: "", thumbnail_url: "" };
 
 export default function AdminMaterials() {
   const { user } = useAuth();
@@ -29,6 +29,8 @@ export default function AdminMaterials() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [thumbFile, setThumbFile] = useState<File | null>(null);
+  const [uploadingThumb, setUploadingThumb] = useState(false);
   const [form, setForm] = useState<any>({ ...emptyForm });
   const [assignFor, setAssignFor] = useState<any>(null);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
@@ -56,7 +58,19 @@ export default function AdminMaterials() {
     setLoading(false);
   };
 
-  const openNew = () => { setEditingId(null); setForm({ ...emptyForm }); setFile(null); setOpen(true); };
+  const openNew = () => { setEditingId(null); setForm({ ...emptyForm }); setFile(null); setThumbFile(null); setOpen(true); };
+
+  const uploadThumb = async (f: File) => {
+    if (f.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    setUploadingThumb(true);
+    const path = `${user!.id}/material-thumb-${crypto.randomUUID()}-${f.name}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
+    setUploadingThumb(false);
+    if (error) return toast.error(error.message);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    setForm((prev: any) => ({ ...prev, thumbnail_url: data.publicUrl }));
+    toast.success("Background image uploaded");
+  };
   const openEdit = (m: any) => {
     setEditingId(m.id);
     setForm({
@@ -64,6 +78,7 @@ export default function AdminMaterials() {
       cefr_level: m.cefr_level ?? "", skill: m.skill ?? "", external_url: m.external_url ?? "",
       objectives: m.objectives ?? "", lesson_plan: m.lesson_plan ?? "",
       category_id: m.category_id ?? "", tags: (m.tags ?? []).join(", "),
+      thumbnail_url: m.thumbnail_url ?? "",
     });
     setFile(null);
     setOpen(true);
@@ -81,6 +96,7 @@ export default function AdminMaterials() {
       objectives: form.objectives || null,
       lesson_plan: form.lesson_plan || null,
       category_id: form.category_id || null,
+      thumbnail_url: form.thumbnail_url || null,
       tags: form.tags ? form.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
     };
     if (editingId) {
@@ -205,6 +221,16 @@ export default function AdminMaterials() {
                   ) : (
                     <div><Label>{editingId ? "Replace file (optional)" : "File"}</Label><Input type="file" onChange={e => setFile(e.target.files?.[0] ?? null)} /></div>
                   )}
+                  <div>
+                    <Label>Background image (thumbnail)</Label>
+                    <div className="flex gap-2">
+                      <Input value={form.thumbnail_url} onChange={e => setForm({ ...form, thumbnail_url: e.target.value })} placeholder="https://image-url..." />
+                      {form.thumbnail_url && <Button type="button" variant="ghost" onClick={() => setForm({ ...form, thumbnail_url: "" })}>Clear</Button>}
+                    </div>
+                    <Input className="mt-2" type="file" accept="image/*" disabled={uploadingThumb}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadThumb(f); }} />
+                    {form.thumbnail_url && <img src={form.thumbnail_url} alt="Material background preview" className="mt-2 h-24 w-full rounded-md object-cover" />}
+                  </div>
                   <div><Label>Learning objectives</Label><Textarea value={form.objectives} onChange={e => setForm({ ...form, objectives: e.target.value })} rows={2} /></div>
                   <div><Label>Lesson plan / notes</Label><Textarea value={form.lesson_plan} onChange={e => setForm({ ...form, lesson_plan: e.target.value })} rows={3} /></div>
                 </div>
@@ -223,7 +249,10 @@ export default function AdminMaterials() {
                 const count = assignments.filter(a => a.material_id === m.id).length;
                 const cat = categories.find(c => c.id === m.category_id);
                 return (
-                  <Card key={m.id} className="border-border/60">
+                  <Card key={m.id} className="overflow-hidden border-border/60">
+                    {m.thumbnail_url && (
+                      <img src={m.thumbnail_url} alt={`${m.title} background`} loading="lazy" className="h-28 w-full object-cover" />
+                    )}
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">

@@ -117,8 +117,15 @@ export default function ToeicResult() {
           setComments([]);
         }
       }
+      const { data: rev } = await supabase.rpc("get_toeic_review", { _assessment_id: id });
+      setReview(((rev as unknown as ReviewRow[]) ?? []).map((r) => ({
+        ...r,
+        options: (r.options ?? []) as string[],
+      })));
+
       setLoading(false);
     })();
+
   }, [id, user, isStaff]);
 
   async function addComment() {

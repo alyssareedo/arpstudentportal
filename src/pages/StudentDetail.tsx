@@ -198,7 +198,7 @@ export default function StudentDetail() {
                 <Input
                   value={lessonQuery}
                   onChange={(e) => setLessonQuery(e.target.value)}
-                  placeholder="Search topic, homework, notes or date…"
+                  placeholder="Search topic, homework, lesson links or date…"
                   className="h-9 max-w-sm rounded-full"
                 />
                 <Select value={lessonStatus} onValueChange={setLessonStatus}>
@@ -240,7 +240,7 @@ export default function StudentDetail() {
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{l.lesson_date} · {l.lesson_time}</p>
                       {l.homework && <p className="mt-2 text-sm"><span className="font-medium">Homework: </span>{l.homework}</p>}
-                      {l.notes && <p className="mt-1 text-sm text-muted-foreground">{l.notes}</p>}
+                      {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                     </div>
                   </div>
                 ))}

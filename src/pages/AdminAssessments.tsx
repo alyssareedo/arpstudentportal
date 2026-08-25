@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles, Loader2 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { CefrAnswerKey } from "@/components/CefrAnswerKey";
 
 interface Row {
   id: string;
@@ -205,6 +206,8 @@ export default function AdminAssessments() {
           )}
         </CardContent>
       </Card>
+
+      <CefrAnswerKey />
     </div>
   );
 }

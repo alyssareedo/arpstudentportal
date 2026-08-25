@@ -173,6 +173,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cefr_assessment_answers: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_answer: number | null
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          selected_answer?: number | null
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_answer?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cefr_assessment_answers_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "cefr_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cefr_assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "cefr_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cefr_assessments: {
         Row: {
           age: number | null
@@ -251,6 +293,54 @@ export type Database = {
           urgency?: string | null
           user_id?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      cefr_questions: {
+        Row: {
+          category: string
+          correct_answer: number
+          created_at: string
+          explanation: string | null
+          id: string
+          is_active: boolean
+          legacy_id: number | null
+          level: Database["public"]["Enums"]["cefr_level"]
+          options: Json
+          passage: string | null
+          prompt: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          correct_answer: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          is_active?: boolean
+          legacy_id?: number | null
+          level: Database["public"]["Enums"]["cefr_level"]
+          options: Json
+          passage?: string | null
+          prompt: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          correct_answer?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          is_active?: boolean
+          legacy_id?: number | null
+          level?: Database["public"]["Enums"]["cefr_level"]
+          options?: Json
+          passage?: string | null
+          prompt?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1229,6 +1319,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_cefr_questions: {
+        Args: never
+        Returns: {
+          category: string
+          id: string
+          level: Database["public"]["Enums"]["cefr_level"]
+          options: Json
+          passage: string
+          prompt: string
+          sort_order: number
+        }[]
+      }
       get_toeic_questions: {
         Args: never
         Returns: {

@@ -6,10 +6,15 @@ import { Switch } from "@/components/ui/switch";
 import { UserAvatar } from "@/components/UserAvatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { GoogleSheetsSync } from "@/components/GoogleSheetsSync";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Settings() {
+  const { role } = useAuth();
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {role === "admin" && <GoogleSheetsSync />}
+
       <Card className="border-border/60 shadow-elegant">
         <CardHeader><CardTitle>Profile</CardTitle></CardHeader>
         <CardContent className="space-y-4">

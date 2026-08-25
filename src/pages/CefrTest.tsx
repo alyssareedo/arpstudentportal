@@ -273,22 +273,10 @@ export default function CefrTest() {
               </CardContent>
             </Card>
 
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={restart} variant="outline">Take the test again</Button>
+            </div>
 
-            <Card className="bg-primary/5 border-primary/30">
-              <CardContent className="p-6 space-y-3">
-                <h3 className="font-bold text-lg">What's next?</h3>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Our team will send a full evaluation to your LINE within 24 hours.</li>
-                  <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Free 1-on-1 trial lesson with a native teacher.</li>
-                  <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> Personalised course recommendation based on your goals.</li>
-                  <li className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5" /> No cost, no strings attached.</li>
-                </ul>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <Button onClick={restart} variant="outline">Take the test again</Button>
-                  <Link to="/auth"><Button>Create an account</Button></Link>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         )}
       </main>

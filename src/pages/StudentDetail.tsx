@@ -186,7 +186,9 @@ export default function StudentDetail() {
               <CardContent><p className="text-sm text-muted-foreground">{profile.goals || "No goals set yet."}</p></CardContent>
             </Card>
           </div>
+          <CefrResultsWidget studentId={profile.id} />
         </TabsContent>
+
 
         <TabsContent value="lessons">
           <Card className="border-border/60 shadow-elegant">

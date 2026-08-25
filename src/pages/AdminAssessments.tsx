@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Sparkles, Loader2 } from "lucide-react";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { CefrAnswerKey } from "@/components/CefrAnswerKey";
+import { AdminCefrResults } from "@/components/AdminCefrResults";
 
 interface Row {
   id: string;
@@ -102,7 +103,7 @@ export default function AdminAssessments() {
         <div>
           <h1 className="text-2xl font-bold">Assessments</h1>
           <p className="text-sm text-muted-foreground">
-            View and filter every TOEIC placement test attempt.
+            View and filter every TOEIC and CEFR placement test attempt.
           </p>
         </div>
         {role === "admin" && (
@@ -206,6 +207,8 @@ export default function AdminAssessments() {
           )}
         </CardContent>
       </Card>
+
+      <AdminCefrResults />
 
       <CefrAnswerKey />
     </div>

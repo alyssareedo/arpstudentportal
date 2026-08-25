@@ -219,49 +219,60 @@ export default function CefrTest() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Answer review</CardTitle>
-                <p className="text-sm text-muted-foreground">See the correct answer for every question.</p>
+                <CardTitle className="text-base">Answer review</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {result.review.map((r, i) => (
-                  <div key={r.question_id} className="rounded-lg border p-4 space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="font-medium">
-                        {i + 1}. {r.prompt}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline">{r.level}</Badge>
-                        {r.is_correct ? (
-                          <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-destructive" />
-                        )}
-                      </div>
-                    </div>
-                    {r.passage && (
-                      <div className="rounded border bg-muted/40 p-3 text-sm italic">{r.passage}</div>
-                    )}
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Your answer: </span>
-                      <span className={r.is_correct ? "text-emerald-600 font-medium" : "text-destructive font-medium"}>
-                        {r.selected_text ?? "No answer"}
+                  <div key={r.question_id} className="rounded-lg border p-4">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <Badge variant="secondary">{r.level}</Badge>
+                      <span className={`text-xs font-semibold ${r.is_correct ? "text-emerald-600" : "text-destructive"}`}>
+                        {r.is_correct ? "Correct" : "Incorrect"}
                       </span>
                     </div>
-                    {!r.is_correct && (
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Correct answer: </span>
-                        <span className="font-medium text-emerald-600">{r.correct_text}</span>
-                      </div>
+                    <p className="mb-3 whitespace-pre-wrap text-sm font-medium">
+                      {i + 1}. {r.prompt}
+                    </p>
+                    {r.passage && (
+                      <div className="mb-3 rounded border bg-muted/40 p-3 text-sm italic">{r.passage}</div>
+                    )}
+                    <div className="space-y-1">
+                      {r.options.map((opt, idx) => {
+                        const isCorrect = idx === r.correct_answer;
+                        const isSelected = idx === r.selected_answer;
+                        return (
+                          <div
+                            key={idx}
+                            className={`rounded-md border px-3 py-2 text-sm ${
+                              isCorrect
+                                ? "border-emerald-500/50 bg-emerald-500/10"
+                                : isSelected
+                                ? "border-destructive/50 bg-destructive/10"
+                                : ""
+                            }`}
+                          >
+                            {opt}
+                            {isCorrect && <span className="ml-2 text-xs text-emerald-600">Correct answer</span>}
+                            {isSelected && !isCorrect && (
+                              <span className="ml-2 text-xs text-destructive">Your answer</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {r.selected_answer == null && (
+                      <p className="mt-2 text-xs text-muted-foreground">No answer given.</p>
                     )}
                     {r.explanation && (
-                      <div className="text-sm text-muted-foreground">
+                      <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
                         <span className="font-medium text-foreground">Why: </span>{r.explanation}
-                      </div>
+                      </p>
                     )}
                   </div>
                 ))}
               </CardContent>
             </Card>
+
 
             <Card className="bg-primary/5 border-primary/30">
               <CardContent className="p-6 space-y-3">

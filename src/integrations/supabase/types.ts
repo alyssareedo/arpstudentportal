@@ -1341,6 +1341,19 @@ export type Database = {
           section: Database["public"]["Enums"]["toeic_section"]
         }[]
       }
+      get_toeic_review: {
+        Args: { _assessment_id: string }
+        Returns: {
+          correct_answer: string
+          explanation: string
+          is_correct: boolean
+          options: Json
+          prompt: string
+          question_id: string
+          section: Database["public"]["Enums"]["toeic_section"]
+          selected_answer: string
+        }[]
+      }
       next_invoice_number: { Args: never; Returns: string }
     }
     Enums: {

@@ -198,7 +198,7 @@ export default function StudentDetail() {
                 <Input
                   value={lessonQuery}
                   onChange={(e) => setLessonQuery(e.target.value)}
-                  placeholder="Search topic, homework, notes or date…"
+                  placeholder="Search topic, homework, lesson links or date…"
                   className="h-9 max-w-sm rounded-full"
                 />
                 <Select value={lessonStatus} onValueChange={setLessonStatus}>
@@ -240,7 +240,7 @@ export default function StudentDetail() {
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{l.lesson_date} · {l.lesson_time}</p>
                       {l.homework && <p className="mt-2 text-sm"><span className="font-medium">Homework: </span>{l.homework}</p>}
-                      {l.notes && <p className="mt-1 text-sm text-muted-foreground">{l.notes}</p>}
+                      {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                     </div>
                   </div>
                 ))}
@@ -398,7 +398,7 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
           <div className="grid gap-2"><Label>Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
-          <div className="grid gap-2"><Label>Notes</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+          <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <DialogFooter><Button onClick={save} className="gradient-primary text-primary-foreground">Save</Button></DialogFooter>
       </DialogContent>
@@ -480,7 +480,7 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
           </div>
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
-          <div className="grid gap-2"><Label>Notes</Label><Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+          <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <DialogFooter className="flex-row justify-between sm:justify-between">
           <Button variant="destructive" onClick={remove} disabled={busy}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>

@@ -141,7 +141,7 @@ export default function MyProfile() {
                     <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{l.lesson_date}</p>
-                  {l.notes && <p className="mt-1 text-sm text-muted-foreground">{l.notes}</p>}
+                  {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                 </div>
               ))}
               {lessons.filter((l) => l.attendance !== "scheduled").length === 0 && (

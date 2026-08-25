@@ -263,8 +263,11 @@ export default function Materials() {
                   {sorted.map(m => {
                     const done = m.prog?.status === "completed";
                     return (
-                      <div key={m.id} className={`rounded-lg border p-3 ${done ? "border-green-500/40 bg-green-500/5" : ""}`}>
-                        <div className="flex items-start gap-2">
+                      <div key={m.id} className={`overflow-hidden rounded-lg border ${done ? "border-green-500/40 bg-green-500/5" : ""}`}>
+                        {m.thumbnail_url && (
+                          <img src={m.thumbnail_url} alt={`${m.title} background`} loading="lazy" className="h-28 w-full object-cover" />
+                        )}
+                        <div className="flex items-start gap-2 p-3 pb-0">
                           <div className="mt-0.5">{typeIcon(m.type)}</div>
                           <div className="min-w-0 flex-1">
                             <div className="font-medium break-words">{m.title}</div>
@@ -280,7 +283,7 @@ export default function Materials() {
                             {m.prog?.favorited ? <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> : <StarOff className="h-4 w-4" />}
                           </Button>
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap gap-1.5 p-3 pt-0">
                           <Button size="sm" variant="outline" onClick={() => openMaterial(m)}>
                             {m.type === "link" ? <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />} Open
                           </Button>

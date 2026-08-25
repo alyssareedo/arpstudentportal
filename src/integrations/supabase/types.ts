@@ -887,6 +887,7 @@ export type Database = {
           skill: string | null
           storage_path: string | null
           tags: string[] | null
+          thumbnail_url: string | null
           title: string
           type: string
           updated_at: string
@@ -904,6 +905,7 @@ export type Database = {
           skill?: string | null
           storage_path?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           title: string
           type: string
           updated_at?: string
@@ -921,6 +923,7 @@ export type Database = {
           skill?: string | null
           storage_path?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           title?: string
           type?: string
           updated_at?: string

@@ -200,17 +200,19 @@ export default function Assessments() {
           <CardContent>
             <div className="space-y-2">
               {cefr.map((r) => (
-                <div
+                <Link
                   key={r.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  to={`/assessments/cefr/${r.id}`}
+                  className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-accent"
                 >
                   <div className="text-sm text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString()} ·{" "}
                     {r.total_score ?? 0}/{r.total_questions ?? 0}
                   </div>
                   <Badge variant="secondary">{r.cefr_level ?? "—"}</Badge>
-                </div>
+                </Link>
               ))}
+
             </div>
           </CardContent>
         </Card>

@@ -66,11 +66,8 @@ export default function ToeicResult() {
   const { user, role } = useAuth();
   const [a, setA] = useState<Assessment | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [review, setReview] = useState<ReviewRow[]>([]);
 
-  const isStaff = role === "admin" || role === "teacher";
 
   useEffect(() => {
     if (!id) return;

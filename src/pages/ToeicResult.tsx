@@ -49,6 +49,18 @@ interface Comment {
   author_name?: string;
 }
 
+interface ReviewRow {
+  question_id: string;
+  section: ToeicSection;
+  prompt: string;
+  options: string[];
+  selected_answer: string | null;
+  correct_answer: string;
+  is_correct: boolean;
+  explanation: string | null;
+}
+
+
 export default function ToeicResult() {
   const { id } = useParams();
   const { user, role } = useAuth();

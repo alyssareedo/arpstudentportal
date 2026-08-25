@@ -24,6 +24,7 @@ import CefrTest from "./pages/CefrTest";
 import Assessments from "./pages/Assessments";
 import ToeicTest from "./pages/ToeicTest";
 import ToeicResult from "./pages/ToeicResult";
+import CefrResult from "./pages/CefrResult";
 import AdminAssessments from "./pages/AdminAssessments";
 import Renewals from "./pages/Renewals";
 import Teachers from "./pages/Teachers";
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/toeic" element={<ToeicTest />} />
               <Route path="/assessments/toeic/:id" element={<ToeicResult />} />
+              <Route path="/assessments/cefr/:id" element={<CefrResult />} />
               <Route path="/materials" element={<Materials />} />
               <Route path="/my-invoices" element={<MyInvoices />} />
               <Route path="/roadmap" element={<Roadmap />} />

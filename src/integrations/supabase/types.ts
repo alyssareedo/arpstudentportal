@@ -1331,6 +1331,22 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_cefr_review: {
+        Args: { _assessment_id: string }
+        Returns: {
+          category: string
+          correct_answer: number
+          explanation: string
+          is_correct: boolean
+          level: Database["public"]["Enums"]["cefr_level"]
+          options: Json
+          passage: string
+          prompt: string
+          question_id: string
+          selected_answer: number
+          sort_order: number
+        }[]
+      }
       get_toeic_questions: {
         Args: never
         Returns: {

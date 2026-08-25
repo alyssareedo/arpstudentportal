@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 import { formatLessonsLeft, nextLessonNumber } from "@/lib/lessons";
 import { BalanceSourceNote } from "@/components/BalanceSourceNote";
+import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -186,7 +187,9 @@ export default function StudentDetail() {
               <CardContent><p className="text-sm text-muted-foreground">{profile.goals || "No goals set yet."}</p></CardContent>
             </Card>
           </div>
+          <CefrResultsWidget studentId={profile.id} />
         </TabsContent>
+
 
         <TabsContent value="lessons">
           <Card className="border-border/60 shadow-elegant">

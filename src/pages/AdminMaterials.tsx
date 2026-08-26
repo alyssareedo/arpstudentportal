@@ -351,7 +351,28 @@ export default function AdminMaterials() {
               </div>
             </div>
           )}
-          {loading ? <p>Loading…</p> : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
+          {loading ? <p>Loading…</p> : folderFilter === "all" ? (
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {categories.map(c => (
+                <button key={c.id} onClick={() => setFolderFilter(c.id)}
+                  className="flex items-center gap-3 rounded-lg border p-4 text-left transition hover:bg-accent">
+                  <Folder className="h-8 w-8 text-primary" />
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{c.name}</div>
+                    <div className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</div>
+                  </div>
+                </button>
+              ))}
+              <button onClick={() => setFolderFilter("uncat")}
+                className="flex items-center gap-3 rounded-lg border p-4 text-left transition hover:bg-accent">
+                <Folder className="h-8 w-8 text-muted-foreground" />
+                <div className="min-w-0">
+                  <div className="truncate font-medium">Uncategorized</div>
+                  <div className="text-xs text-muted-foreground">{materials.filter(m => !m.category_id).length} items</div>
+                </div>
+              </button>
+            </div>
+          ) : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
             <div className="grid gap-3 md:grid-cols-2">
               {shown.map(m => {
                 const count = assignments.filter(a => a.material_id === m.id).length;

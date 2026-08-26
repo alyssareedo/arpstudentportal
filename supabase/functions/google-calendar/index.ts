@@ -24,9 +24,15 @@ Deno.serve(async (req) => {
     const admin = createClient(url, serviceKey);
 
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-    if (!token) return json({ error: "Unauthorized" }, 401);
+    if (!token) {
+      console.error("No Authorization header on request");
+      return json({ error: "Unauthorized" }, 401);
+    }
     const { data: u, error: authErr } = await admin.auth.getUser(token);
-    if (authErr || !u?.user) return json({ error: "Unauthorized" }, 401);
+    if (authErr || !u?.user) {
+      console.error("Token validation failed:", authErr?.message ?? "no user");
+      return json({ error: "Unauthorized" }, 401);
+    }
 
     const { data: staff } = await admin
       .from("user_roles")

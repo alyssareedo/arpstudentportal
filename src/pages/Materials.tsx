@@ -260,8 +260,6 @@ export default function Materials() {
               {sorted.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nothing here yet.</p>
               ) : view === "grid" ? (
-                <p className="text-sm text-muted-foreground">Nothing here yet.</p>
-              ) : view === "grid" ? (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {sorted.map(m => {
                     const done = m.prog?.status === "completed";

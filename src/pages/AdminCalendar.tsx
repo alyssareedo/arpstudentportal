@@ -445,12 +445,24 @@ export default function AdminCalendar() {
               {detailEvent.kind === "booking" && (
                 <p><b>Status:</b> {detailEvent.raw.status}</p>
               )}
+              {detailEvent.kind === "google" && (
+                <>
+                  {detailEvent.raw.location && <p><b>Where:</b> {detailEvent.raw.location}</p>}
+                  {detailEvent.raw.htmlLink && (
+                    <a className="text-primary underline" href={detailEvent.raw.htmlLink} target="_blank" rel="noreferrer">
+                      Open in Google Calendar
+                    </a>
+                  )}
+                </>
+              )}
             </div>
           )}
           <DialogFooter>
-            <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </Button>
+            {detailEvent?.kind !== "google" && (
+              <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setDetailEvent(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

@@ -252,11 +252,14 @@ export default function Materials() {
               </div>
             )}
 
+            {(folder !== null || search.trim()) && (
             <div>
               {folder === null && (
-                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">All items ({sorted.length})</h3>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Search results ({sorted.length})</h3>
               )}
               {sorted.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nothing here yet.</p>
+              ) : view === "grid" ? (
                 <p className="text-sm text-muted-foreground">Nothing here yet.</p>
               ) : view === "grid" ? (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

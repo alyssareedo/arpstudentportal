@@ -21,7 +21,33 @@ import { Switch } from "@/components/ui/switch";
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
+type EventKind = "slot" | "recurring" | "block" | "booking" | "google" | "ics";
+
+// Offset (minutes) of a timezone at a given instant
+function tzOffset(date: Date, tz: string) {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const p: any = {};
+  for (const part of dtf.formatToParts(date)) p[part.type] = part.value;
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+  return (asUTC - date.getTime()) / 60000;
+}
+
+// Shift an instant so it renders as the wall-clock time of `tz`
+function shiftToTz(date: Date, tz: string) {
+  if (!tz) return date;
+  const delta = tzOffset(date, tz) + date.getTimezoneOffset();
+  return new Date(date.getTime() + delta * 60000);
+}
+
+const TZ_OPTIONS = [
+  { value: "local", label: "My device time" },
+  { value: "Asia/Bangkok", label: "Thailand (GMT+7)" },
+  { value: "Africa/Johannesburg", label: "South Africa (GMT+2)" },
+];
 interface CalEvent extends RbcEvent {
   id: string;
   kind: EventKind;
@@ -62,6 +88,14 @@ export default function AdminCalendar() {
   const [gcalList, setGcalList] = useState<{ id: string; summary: string }[]>([]);
   const [gcalEvents, setGcalEvents] = useState<any[]>([]);
   const [gcalLoading, setGcalLoading] = useState(false);
+  const [tz, setTz] = useState<string>(() => localStorage.getItem("arp_cal_tz") || "local");
+  const tzName = tz === "local" ? "" : tz;
+
+  // ClassIn / other .ics calendar feed
+  const [icsUrl, setIcsUrl] = useState<string>(() => localStorage.getItem("arp_ics_url") || "");
+  const [icsInput, setIcsInput] = useState<string>(() => localStorage.getItem("arp_ics_url") || "");
+  const [icsEvents, setIcsEvents] = useState<any[]>([]);
+  const [icsLoading, setIcsLoading] = useState(false);
 
   useEffect(() => { if (user) loadAll(); }, [user, date, teacherFilter]);
 
@@ -71,6 +105,27 @@ export default function AdminCalendar() {
     if (!gcalOn) { setGcalEvents([]); return; }
     loadGoogle();
   }, [gcalOn, gcalId, date, user]);
+
+  useEffect(() => { localStorage.setItem("arp_cal_tz", tz); }, [tz]);
+
+  useEffect(() => {
+    localStorage.setItem("arp_ics_url", icsUrl);
+    if (!icsUrl) { setIcsEvents([]); return; }
+    loadIcs();
+  }, [icsUrl, user]);
+
+  const loadIcs = async () => {
+    if (!icsUrl) return;
+    setIcsLoading(true);
+    const { data, error } = await supabase.functions.invoke("ics-calendar", { body: { url: icsUrl } });
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error ?? "Could not load that calendar feed");
+      setIcsEvents([]);
+    } else {
+      setIcsEvents((data as any)?.events ?? []);
+    }
+    setIcsLoading(false);
+  };
 
   const loadGoogle = async () => {
     if (!user) return;
@@ -183,14 +238,26 @@ export default function AdminCalendar() {
         id: `gcal-${g.id}`,
         kind: "google",
         title: `🗓 ${g.title}`,
-        start: new Date(g.start),
-        end: new Date(g.end),
+        start: shiftToTz(new Date(g.start), tzName),
+        end: shiftToTz(new Date(g.end), tzName),
         allDay: !!g.allDay,
         raw: g,
       });
     }
+    for (const c of icsEvents) {
+      if (!c.start || !c.end) continue;
+      out.push({
+        id: `ics-${c.id}`,
+        kind: "ics",
+        title: `🎓 ${c.title}`,
+        start: shiftToTz(new Date(c.start), tzName),
+        end: shiftToTz(new Date(c.end), tzName),
+        allDay: !!c.allDay,
+        raw: c,
+      });
+    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date, gcalEvents]);
+  }, [slots, blocks, bookings, teachers, students, date, gcalEvents, icsEvents, tzName]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -199,6 +266,7 @@ export default function AdminCalendar() {
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
       google: "hsl(265 70% 58%)",
+      ics: "hsl(200 85% 45%)",
     };
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
@@ -277,6 +345,7 @@ export default function AdminCalendar() {
   };
 
   const deleteEvent = async (ev: CalEvent) => {
+    if (ev.kind === "ics") return toast.info("ClassIn events are managed in ClassIn.");
     if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
@@ -346,6 +415,33 @@ export default function AdminCalendar() {
                 </span>
               </>
             )}
+            <div className="flex items-center gap-2">
+              <Label className="text-sm">Show external times in</Label>
+              <Select value={tz} onValueChange={setTz}>
+                <SelectTrigger className="w-[210px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TZ_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex w-full flex-wrap items-center gap-2">
+              <Label className="text-sm">ClassIn calendar link (.ics / webcal)</Label>
+              <Input
+                className="w-[320px]"
+                placeholder="https://…/calendar.ics"
+                value={icsInput}
+                onChange={(e) => setIcsInput(e.target.value)}
+              />
+              <Button variant="outline" size="sm" onClick={() => setIcsUrl(icsInput.trim())}>
+                {icsUrl && icsUrl === icsInput.trim() ? "Reload" : "Connect"}
+              </Button>
+              {icsUrl && (
+                <Button variant="ghost" size="sm" onClick={() => { setIcsUrl(""); setIcsInput(""); }}>Remove</Button>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {icsLoading ? "Loading ClassIn…" : icsUrl ? `${icsEvents.length} ClassIn events in view` : "Paste the subscription link from ClassIn"}
+              </span>
+            </div>
           </div>
 
           <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
@@ -361,6 +457,7 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
             {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
+            {!!icsUrl && <LegendDot color="hsl(200 85% 45%)" label="ClassIn" />}
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar
@@ -506,7 +603,7 @@ export default function AdminCalendar() {
                 <Copy className="mr-2 h-4 w-4" /> Copy student
               </Button>
             )}
-            {detailEvent?.kind !== "google" && (
+            {detailEvent?.kind !== "google" && detailEvent?.kind !== "ics" && (
               <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>

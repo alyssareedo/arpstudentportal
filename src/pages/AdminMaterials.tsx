@@ -494,14 +494,33 @@ export default function AdminMaterials() {
             <div className="divide-y rounded-md border">
               {categories.length === 0 && <p className="p-3 text-sm text-muted-foreground">No folders yet.</p>}
               {categories.map(c => (
-                <div key={c.id} className="flex items-center gap-2 p-2">
-                  <Folder className="h-4 w-4 text-primary" />
-                  <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
-                  <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
-                  <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
+                <div key={c.id} className="space-y-2 p-2">
+                  <div className="flex items-center gap-2">
+                    {c.thumbnail_url
+                      ? <img src={c.thumbnail_url} alt="" className={`h-10 w-14 rounded bg-muted ${c.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`} />
+                      : <div className="flex h-10 w-14 items-center justify-center rounded bg-muted"><Folder className="h-4 w-4 text-primary" /></div>}
+                    <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
+                    <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
+                    <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pl-16">
+                    <Input type="file" accept="image/*" className="h-8 max-w-[200px] text-xs"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadFolderThumb(c, f); e.currentTarget.value = ""; }} />
+                    <Select value={c.thumbnail_fit ?? "cover"} onValueChange={v => updateFolder(c, { thumbnail_fit: v })}>
+                      <SelectTrigger className="h-8 w-[110px] text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover">Fill</SelectItem>
+                        <SelectItem value="contain">Fit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {c.thumbnail_url && (
+                      <Button size="sm" variant="ghost" onClick={() => updateFolder(c, { thumbnail_url: null })}>Remove cover</Button>
+                    )}
+                  </div>
                 </div>
               ))}
+
             </div>
           </div>
           <DialogFooter>

@@ -18,17 +18,16 @@ Deno.serve(async (req) => {
   try {
     const url = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     const connKey = Deno.env.get("GOOGLE_CALENDAR_API_KEY");
 
-    const userClient = createClient(url, anonKey, {
-      global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
-    });
-    const { data: u } = await userClient.auth.getUser();
-    if (!u.user) return json({ error: "Unauthorized" }, 401);
-
     const admin = createClient(url, serviceKey);
+
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "Unauthorized" }, 401);
+    const { data: u, error: authErr } = await admin.auth.getUser(token);
+    if (authErr || !u?.user) return json({ error: "Unauthorized" }, 401);
+
     const { data: staff } = await admin
       .from("user_roles")
       .select("id")

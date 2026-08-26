@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CalendarPlus, CalendarX, Trash2, Users, RefreshCw } from "lucide-react";
+import { CalendarPlus, CalendarX, Trash2, Users, RefreshCw, Copy, ClipboardPaste, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const locales = { "en-US": enUS };
@@ -52,6 +52,9 @@ export default function AdminCalendar() {
   const [reason, setReason] = useState("");
 
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null);
+
+  // Copy / paste a recurring student's lesson
+  const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);
 
   // Google Calendar
   const [gcalOn, setGcalOn] = useState<boolean>(() => localStorage.getItem("arp_gcal_on") === "1");
@@ -201,7 +204,25 @@ export default function AdminCalendar() {
   };
 
 
+  const pasteLesson = async (start: Date) => {
+    if (!clipboard) return;
+    const { error } = await supabase.from("bookings").insert({
+      teacher_id: clipboard.teacherId,
+      student_id: clipboard.studentId,
+      booking_date: format(start, "yyyy-MM-dd"),
+      start_time: format(start, "HH:mm:ss"),
+      duration_minutes: clipboard.duration,
+      status: "approved",
+      decided_by: user!.id,
+      decided_at: new Date().toISOString(),
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`${clipboard.name} added on ${format(start, "EEE d MMM, HH:mm")}`);
+    loadAll();
+  };
+
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
+    if (clipboard) { pasteLesson(start); return; }
     setDraft({ start, end });
     setCreateMode("slot");
     setTeacherId(teacherFilter !== "all" ? teacherFilter : teachers[0]?.id ?? "");
@@ -292,6 +313,15 @@ export default function AdminCalendar() {
           </div>
         </CardHeader>
         <CardContent>
+          {clipboard && (
+            <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
+              <ClipboardPaste className="h-4 w-4 text-primary" />
+              <span><b>{clipboard.name}</b> copied ({clipboard.duration} min) — click any empty time on the calendar to paste this lesson. Paste as many dates as you like.</span>
+              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setClipboard(null)}>
+                <X className="mr-1 h-4 w-4" /> Done
+              </Button>
+            </div>
+          )}
           <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
             <div className="flex items-center gap-2">
               <Switch id="gcal" checked={gcalOn} onCheckedChange={setGcalOn} />
@@ -458,6 +488,24 @@ export default function AdminCalendar() {
             </div>
           )}
           <DialogFooter>
+            {detailEvent?.kind === "booking" && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const bk = detailEvent.raw;
+                  setClipboard({
+                    studentId: bk.student_id,
+                    teacherId: bk.teacher_id ?? null,
+                    duration: bk.duration_minutes || 60,
+                    name: students.find(s => s.id === bk.student_id)?.full_name ?? "Student",
+                  });
+                  setDetailEvent(null);
+                  toast.success("Lesson copied — click empty times to paste");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" /> Copy student
+              </Button>
+            )}
             {detailEvent?.kind !== "google" && (
               <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete

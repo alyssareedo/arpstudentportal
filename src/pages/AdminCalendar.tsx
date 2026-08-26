@@ -174,8 +174,20 @@ export default function AdminCalendar() {
         start, end, raw: bk,
       });
     }
+    for (const g of gcalEvents) {
+      if (!g.start || !g.end) continue;
+      out.push({
+        id: `gcal-${g.id}`,
+        kind: "google",
+        title: `🗓 ${g.title}`,
+        start: new Date(g.start),
+        end: new Date(g.end),
+        allDay: !!g.allDay,
+        raw: g,
+      });
+    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date]);
+  }, [slots, blocks, bookings, teachers, students, date, gcalEvents]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -183,9 +195,11 @@ export default function AdminCalendar() {
       slot: "hsl(180 70% 45%)",
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
+      google: "hsl(265 70% 58%)",
     };
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
+
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     setDraft({ start, end });

@@ -15,12 +15,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CalendarPlus, CalendarX, Trash2, Users } from "lucide-react";
+import { CalendarPlus, CalendarX, Trash2, Users, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking";
+type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
 interface CalEvent extends RbcEvent {
   id: string;
   kind: EventKind;
@@ -52,7 +53,41 @@ export default function AdminCalendar() {
 
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null);
 
+  // Google Calendar
+  const [gcalOn, setGcalOn] = useState<boolean>(() => localStorage.getItem("arp_gcal_on") === "1");
+  const [gcalId, setGcalId] = useState<string>(() => localStorage.getItem("arp_gcal_id") || "primary");
+  const [gcalList, setGcalList] = useState<{ id: string; summary: string }[]>([]);
+  const [gcalEvents, setGcalEvents] = useState<any[]>([]);
+  const [gcalLoading, setGcalLoading] = useState(false);
+
   useEffect(() => { if (user) loadAll(); }, [user, date, teacherFilter]);
+
+  useEffect(() => {
+    localStorage.setItem("arp_gcal_on", gcalOn ? "1" : "0");
+    localStorage.setItem("arp_gcal_id", gcalId);
+    if (!gcalOn) { setGcalEvents([]); return; }
+    loadGoogle();
+  }, [gcalOn, gcalId, date, user]);
+
+  const loadGoogle = async () => {
+    if (!user) return;
+    setGcalLoading(true);
+    const timeMin = startOfMonth(addWeeks(date, -6)).toISOString();
+    const timeMax = endOfMonth(addWeeks(date, 6)).toISOString();
+    const [ev, cals] = await Promise.all([
+      supabase.functions.invoke("google-calendar", { body: { action: "events", calendarId: gcalId, timeMin, timeMax } }),
+      gcalList.length ? Promise.resolve(null) : supabase.functions.invoke("google-calendar", { body: { action: "calendars" } }),
+    ]);
+    if (ev.error || (ev.data as any)?.error) {
+      toast.error((ev.data as any)?.error ?? "Could not load Google Calendar");
+      setGcalEvents([]);
+    } else {
+      setGcalEvents((ev.data as any)?.events ?? []);
+    }
+    if (cals && !cals.error && (cals.data as any)?.calendars) setGcalList((cals.data as any).calendars);
+    setGcalLoading(false);
+  };
+
 
   const loadAll = async () => {
     setLoading(true);
@@ -139,8 +174,20 @@ export default function AdminCalendar() {
         start, end, raw: bk,
       });
     }
+    for (const g of gcalEvents) {
+      if (!g.start || !g.end) continue;
+      out.push({
+        id: `gcal-${g.id}`,
+        kind: "google",
+        title: `🗓 ${g.title}`,
+        start: new Date(g.start),
+        end: new Date(g.end),
+        allDay: !!g.allDay,
+        raw: g,
+      });
+    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date]);
+  }, [slots, blocks, bookings, teachers, students, date, gcalEvents]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -148,9 +195,11 @@ export default function AdminCalendar() {
       slot: "hsl(180 70% 45%)",
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
+      google: "hsl(265 70% 58%)",
     };
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
+
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     setDraft({ start, end });
@@ -207,6 +256,7 @@ export default function AdminCalendar() {
   };
 
   const deleteEvent = async (ev: CalEvent) => {
+    if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);
@@ -242,6 +292,32 @@ export default function AdminCalendar() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center gap-2">
+              <Switch id="gcal" checked={gcalOn} onCheckedChange={setGcalOn} />
+              <Label htmlFor="gcal" className="cursor-pointer text-sm">Show my Google Calendar</Label>
+            </div>
+            {gcalOn && (
+              <>
+                <Select value={gcalId} onValueChange={setGcalId}>
+                  <SelectTrigger className="w-[240px]"><SelectValue placeholder="Primary calendar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary calendar</SelectItem>
+                    {gcalList.filter(c => !c.id.includes("#") && c.id !== "primary").map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.summary}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={loadGoogle} disabled={gcalLoading}>
+                  <RefreshCw className={`mr-2 h-4 w-4 ${gcalLoading ? "animate-spin" : ""}`} /> Refresh
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {gcalLoading ? "Syncing…" : `${gcalEvents.length} Google events in view`}
+                </span>
+              </>
+            )}
+          </div>
+
           <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
             <TabsList>
               <TabsTrigger value="day">Day</TabsTrigger>
@@ -254,6 +330,7 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(180 70% 45%)" label="One-off availability" />
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
+            {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar
@@ -368,12 +445,24 @@ export default function AdminCalendar() {
               {detailEvent.kind === "booking" && (
                 <p><b>Status:</b> {detailEvent.raw.status}</p>
               )}
+              {detailEvent.kind === "google" && (
+                <>
+                  {detailEvent.raw.location && <p><b>Where:</b> {detailEvent.raw.location}</p>}
+                  {detailEvent.raw.htmlLink && (
+                    <a className="text-primary underline" href={detailEvent.raw.htmlLink} target="_blank" rel="noreferrer">
+                      Open in Google Calendar
+                    </a>
+                  )}
+                </>
+              )}
             </div>
           )}
           <DialogFooter>
-            <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </Button>
+            {detailEvent?.kind !== "google" && (
+              <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setDetailEvent(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

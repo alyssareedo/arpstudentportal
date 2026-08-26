@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
-import { BookOpen, Plus, Upload, Users, ExternalLink, FileText, Pencil, Copy } from "lucide-react";
+import { BookOpen, Plus, Upload, Users, ExternalLink, FileText, Pencil, Copy, FolderPlus, FolderInput, Trash2, Folder } from "lucide-react";
 
 const TYPES = ["pdf", "doc", "pptx", "image", "audio", "video", "link"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -36,6 +36,12 @@ export default function AdminMaterials() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState("");
   const [folderFilter, setFolderFilter] = useState<string>("all");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkTarget, setBulkTarget] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const [foldersOpen, setFoldersOpen] = useState(false);
+  const [newFolder, setNewFolder] = useState("");
+
 
   useEffect(() => { if (user) load(); }, [user]);
 
@@ -132,6 +138,58 @@ export default function AdminMaterials() {
     toast.success("Duplicated"); load();
   };
 
+  const toggleSelect = (id: string) =>
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const bulkDelete = async () => {
+    if (!selected.length) return;
+    setBusy(true);
+    const paths = materials.filter(m => selected.includes(m.id) && m.storage_path).map(m => m.storage_path);
+    if (paths.length) await supabase.storage.from("materials").remove(paths);
+    const { error } = await supabase.from("materials").delete().in("id", selected);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${selected.length} material(s) deleted`);
+    setSelected([]); load();
+  };
+
+  const bulkMove = async () => {
+    if (!selected.length || !bulkTarget) return;
+    setBusy(true);
+    const { error } = await supabase.from("materials")
+      .update({ category_id: bulkTarget === "uncat" ? null : bulkTarget })
+      .in("id", selected);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Moved ${selected.length} material(s)`);
+    setSelected([]); setBulkTarget(""); load();
+  };
+
+  const createFolder = async () => {
+    const name = newFolder.trim();
+    if (!name) return;
+    const { error } = await supabase.from("material_categories").insert({ name, kind: "folder" });
+    if (error) return toast.error(error.message);
+    setNewFolder(""); toast.success("Folder created"); load();
+  };
+
+  const renameFolder = async (c: any) => {
+    const name = window.prompt("Folder name", c.name)?.trim();
+    if (!name || name === c.name) return;
+    const { error } = await supabase.from("material_categories").update({ name }).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    toast.success("Folder renamed"); load();
+  };
+
+  const deleteFolder = async (c: any) => {
+    await supabase.from("materials").update({ category_id: null }).eq("category_id", c.id);
+    const { error } = await supabase.from("material_categories").delete().eq("id", c.id);
+    if (error) return toast.error(error.message);
+    if (folderFilter === c.id) setFolderFilter("all");
+    toast.success("Folder deleted (materials moved to Uncategorized)"); load();
+  };
+
+
   const deleteMaterial = async (m: any) => {
     if (m.storage_path) await supabase.storage.from("materials").remove([m.storage_path]);
     await supabase.from("materials").delete().eq("id", m.id);
@@ -176,7 +234,9 @@ export default function AdminMaterials() {
       <Card className="shadow-elegant">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> Learning materials</CardTitle>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setFoldersOpen(true)}><FolderPlus className="mr-2 h-4 w-4" /> Manage folders</Button>
+
             <Select value={folderFilter} onValueChange={setFolderFilter}>
               <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -262,13 +322,43 @@ export default function AdminMaterials() {
           </div>
         </CardHeader>
         <CardContent>
+          {!loading && shown.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-2">
+              <label className="flex cursor-pointer items-center gap-2 px-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selected.length > 0 && shown.every(m => selected.includes(m.id))}
+                  onChange={e => setSelected(e.target.checked ? shown.map(m => m.id) : [])}
+                />
+                Select all ({shown.length})
+              </label>
+              <span className="text-sm text-muted-foreground">{selected.length} selected</span>
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <Select value={bulkTarget} onValueChange={setBulkTarget}>
+                  <SelectTrigger className="w-[200px]"><SelectValue placeholder="Move to folder…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="uncat">Uncategorized</SelectItem>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button size="sm" variant="outline" disabled={!selected.length || !bulkTarget || busy} onClick={bulkMove}>
+                  <FolderInput className="mr-1.5 h-4 w-4" /> Move
+                </Button>
+                <Button size="sm" variant="destructive" disabled={!selected.length || busy}
+                  onClick={() => { if (window.confirm(`Delete ${selected.length} material(s)? This cannot be undone.`)) bulkDelete(); }}>
+                  <Trash2 className="mr-1.5 h-4 w-4" /> Delete selected
+                </Button>
+              </div>
+            </div>
+          )}
           {loading ? <p>Loading…</p> : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
             <div className="grid gap-3 md:grid-cols-2">
               {shown.map(m => {
                 const count = assignments.filter(a => a.material_id === m.id).length;
                 const cat = categories.find(c => c.id === m.category_id);
+                const isSel = selected.includes(m.id);
                 return (
-                  <Card key={m.id} className="overflow-hidden border-border/60">
+                  <Card key={m.id} className={`overflow-hidden border-border/60 ${isSel ? "ring-2 ring-primary" : ""}`}>
                     {m.thumbnail_url && (
                       <div className="flex h-28 w-full items-center justify-center bg-muted">
                         <img
@@ -281,8 +371,11 @@ export default function AdminMaterials() {
                     )}
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex gap-2">
+                          <input type="checkbox" className="mt-1.5" checked={isSel} onChange={() => toggleSelect(m.id)} aria-label={`Select ${m.title}`} />
+                          <div className="min-w-0">
                           <h3 className="font-semibold break-words">{m.title}</h3>
+
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             <Badge variant="secondary">{m.type}</Badge>
                             {cat && <Badge variant="outline">{cat.name}</Badge>}
@@ -292,7 +385,9 @@ export default function AdminMaterials() {
                             <Badge className="bg-primary/10 text-primary" variant="outline">{count} assigned</Badge>
                           </div>
                           {m.description && <p className="mt-2 text-sm text-muted-foreground break-words">{m.description}</p>}
+                          </div>
                         </div>
+
                         <div className="flex flex-col gap-1">
                           <Button size="icon" variant="ghost" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => duplicate(m)}><Copy className="h-3.5 w-3.5" /></Button>
@@ -339,6 +434,36 @@ export default function AdminMaterials() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={foldersOpen} onOpenChange={setFoldersOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Manage folders</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input placeholder="New folder name (e.g. Adult English Courses)" value={newFolder}
+                onChange={e => setNewFolder(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") createFolder(); }} />
+              <Button onClick={createFolder}><Plus className="mr-1.5 h-4 w-4" /> Create</Button>
+            </div>
+            <div className="divide-y rounded-md border">
+              {categories.length === 0 && <p className="p-3 text-sm text-muted-foreground">No folders yet.</p>}
+              {categories.map(c => (
+                <div key={c.id} className="flex items-center gap-2 p-2">
+                  <Folder className="h-4 w-4 text-primary" />
+                  <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
+                  <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
+                  <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
+                  <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFoldersOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

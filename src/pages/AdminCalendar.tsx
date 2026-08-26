@@ -256,6 +256,7 @@ export default function AdminCalendar() {
   };
 
   const deleteEvent = async (ev: CalEvent) => {
+    if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);

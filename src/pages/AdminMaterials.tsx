@@ -453,7 +453,7 @@ export default function AdminMaterials() {
                   <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
                   <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
                   <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <ConfirmDeleteButton onConfirm={() => deleteFolder(c)} />
+                  <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
                 </div>
               ))}
             </div>

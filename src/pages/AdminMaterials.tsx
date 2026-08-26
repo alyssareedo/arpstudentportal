@@ -234,7 +234,9 @@ export default function AdminMaterials() {
       <Card className="shadow-elegant">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5" /> Learning materials</CardTitle>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setFoldersOpen(true)}><FolderPlus className="mr-2 h-4 w-4" /> Manage folders</Button>
+
             <Select value={folderFilter} onValueChange={setFolderFilter}>
               <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
               <SelectContent>

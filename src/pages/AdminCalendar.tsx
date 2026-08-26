@@ -53,7 +53,41 @@ export default function AdminCalendar() {
 
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null);
 
+  // Google Calendar
+  const [gcalOn, setGcalOn] = useState<boolean>(() => localStorage.getItem("arp_gcal_on") === "1");
+  const [gcalId, setGcalId] = useState<string>(() => localStorage.getItem("arp_gcal_id") || "primary");
+  const [gcalList, setGcalList] = useState<{ id: string; summary: string }[]>([]);
+  const [gcalEvents, setGcalEvents] = useState<any[]>([]);
+  const [gcalLoading, setGcalLoading] = useState(false);
+
   useEffect(() => { if (user) loadAll(); }, [user, date, teacherFilter]);
+
+  useEffect(() => {
+    localStorage.setItem("arp_gcal_on", gcalOn ? "1" : "0");
+    localStorage.setItem("arp_gcal_id", gcalId);
+    if (!gcalOn) { setGcalEvents([]); return; }
+    loadGoogle();
+  }, [gcalOn, gcalId, date, user]);
+
+  const loadGoogle = async () => {
+    if (!user) return;
+    setGcalLoading(true);
+    const timeMin = startOfMonth(addWeeks(date, -6)).toISOString();
+    const timeMax = endOfMonth(addWeeks(date, 6)).toISOString();
+    const [ev, cals] = await Promise.all([
+      supabase.functions.invoke("google-calendar", { body: { action: "events", calendarId: gcalId, timeMin, timeMax } }),
+      gcalList.length ? Promise.resolve(null) : supabase.functions.invoke("google-calendar", { body: { action: "calendars" } }),
+    ]);
+    if (ev.error || (ev.data as any)?.error) {
+      toast.error((ev.data as any)?.error ?? "Could not load Google Calendar");
+      setGcalEvents([]);
+    } else {
+      setGcalEvents((ev.data as any)?.events ?? []);
+    }
+    if (cals && !cals.error && (cals.data as any)?.calendars) setGcalList((cals.data as any).calendars);
+    setGcalLoading(false);
+  };
+
 
   const loadAll = async () => {
     setLoading(true);

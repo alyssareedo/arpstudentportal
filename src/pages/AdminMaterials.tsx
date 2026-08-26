@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { toast } from "sonner";
-import { BookOpen, Plus, Upload, Users, ExternalLink, FileText, Pencil, Copy } from "lucide-react";
+import { BookOpen, Plus, Upload, Users, ExternalLink, FileText, Pencil, Copy, FolderPlus, FolderInput, Trash2, Folder } from "lucide-react";
 
 const TYPES = ["pdf", "doc", "pptx", "image", "audio", "video", "link"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];

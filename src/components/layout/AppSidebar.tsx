@@ -31,6 +31,7 @@ const adminItems = [
 
 const teacherItems = [
   { title: "My Schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Teacher calendar", url: "/calendar-view", icon: CalendarDays },
   { title: "My Students", url: "/students", icon: Users },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },
@@ -43,6 +44,7 @@ const studentItems = [
   { title: "My roadmap", url: "/roadmap", icon: Map },
   { title: "Book a lesson", url: "/book", icon: CalendarPlus },
   { title: "My schedule", url: "/schedule", icon: CalendarRange },
+  { title: "Teacher calendar", url: "/calendar-view", icon: CalendarDays },
   { title: "Materials", url: "/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
   { title: "Invoices", url: "/my-invoices", icon: Receipt },

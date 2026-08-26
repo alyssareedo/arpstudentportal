@@ -20,6 +20,7 @@ import Availability from "./pages/Availability";
 import Bookings from "./pages/Bookings";
 import BookLesson from "./pages/BookLesson";
 import Schedule from "./pages/Schedule";
+import StudentCalendar from "./pages/StudentCalendar";
 import CefrTest from "./pages/CefrTest";
 import Assessments from "./pages/Assessments";
 import ToeicTest from "./pages/ToeicTest";
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/my-profile" element={<MyProfile />} />
               <Route path="/book" element={<BookLesson />} />
               <Route path="/schedule" element={<Schedule />} />
+              <Route path="/calendar-view" element={<StudentCalendar />} />
               <Route path="/assessments" element={<Assessments />} />
               <Route path="/assessments/toeic" element={<ToeicTest />} />
               <Route path="/assessments/toeic/:id" element={<ToeicResult />} />

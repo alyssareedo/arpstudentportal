@@ -15,12 +15,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CalendarPlus, CalendarX, Trash2, Users } from "lucide-react";
+import { CalendarPlus, CalendarX, Trash2, Users, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking";
+type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
 interface CalEvent extends RbcEvent {
   id: string;
   kind: EventKind;

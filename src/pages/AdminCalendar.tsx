@@ -330,6 +330,7 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(180 70% 45%)" label="One-off availability" />
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
+            {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar

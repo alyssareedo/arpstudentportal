@@ -322,13 +322,43 @@ export default function AdminMaterials() {
           </div>
         </CardHeader>
         <CardContent>
+          {!loading && shown.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-2">
+              <label className="flex cursor-pointer items-center gap-2 px-1 text-sm">
+                <input
+                  type="checkbox"
+                  checked={selected.length > 0 && shown.every(m => selected.includes(m.id))}
+                  onChange={e => setSelected(e.target.checked ? shown.map(m => m.id) : [])}
+                />
+                Select all ({shown.length})
+              </label>
+              <span className="text-sm text-muted-foreground">{selected.length} selected</span>
+              <div className="ml-auto flex flex-wrap items-center gap-2">
+                <Select value={bulkTarget} onValueChange={setBulkTarget}>
+                  <SelectTrigger className="w-[200px]"><SelectValue placeholder="Move to folder…" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="uncat">Uncategorized</SelectItem>
+                    {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button size="sm" variant="outline" disabled={!selected.length || !bulkTarget || busy} onClick={bulkMove}>
+                  <FolderInput className="mr-1.5 h-4 w-4" /> Move
+                </Button>
+                <Button size="sm" variant="destructive" disabled={!selected.length || busy}
+                  onClick={() => { if (window.confirm(`Delete ${selected.length} material(s)? This cannot be undone.`)) bulkDelete(); }}>
+                  <Trash2 className="mr-1.5 h-4 w-4" /> Delete selected
+                </Button>
+              </div>
+            </div>
+          )}
           {loading ? <p>Loading…</p> : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
             <div className="grid gap-3 md:grid-cols-2">
               {shown.map(m => {
                 const count = assignments.filter(a => a.material_id === m.id).length;
                 const cat = categories.find(c => c.id === m.category_id);
+                const isSel = selected.includes(m.id);
                 return (
-                  <Card key={m.id} className="overflow-hidden border-border/60">
+                  <Card key={m.id} className={`overflow-hidden border-border/60 ${isSel ? "ring-2 ring-primary" : ""}`}>
                     {m.thumbnail_url && (
                       <div className="flex h-28 w-full items-center justify-center bg-muted">
                         <img
@@ -341,8 +371,11 @@ export default function AdminMaterials() {
                     )}
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex gap-2">
+                          <input type="checkbox" className="mt-1.5" checked={isSel} onChange={() => toggleSelect(m.id)} aria-label={`Select ${m.title}`} />
+                          <div className="min-w-0">
                           <h3 className="font-semibold break-words">{m.title}</h3>
+
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             <Badge variant="secondary">{m.type}</Badge>
                             {cat && <Badge variant="outline">{cat.name}</Badge>}

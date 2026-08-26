@@ -434,6 +434,36 @@ export default function AdminMaterials() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={foldersOpen} onOpenChange={setFoldersOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Manage folders</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Input placeholder="New folder name (e.g. Adult English Courses)" value={newFolder}
+                onChange={e => setNewFolder(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") createFolder(); }} />
+              <Button onClick={createFolder}><Plus className="mr-1.5 h-4 w-4" /> Create</Button>
+            </div>
+            <div className="divide-y rounded-md border">
+              {categories.length === 0 && <p className="p-3 text-sm text-muted-foreground">No folders yet.</p>}
+              {categories.map(c => (
+                <div key={c.id} className="flex items-center gap-2 p-2">
+                  <Folder className="h-4 w-4 text-primary" />
+                  <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
+                  <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
+                  <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
+                  <ConfirmDeleteButton onConfirm={() => deleteFolder(c)} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFoldersOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

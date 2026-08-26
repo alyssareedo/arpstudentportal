@@ -78,7 +78,7 @@ export default function AdminMaterials() {
       cefr_level: m.cefr_level ?? "", skill: m.skill ?? "", external_url: m.external_url ?? "",
       objectives: m.objectives ?? "", lesson_plan: m.lesson_plan ?? "",
       category_id: m.category_id ?? "", tags: (m.tags ?? []).join(", "),
-      thumbnail_url: m.thumbnail_url ?? "",
+      thumbnail_url: m.thumbnail_url ?? "", thumbnail_fit: m.thumbnail_fit ?? "cover",
     });
     setFile(null);
     setOpen(true);
@@ -97,6 +97,7 @@ export default function AdminMaterials() {
       lesson_plan: form.lesson_plan || null,
       category_id: form.category_id || null,
       thumbnail_url: form.thumbnail_url || null,
+      thumbnail_fit: form.thumbnail_fit || "cover",
       tags: form.tags ? form.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
     };
     if (editingId) {

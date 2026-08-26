@@ -77,6 +77,23 @@ export default function AdminMaterials() {
     setForm((prev: any) => ({ ...prev, thumbnail_url: data.publicUrl }));
     toast.success("Background image uploaded");
   };
+
+  const uploadFolderThumb = async (c: any, f: File) => {
+    if (f.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    const path = `${user!.id}/folder-thumb-${crypto.randomUUID()}-${f.name}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
+    if (error) return toast.error(error.message);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    await updateFolder(c, { thumbnail_url: data.publicUrl });
+    toast.success("Folder cover updated");
+  };
+
+  const updateFolder = async (c: any, patch: any) => {
+    const { error } = await supabase.from("material_categories").update(patch).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    setCategories(prev => prev.map(x => x.id === c.id ? { ...x, ...patch } : x));
+  };
+
   const openEdit = (m: any) => {
     setEditingId(m.id);
     setForm({
@@ -355,22 +372,30 @@ export default function AdminMaterials() {
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {categories.map(c => (
                 <button key={c.id} onClick={() => setFolderFilter(c.id)}
-                  className="flex items-center gap-3 rounded-lg border p-4 text-left transition hover:bg-accent">
-                  <Folder className="h-8 w-8 text-primary" />
-                  <div className="min-w-0">
+                  className="overflow-hidden rounded-lg border text-left transition hover:bg-accent">
+                  {c.thumbnail_url ? (
+                    <div className="h-24 w-full bg-muted">
+                      <img src={c.thumbnail_url} alt={`${c.name} cover`} loading="lazy"
+                        className={`h-full w-full ${c.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`} />
+                    </div>
+                  ) : (
+                    <div className="flex h-24 w-full items-center justify-center bg-muted"><Folder className="h-8 w-8 text-primary" /></div>
+                  )}
+                  <div className="min-w-0 p-3">
                     <div className="truncate font-medium">{c.name}</div>
                     <div className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</div>
                   </div>
                 </button>
               ))}
               <button onClick={() => setFolderFilter("uncat")}
-                className="flex items-center gap-3 rounded-lg border p-4 text-left transition hover:bg-accent">
-                <Folder className="h-8 w-8 text-muted-foreground" />
-                <div className="min-w-0">
+                className="overflow-hidden rounded-lg border text-left transition hover:bg-accent">
+                <div className="flex h-24 w-full items-center justify-center bg-muted"><Folder className="h-8 w-8 text-muted-foreground" /></div>
+                <div className="min-w-0 p-3">
                   <div className="truncate font-medium">Uncategorized</div>
                   <div className="text-xs text-muted-foreground">{materials.filter(m => !m.category_id).length} items</div>
                 </div>
               </button>
+
             </div>
           ) : shown.length === 0 ? <p className="text-muted-foreground">No materials in this folder.</p> : (
             <div className="grid gap-3 md:grid-cols-2">
@@ -469,14 +494,33 @@ export default function AdminMaterials() {
             <div className="divide-y rounded-md border">
               {categories.length === 0 && <p className="p-3 text-sm text-muted-foreground">No folders yet.</p>}
               {categories.map(c => (
-                <div key={c.id} className="flex items-center gap-2 p-2">
-                  <Folder className="h-4 w-4 text-primary" />
-                  <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
-                  <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
-                  <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
+                <div key={c.id} className="space-y-2 p-2">
+                  <div className="flex items-center gap-2">
+                    {c.thumbnail_url
+                      ? <img src={c.thumbnail_url} alt="" className={`h-10 w-14 rounded bg-muted ${c.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`} />
+                      : <div className="flex h-10 w-14 items-center justify-center rounded bg-muted"><Folder className="h-4 w-4 text-primary" /></div>}
+                    <span className="min-w-0 flex-1 truncate text-sm">{c.name}</span>
+                    <span className="text-xs text-muted-foreground">{materials.filter(m => m.category_id === c.id).length} items</span>
+                    <Button size="icon" variant="ghost" onClick={() => renameFolder(c)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <ConfirmDeleteButton onConfirm={async () => { await deleteFolder(c); }} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 pl-16">
+                    <Input type="file" accept="image/*" className="h-8 max-w-[200px] text-xs"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) uploadFolderThumb(c, f); e.currentTarget.value = ""; }} />
+                    <Select value={c.thumbnail_fit ?? "cover"} onValueChange={v => updateFolder(c, { thumbnail_fit: v })}>
+                      <SelectTrigger className="h-8 w-[110px] text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cover">Fill</SelectItem>
+                        <SelectItem value="contain">Fit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {c.thumbnail_url && (
+                      <Button size="sm" variant="ghost" onClick={() => updateFolder(c, { thumbnail_url: null })}>Remove cover</Button>
+                    )}
+                  </div>
                 </div>
               ))}
+
             </div>
           </div>
           <DialogFooter>

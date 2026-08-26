@@ -820,18 +820,24 @@ export type Database = {
           id: string
           kind: string
           name: string
+          thumbnail_fit: string
+          thumbnail_url: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           kind?: string
           name: string
+          thumbnail_fit?: string
+          thumbnail_url?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           kind?: string
           name?: string
+          thumbnail_fit?: string
+          thumbnail_url?: string | null
         }
         Relationships: []
       }

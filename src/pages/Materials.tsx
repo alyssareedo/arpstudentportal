@@ -232,22 +232,30 @@ export default function Materials() {
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {categories.map(c => (
                     <button key={c.id} onClick={() => setFolder(c.id)}
-                      className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-accent transition">
-                      <Folder className="h-8 w-8 text-primary" />
-                      <div className="min-w-0">
+                      className="overflow-hidden rounded-lg border text-left hover:bg-accent transition">
+                      {c.thumbnail_url ? (
+                        <div className="h-24 w-full bg-muted">
+                          <img src={c.thumbnail_url} alt={`${c.name} cover`} loading="lazy"
+                            className={`h-full w-full ${c.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`} />
+                        </div>
+                      ) : (
+                        <div className="flex h-24 w-full items-center justify-center bg-muted"><Folder className="h-8 w-8 text-primary" /></div>
+                      )}
+                      <div className="min-w-0 p-3">
                         <div className="truncate font-medium">{c.name}</div>
                         <div className="text-xs text-muted-foreground">{folderCounts[c.id] ?? 0} items</div>
                       </div>
                     </button>
                   ))}
                   <button onClick={() => setFolder("uncat")}
-                    className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-accent transition">
-                    <Folder className="h-8 w-8 text-muted-foreground" />
-                    <div className="min-w-0">
+                    className="overflow-hidden rounded-lg border text-left hover:bg-accent transition">
+                    <div className="flex h-24 w-full items-center justify-center bg-muted"><Folder className="h-8 w-8 text-muted-foreground" /></div>
+                    <div className="min-w-0 p-3">
                       <div className="truncate font-medium">Uncategorized</div>
                       <div className="text-xs text-muted-foreground">{folderCounts["uncat"] ?? 0} items</div>
                     </div>
                   </button>
+
                 </div>
               </div>
             )}

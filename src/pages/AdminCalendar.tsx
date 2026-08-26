@@ -292,6 +292,32 @@ export default function AdminCalendar() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center gap-2">
+              <Switch id="gcal" checked={gcalOn} onCheckedChange={setGcalOn} />
+              <Label htmlFor="gcal" className="cursor-pointer text-sm">Show my Google Calendar</Label>
+            </div>
+            {gcalOn && (
+              <>
+                <Select value={gcalId} onValueChange={setGcalId}>
+                  <SelectTrigger className="w-[240px]"><SelectValue placeholder="Primary calendar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primary">Primary calendar</SelectItem>
+                    {gcalList.filter(c => !c.id.includes("#") && c.id !== "primary").map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.summary}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" onClick={loadGoogle} disabled={gcalLoading}>
+                  <RefreshCw className={`mr-2 h-4 w-4 ${gcalLoading ? "animate-spin" : ""}`} /> Refresh
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {gcalLoading ? "Syncing…" : `${gcalEvents.length} Google events in view`}
+                </span>
+              </>
+            )}
+          </div>
+
           <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
             <TabsList>
               <TabsTrigger value="day">Day</TabsTrigger>

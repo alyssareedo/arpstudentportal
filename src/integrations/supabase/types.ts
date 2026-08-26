@@ -1459,6 +1459,24 @@ export type Database = {
           sort_order: number
         }[]
       }
+      get_shared_schedule: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          duration_minutes: number
+          end_time: string
+          ends_at: string
+          id: string
+          kind: string
+          reason: string
+          slot_date: string
+          start_time: string
+          starts_at: string
+          status: string
+          student_name: string
+          teacher_name: string
+          weekday: number
+        }[]
+      }
       get_sheets_autosync: { Args: never; Returns: Json }
       get_toeic_questions: {
         Args: never

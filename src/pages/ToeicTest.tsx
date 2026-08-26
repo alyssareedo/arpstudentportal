@@ -207,23 +207,44 @@ export default function ToeicTest() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="outline" disabled={idx === 0} onClick={() => setIdx((i) => i - 1)}>
           Previous
         </Button>
-        {idx < questions.length - 1 ? (
-          <Button
-            onClick={() => setIdx((i) => i + 1)}
-            disabled={!answers[current.id]}
-          >
-            Next
-          </Button>
-        ) : (
-          <Button onClick={submit} disabled={!answered}>
-            Submit test
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {idx < questions.length - 1 && (
+            <Button variant="ghost" onClick={() => setIdx((i) => i + 1)}>
+              Skip
+            </Button>
+          )}
+          {idx < questions.length - 1 ? (
+            <Button onClick={() => setIdx((i) => i + 1)} disabled={!answers[current.id]}>
+              Next
+            </Button>
+          ) : (
+            <Button onClick={() => submit(false)} disabled={!answered}>
+              Submit test
+            </Button>
+          )}
+        </div>
       </div>
+
+      <div className="rounded-md border bg-muted/40 p-3 text-center text-sm">
+        <p className="text-muted-foreground">
+          Out of time? You can finish now — your score is calculated from the{" "}
+          {answeredCount} question{answeredCount === 1 ? "" : "s"} you answered.
+        </p>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-2"
+          disabled={answeredCount === 0}
+          onClick={() => submit(true)}
+        >
+          Finish early &amp; get my score
+        </Button>
+      </div>
+
     </div>
   );
 }

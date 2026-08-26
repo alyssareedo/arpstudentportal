@@ -138,6 +138,58 @@ export default function AdminMaterials() {
     toast.success("Duplicated"); load();
   };
 
+  const toggleSelect = (id: string) =>
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const bulkDelete = async () => {
+    if (!selected.length) return;
+    setBusy(true);
+    const paths = materials.filter(m => selected.includes(m.id) && m.storage_path).map(m => m.storage_path);
+    if (paths.length) await supabase.storage.from("materials").remove(paths);
+    const { error } = await supabase.from("materials").delete().in("id", selected);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${selected.length} material(s) deleted`);
+    setSelected([]); load();
+  };
+
+  const bulkMove = async () => {
+    if (!selected.length || !bulkTarget) return;
+    setBusy(true);
+    const { error } = await supabase.from("materials")
+      .update({ category_id: bulkTarget === "uncat" ? null : bulkTarget })
+      .in("id", selected);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Moved ${selected.length} material(s)`);
+    setSelected([]); setBulkTarget(""); load();
+  };
+
+  const createFolder = async () => {
+    const name = newFolder.trim();
+    if (!name) return;
+    const { error } = await supabase.from("material_categories").insert({ name, kind: "folder" });
+    if (error) return toast.error(error.message);
+    setNewFolder(""); toast.success("Folder created"); load();
+  };
+
+  const renameFolder = async (c: any) => {
+    const name = window.prompt("Folder name", c.name)?.trim();
+    if (!name || name === c.name) return;
+    const { error } = await supabase.from("material_categories").update({ name }).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    toast.success("Folder renamed"); load();
+  };
+
+  const deleteFolder = async (c: any) => {
+    await supabase.from("materials").update({ category_id: null }).eq("category_id", c.id);
+    const { error } = await supabase.from("material_categories").delete().eq("id", c.id);
+    if (error) return toast.error(error.message);
+    if (folderFilter === c.id) setFolderFilter("all");
+    toast.success("Folder deleted (materials moved to Uncategorized)"); load();
+  };
+
+
   const deleteMaterial = async (m: any) => {
     if (m.storage_path) await supabase.storage.from("materials").remove([m.storage_path]);
     await supabase.from("materials").delete().eq("id", m.id);

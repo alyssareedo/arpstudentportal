@@ -36,6 +36,12 @@ export default function AdminMaterials() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState("");
   const [folderFilter, setFolderFilter] = useState<string>("all");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkTarget, setBulkTarget] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const [foldersOpen, setFoldersOpen] = useState(false);
+  const [newFolder, setNewFolder] = useState("");
+
 
   useEffect(() => { if (user) load(); }, [user]);
 

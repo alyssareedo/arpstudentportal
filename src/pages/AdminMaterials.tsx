@@ -77,6 +77,23 @@ export default function AdminMaterials() {
     setForm((prev: any) => ({ ...prev, thumbnail_url: data.publicUrl }));
     toast.success("Background image uploaded");
   };
+
+  const uploadFolderThumb = async (c: any, f: File) => {
+    if (f.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    const path = `${user!.id}/folder-thumb-${crypto.randomUUID()}-${f.name}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
+    if (error) return toast.error(error.message);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    await updateFolder(c, { thumbnail_url: data.publicUrl });
+    toast.success("Folder cover updated");
+  };
+
+  const updateFolder = async (c: any, patch: any) => {
+    const { error } = await supabase.from("material_categories").update(patch).eq("id", c.id);
+    if (error) return toast.error(error.message);
+    setCategories(prev => prev.map(x => x.id === c.id ? { ...x, ...patch } : x));
+  };
+
   const openEdit = (m: any) => {
     setEditingId(m.id);
     setForm({

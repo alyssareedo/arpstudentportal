@@ -230,7 +230,25 @@ export default function AdminMaterials() {
                     </div>
                     <Input className="mt-2" type="file" accept="image/*" disabled={uploadingThumb}
                       onChange={e => { const f = e.target.files?.[0]; if (f) uploadThumb(f); }} />
-                    {form.thumbnail_url && <img src={form.thumbnail_url} alt="Material background preview" className="mt-2 h-24 w-full rounded-md object-cover" />}
+                    <div className="mt-2">
+                      <Label>Image fit</Label>
+                      <Select value={form.thumbnail_fit} onValueChange={v => setForm({ ...form, thumbnail_fit: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cover">Fill card (crop edges)</SelectItem>
+                          <SelectItem value="contain">Fit whole image (no crop)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {form.thumbnail_url && (
+                      <div className="mt-2 flex h-24 w-full items-center justify-center overflow-hidden rounded-md bg-muted">
+                        <img
+                          src={form.thumbnail_url}
+                          alt="Material background preview"
+                          className={`h-full w-full ${form.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div><Label>Learning objectives</Label><Textarea value={form.objectives} onChange={e => setForm({ ...form, objectives: e.target.value })} rows={2} /></div>
                   <div><Label>Lesson plan / notes</Label><Textarea value={form.lesson_plan} onChange={e => setForm({ ...form, lesson_plan: e.target.value })} rows={3} /></div>
@@ -252,7 +270,14 @@ export default function AdminMaterials() {
                 return (
                   <Card key={m.id} className="overflow-hidden border-border/60">
                     {m.thumbnail_url && (
-                      <img src={m.thumbnail_url} alt={`${m.title} background`} loading="lazy" className="h-28 w-full object-cover" />
+                      <div className="flex h-28 w-full items-center justify-center bg-muted">
+                        <img
+                          src={m.thumbnail_url}
+                          alt={`${m.title} background`}
+                          loading="lazy"
+                          className={`h-full w-full ${m.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`}
+                        />
+                      </div>
                     )}
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">

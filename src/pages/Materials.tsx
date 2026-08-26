@@ -265,7 +265,14 @@ export default function Materials() {
                     return (
                       <div key={m.id} className={`overflow-hidden rounded-lg border ${done ? "border-green-500/40 bg-green-500/5" : ""}`}>
                         {m.thumbnail_url && (
-                          <img src={m.thumbnail_url} alt={`${m.title} background`} loading="lazy" className="h-28 w-full object-cover" />
+                          <div className="flex h-28 w-full items-center justify-center bg-muted">
+                            <img
+                              src={m.thumbnail_url}
+                              alt={`${m.title} background`}
+                              loading="lazy"
+                              className={`h-full w-full ${m.thumbnail_fit === "contain" ? "object-contain" : "object-cover"}`}
+                            />
+                          </div>
                         )}
                         <div className="flex items-start gap-2 p-3 pb-0">
                           <div className="mt-0.5">{typeIcon(m.type)}</div>

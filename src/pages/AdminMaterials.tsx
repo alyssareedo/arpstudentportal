@@ -17,7 +17,7 @@ const TYPES = ["pdf", "doc", "pptx", "image", "audio", "video", "link"];
 const LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 const SKILLS = ["listening", "reading", "speaking", "writing", "grammar", "vocabulary"];
 
-const emptyForm = { title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "", category_id: "", tags: "", thumbnail_url: "" };
+const emptyForm = { title: "", description: "", type: "pdf", cefr_level: "", skill: "", external_url: "", objectives: "", lesson_plan: "", category_id: "", tags: "", thumbnail_url: "", thumbnail_fit: "cover" };
 
 export default function AdminMaterials() {
   const { user } = useAuth();

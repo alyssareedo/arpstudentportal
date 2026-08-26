@@ -385,7 +385,9 @@ export default function AdminMaterials() {
                             <Badge className="bg-primary/10 text-primary" variant="outline">{count} assigned</Badge>
                           </div>
                           {m.description && <p className="mt-2 text-sm text-muted-foreground break-words">{m.description}</p>}
+                          </div>
                         </div>
+
                         <div className="flex flex-col gap-1">
                           <Button size="icon" variant="ghost" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
                           <Button size="icon" variant="ghost" onClick={() => duplicate(m)}><Copy className="h-3.5 w-3.5" /></Button>

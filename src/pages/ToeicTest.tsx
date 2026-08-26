@@ -86,11 +86,20 @@ export default function ToeicTest() {
     setStep("quiz");
   }
 
-  async function submit() {
+  async function submit(partial = false) {
     if (!user) return;
+    // When finishing early we only send the questions the student actually
+    // answered, so the score reflects the part of the test they completed.
+    const source = partial
+      ? questions.filter((q) => answers[q.id] != null)
+      : questions;
+    if (source.length === 0) {
+      toast.error("Answer at least one question first");
+      return;
+    }
     setStep("submitting");
     const payload = {
-      answers: questions.map((q) => ({
+      answers: source.map((q) => ({
         question_id: q.id,
         selected_answer: answers[q.id] ?? null,
       })),
@@ -105,10 +114,12 @@ export default function ToeicTest() {
   }
 
 
-  const answered = useMemo(
-    () => questions.every((q) => answers[q.id] != null),
+  const answeredCount = useMemo(
+    () => questions.filter((q) => answers[q.id] != null).length,
     [questions, answers]
   );
+  const answered = answeredCount === questions.length;
+
 
   if (step === "intro") {
     return (

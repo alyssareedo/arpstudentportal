@@ -347,6 +347,7 @@ export default function Materials() {
                 </div>
               )}
             </div>
+            )}
           </div>
         )}
       </CardContent>

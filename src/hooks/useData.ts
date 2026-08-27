@@ -32,8 +32,6 @@ export interface Lesson {
   notes: string | null;
   attendance: "present" | "absent" | "late" | "scheduled";
   completed: boolean;
-  lesson_number: number | null;
-  cycle_start: string | null;
 }
 
 export interface Score {
@@ -98,7 +96,7 @@ export function useStudent(id: string | undefined) {
     setLoading(true);
     const [{ data: p }, { data: l }, { data: s }, { data: h }, { data: n }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-      supabase.from("lessons").select("*").eq("student_id", id).order("lesson_date", { ascending: false }),
+      supabase.from("lessons").select("*").eq("student_id", id).order("lesson_date", { ascending: false }).order("lesson_time", { ascending: false }),
       supabase.from("scores").select("*").eq("student_id", id).order("year").order("month"),
       supabase.from("homework").select("*").eq("student_id", id).order("assigned_at", { ascending: false }),
       supabase.from("student_notes").select("notes").eq("student_id", id).maybeSingle(),
@@ -124,7 +122,8 @@ export function useAllLessons() {
     const { data } = await supabase
       .from("lessons")
       .select("*, profiles!inner(id, full_name, avatar_url, level)")
-      .order("lesson_date", { ascending: false });
+      .order("lesson_date", { ascending: false })
+      .order("lesson_time", { ascending: false });
     setLessons((data as any) ?? []);
     setLoading(false);
   }, []);

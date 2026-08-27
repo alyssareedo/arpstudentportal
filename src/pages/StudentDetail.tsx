@@ -460,11 +460,6 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
             <div className="grid gap-2"><Label>Time</Label><Input type="time" value={form.lesson_time} onChange={(e) => setForm({ ...form, lesson_time: e.target.value })} /></div>
           </div>
           <div className="grid gap-2"><Label>Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
-          <div className="grid gap-2">
-            <Label>Lesson number</Label>
-            <Input type="number" min={1} value={form.lesson_number} onChange={(e) => setForm({ ...form, lesson_number: e.target.value })} placeholder="e.g. 3" />
-            <p className="text-xs text-muted-foreground">Numbering restarts at 1 for each new course package.</p>
-          </div>
           <div className="grid gap-2"><Label>Attendance</Label>
             <Select value={form.attendance} onValueChange={(v) => setForm({ ...form, attendance: v as any })}>
               <SelectTrigger><SelectValue /></SelectTrigger>

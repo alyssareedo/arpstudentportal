@@ -7,7 +7,7 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { formatLessonsLeft, nextLessonNumber } from "@/lib/lessons";
+import { formatLessonsLeft } from "@/lib/lessons";
 import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -713,12 +713,10 @@ export type Database = {
           attendance: Database["public"]["Enums"]["attendance_status"]
           completed: boolean
           created_at: string
-          cycle_start: string | null
           homework: string | null
           id: string
           is_planned: boolean
           lesson_date: string
-          lesson_number: number | null
           lesson_time: string
           notes: string | null
           planned_date: string | null
@@ -732,12 +730,10 @@ export type Database = {
           attendance?: Database["public"]["Enums"]["attendance_status"]
           completed?: boolean
           created_at?: string
-          cycle_start?: string | null
           homework?: string | null
           id?: string
           is_planned?: boolean
           lesson_date: string
-          lesson_number?: number | null
           lesson_time?: string
           notes?: string | null
           planned_date?: string | null
@@ -751,12 +747,10 @@ export type Database = {
           attendance?: Database["public"]["Enums"]["attendance_status"]
           completed?: boolean
           created_at?: string
-          cycle_start?: string | null
           homework?: string | null
           id?: string
           is_planned?: boolean
           lesson_date?: string
-          lesson_number?: number | null
           lesson_time?: string
           notes?: string | null
           planned_date?: string | null

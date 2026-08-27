@@ -7,7 +7,7 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { formatLessonsLeft, nextLessonNumber } from "@/lib/lessons";
+import { formatLessonsLeft } from "@/lib/lessons";
 import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -366,11 +366,8 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
   const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "" });
   const save = async () => {
     if (!form.lesson_date || !form.topic) return toast.error("Date & topic required");
-    const { cycle_start, lesson_number } = await nextLessonNumber(studentId, form.lesson_date);
     const { error } = await supabase.from("lessons").insert({
       student_id: studentId,
-      cycle_start,
-      lesson_number,
       lesson_date: form.lesson_date,
       lesson_time: form.lesson_time,
       topic: form.topic,
@@ -414,7 +411,6 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     homework: lesson.homework ?? "",
     notes: lesson.notes ?? "",
     attendance: lesson.attendance,
-    lesson_number: String((lesson as any).lesson_number ?? ""),
   });
   const [busy, setBusy] = useState(false);
 
@@ -429,7 +425,6 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
       notes: form.notes || null,
       attendance: form.attendance as any,
       completed: form.attendance !== "scheduled",
-      lesson_number: form.lesson_number === "" ? null : Number(form.lesson_number),
     } as any).eq("id", lesson.id);
     setBusy(false);
     if (error) return toast.error(error.message);

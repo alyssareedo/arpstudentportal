@@ -54,7 +54,7 @@ export default function Lessons() {
                   <UserAvatar className="h-12 w-12" name={l.profiles.full_name} src={l.profiles.avatar_url} />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">Lesson {l.lesson_number ?? "—"}</span>
+                      
                       <p className="font-semibold">{l.topic || "Untitled lesson"}</p>
                       <Badge variant="outline" className="rounded-full">{l.profiles.level}</Badge>
                     </div>

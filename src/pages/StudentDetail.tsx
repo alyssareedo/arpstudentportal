@@ -228,11 +228,9 @@ export default function StudentDetail() {
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="font-medium">
-                          <span className="mr-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                            Lesson {(l as any).lesson_number ?? "—"}
-                          </span>
                           {l.topic}
                         </p>
+
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                           {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}
@@ -462,11 +460,6 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
             <div className="grid gap-2"><Label>Time</Label><Input type="time" value={form.lesson_time} onChange={(e) => setForm({ ...form, lesson_time: e.target.value })} /></div>
           </div>
           <div className="grid gap-2"><Label>Topic</Label><Input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></div>
-          <div className="grid gap-2">
-            <Label>Lesson number</Label>
-            <Input type="number" min={1} value={form.lesson_number} onChange={(e) => setForm({ ...form, lesson_number: e.target.value })} placeholder="e.g. 3" />
-            <p className="text-xs text-muted-foreground">Numbering restarts at 1 for each new course package.</p>
-          </div>
           <div className="grid gap-2"><Label>Attendance</Label>
             <Select value={form.attendance} onValueChange={(v) => setForm({ ...form, attendance: v as any })}>
               <SelectTrigger><SelectValue /></SelectTrigger>

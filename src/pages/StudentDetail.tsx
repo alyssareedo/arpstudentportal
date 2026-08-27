@@ -228,11 +228,9 @@ export default function StudentDetail() {
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="font-medium">
-                          <span className="mr-2 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                            Lesson {(l as any).lesson_number ?? "—"}
-                          </span>
                           {l.topic}
                         </p>
+
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                           {isAdmin && <EditLessonDialog lesson={l} onSaved={reload} />}

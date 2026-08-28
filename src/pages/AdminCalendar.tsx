@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking" | "google" | "ics";
+type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
 
 // Offset (minutes) of a timezone at a given instant
 function tzOffset(date: Date, tz: string) {
@@ -81,6 +81,8 @@ export default function AdminCalendar() {
 
   // Copy / paste a recurring student's lesson
   const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);
+  // How many weekly repeats each paste creates (1 = just the clicked day)
+  const [repeatWeeks, setRepeatWeeks] = useState<string>("1");
 
   // Google Calendar
   const [gcalOn, setGcalOn] = useState<boolean>(() => localStorage.getItem("arp_gcal_on") === "1");
@@ -90,12 +92,6 @@ export default function AdminCalendar() {
   const [gcalLoading, setGcalLoading] = useState(false);
   const [tz, setTz] = useState<string>(() => localStorage.getItem("arp_cal_tz") || "local");
   const tzName = tz === "local" ? "" : tz;
-
-  // ClassIn / other .ics calendar feed
-  const [icsUrl, setIcsUrl] = useState<string>(() => localStorage.getItem("arp_ics_url") || "");
-  const [icsInput, setIcsInput] = useState<string>(() => localStorage.getItem("arp_ics_url") || "");
-  const [icsEvents, setIcsEvents] = useState<any[]>([]);
-  const [icsLoading, setIcsLoading] = useState(false);
 
   useEffect(() => { if (user) loadAll(); }, [user, date, teacherFilter]);
 
@@ -107,25 +103,6 @@ export default function AdminCalendar() {
   }, [gcalOn, gcalId, date, user]);
 
   useEffect(() => { localStorage.setItem("arp_cal_tz", tz); }, [tz]);
-
-  useEffect(() => {
-    localStorage.setItem("arp_ics_url", icsUrl);
-    if (!icsUrl) { setIcsEvents([]); return; }
-    loadIcs();
-  }, [icsUrl, user]);
-
-  const loadIcs = async () => {
-    if (!icsUrl) return;
-    setIcsLoading(true);
-    const { data, error } = await supabase.functions.invoke("ics-calendar", { body: { url: icsUrl } });
-    if (error || (data as any)?.error) {
-      toast.error((data as any)?.error ?? "Could not load that calendar feed");
-      setIcsEvents([]);
-    } else {
-      setIcsEvents((data as any)?.events ?? []);
-    }
-    setIcsLoading(false);
-  };
 
   const loadGoogle = async () => {
     if (!user) return;
@@ -260,20 +237,8 @@ export default function AdminCalendar() {
         raw: g,
       });
     }
-    for (const c of icsEvents) {
-      if (!c.start || !c.end) continue;
-      out.push({
-        id: `ics-${c.id}`,
-        kind: "ics",
-        title: `🎓 ${c.title}`,
-        start: shiftToTz(new Date(c.start), tzName),
-        end: shiftToTz(new Date(c.end), tzName),
-        allDay: !!c.allDay,
-        raw: c,
-      });
-    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date, gcalEvents, icsEvents, tzName]);
+  }, [slots, blocks, bookings, teachers, students, date, gcalEvents, tzName]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -282,7 +247,6 @@ export default function AdminCalendar() {
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
       google: "hsl(265 70% 58%)",
-      ics: "hsl(200 85% 45%)",
     };
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
@@ -290,18 +254,27 @@ export default function AdminCalendar() {
 
   const pasteLesson = async (start: Date) => {
     if (!clipboard) return;
-    const { error } = await supabase.from("bookings").insert({
-      teacher_id: clipboard.teacherId,
-      student_id: clipboard.studentId,
-      booking_date: format(start, "yyyy-MM-dd"),
-      start_time: format(start, "HH:mm:ss"),
-      duration_minutes: clipboard.duration,
-      status: "approved",
-      decided_by: user!.id,
-      decided_at: new Date().toISOString(),
+    const weeks = Math.max(1, Number(repeatWeeks) || 1);
+    const rows = Array.from({ length: weeks }, (_, i) => {
+      const d = addWeeks(start, i);
+      return {
+        teacher_id: clipboard.teacherId,
+        student_id: clipboard.studentId,
+        booking_date: format(d, "yyyy-MM-dd"),
+        start_time: format(d, "HH:mm:ss"),
+        duration_minutes: clipboard.duration,
+        status: "approved" as const,
+        decided_by: user!.id,
+        decided_at: new Date().toISOString(),
+      };
     });
+    const { error } = await supabase.from("bookings").insert(rows);
     if (error) return toast.error(error.message);
-    toast.success(`${clipboard.name} added on ${format(start, "EEE d MMM, HH:mm")}`);
+    toast.success(
+      weeks === 1
+        ? `${clipboard.name} added on ${format(start, "EEE d MMM, HH:mm")}`
+        : `${clipboard.name} added for ${weeks} weeks from ${format(start, "EEE d MMM, HH:mm")}`,
+    );
     loadAll();
   };
 
@@ -343,25 +316,29 @@ export default function AdminCalendar() {
     } else {
       if (!teacherId || !studentId) return toast.error("Pick teacher and student");
       const mins = Math.max(30, Math.round((draft.end.getTime() - draft.start.getTime()) / 60000));
-      const { error } = await supabase.from("bookings").insert({
-        teacher_id: teacherId,
-        student_id: studentId,
-        booking_date: format(draft.start, "yyyy-MM-dd"),
-        start_time: format(draft.start, "HH:mm:ss"),
-        duration_minutes: mins,
-        status: "approved",
-        decided_by: user!.id,
-        decided_at: new Date().toISOString(),
+      const weeks = Math.max(1, Number(repeatWeeks) || 1);
+      const rows = Array.from({ length: weeks }, (_, i) => {
+        const d = addWeeks(draft.start, i);
+        return {
+          teacher_id: teacherId,
+          student_id: studentId,
+          booking_date: format(d, "yyyy-MM-dd"),
+          start_time: format(d, "HH:mm:ss"),
+          duration_minutes: mins,
+          status: "approved" as const,
+          decided_by: user!.id,
+          decided_at: new Date().toISOString(),
+        };
       });
+      const { error } = await supabase.from("bookings").insert(rows);
       if (error) return toast.error(error.message);
-      toast.success("Lesson scheduled");
+      toast.success(weeks === 1 ? "Lesson scheduled" : `${weeks} weekly lessons scheduled`);
     }
     setCreateOpen(false);
     loadAll();
   };
 
   const deleteEvent = async (ev: CalEvent) => {
-    if (ev.kind === "ics") return toast.info("ClassIn events are managed in ClassIn.");
     if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
@@ -401,7 +378,18 @@ export default function AdminCalendar() {
           {clipboard && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
               <ClipboardPaste className="h-4 w-4 text-primary" />
-              <span><b>{clipboard.name}</b> copied ({clipboard.duration} min) — click any empty time on the calendar to paste this lesson. Paste as many dates as you like.</span>
+              <span><b>{clipboard.name}</b> copied ({clipboard.duration} min) — click any empty time on the calendar to paste. Paste as many dates as you like.</span>
+              <div className="flex items-center gap-2">
+                <Label className="text-xs">Repeat weekly</Label>
+                <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
+                  <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["1", "2", "4", "8", "12", "24"].map(n => (
+                      <SelectItem key={n} value={n}>{n === "1" ? "Just this date" : `${n} weeks`}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setClipboard(null)}>
                 <X className="mr-1 h-4 w-4" /> Done
               </Button>
@@ -440,24 +428,6 @@ export default function AdminCalendar() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2">
-              <Label className="text-sm">ClassIn calendar link (.ics / webcal)</Label>
-              <Input
-                className="w-[320px]"
-                placeholder="https://…/calendar.ics"
-                value={icsInput}
-                onChange={(e) => setIcsInput(e.target.value)}
-              />
-              <Button variant="outline" size="sm" onClick={() => setIcsUrl(icsInput.trim())}>
-                {icsUrl && icsUrl === icsInput.trim() ? "Reload" : "Connect"}
-              </Button>
-              {icsUrl && (
-                <Button variant="ghost" size="sm" onClick={() => { setIcsUrl(""); setIcsInput(""); }}>Remove</Button>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {icsLoading ? "Loading ClassIn…" : icsUrl ? `${icsEvents.length} ClassIn events in view` : "Paste the subscription link from ClassIn"}
-              </span>
-            </div>
           </div>
 
           <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
@@ -473,7 +443,6 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
             {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
-            {!!icsUrl && <LegendDot color="hsl(200 85% 45%)" label="ClassIn" />}
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar
@@ -567,6 +536,18 @@ export default function AdminCalendar() {
                   <SelectTrigger><SelectValue placeholder="Select student" /></SelectTrigger>
                   <SelectContent>{students.map(s => <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>)}</SelectContent>
                 </Select>
+                <div className="mt-3">
+                  <Label>Repeat weekly</Label>
+                  <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["1", "2", "4", "8", "12", "24"].map(n => (
+                        <SelectItem key={n} value={n}>{n === "1" ? "Just this date" : `Every week for ${n} weeks`}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">Creates the same lesson on the same weekday and time.</p>
+                </div>
               </div>
             )}
           </div>
@@ -613,13 +594,13 @@ export default function AdminCalendar() {
                     name: students.find(s => s.id === bk.student_id)?.full_name ?? "Student",
                   });
                   setDetailEvent(null);
-                  toast.success("Lesson copied — click empty times to paste");
+                  toast.success("Student copied — click empty times to paste, and set a weekly repeat if it is a regular lesson");
                 }}
               >
                 <Copy className="mr-2 h-4 w-4" /> Copy student
               </Button>
             )}
-            {detailEvent?.kind !== "google" && detailEvent?.kind !== "ics" && (
+            {detailEvent?.kind !== "google" && (
               <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>

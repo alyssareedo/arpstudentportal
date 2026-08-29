@@ -589,3 +589,50 @@ function AccountActionsDialog({ studentId, email, fullName, phone, isPlaceholder
     </Dialog>
   );
 }
+
+function ClassesOwingDialog({
+  studentId, owing, paidOff, onSaved,
+}: { studentId: string; owing: number; paidOff: number; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState(String(owing));
+  const [busy, setBusy] = useState(false);
+
+  const markPaid = async () => {
+    const n = Math.max(0, Math.min(owing, parseInt(count) || 0));
+    if (n === 0) return toast.error("Enter how many classes were paid for");
+    setBusy(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ lessons_paid_off: paidOff + n } as any)
+      .eq("id", studentId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${n} class${n === 1 ? "" : "es"} marked as paid`);
+    setOpen(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setCount(String(owing)); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="mt-3 rounded-full" disabled={owing === 0}>
+          <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Mark classes as paid
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>Mark classes as paid</DialogTitle></DialogHeader>
+        <div className="grid gap-2">
+          <Label>Classes paid for (max {owing})</Label>
+          <Input type="number" min={1} max={owing} value={count} onChange={(e) => setCount(e.target.value)} />
+          <p className="text-xs text-muted-foreground">
+            This only clears the owing count — the lesson balance and lesson history stay unchanged.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={markPaid} disabled={busy} className="gradient-primary text-primary-foreground">Confirm</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1030,6 +1030,7 @@ export type Database = {
           goals: string | null
           id: string
           joined_at: string
+          lessons_paid_off: number
           lessons_purchased: number | null
           lessons_reset_at: string | null
           level: Database["public"]["Enums"]["cefr_level"] | null
@@ -1047,6 +1048,7 @@ export type Database = {
           goals?: string | null
           id: string
           joined_at?: string
+          lessons_paid_off?: number
           lessons_purchased?: number | null
           lessons_reset_at?: string | null
           level?: Database["public"]["Enums"]["cefr_level"] | null
@@ -1064,6 +1066,7 @@ export type Database = {
           goals?: string | null
           id?: string
           joined_at?: string
+          lessons_paid_off?: number
           lessons_purchased?: number | null
           lessons_reset_at?: string | null
           level?: Database["public"]["Enums"]["cefr_level"] | null

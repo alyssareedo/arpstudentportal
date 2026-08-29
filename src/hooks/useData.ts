@@ -17,6 +17,7 @@ export interface Profile {
   lessons_purchased: number | null;
   lessons_reset_at: string | null;
   placeholder_email: boolean | null;
+  lessons_paid_off: number | null;
 }
 
 

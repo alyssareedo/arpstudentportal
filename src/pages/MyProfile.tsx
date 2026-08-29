@@ -11,7 +11,6 @@ import { useStudent } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLessonsLeft } from "@/lib/lessons";
-import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -74,7 +73,7 @@ export default function MyProfile() {
         ))}
       </div>
 
-      <BalanceSourceNote studentId={profile.id} resetAt={resetAt} purchased={profile.lessons_purchased ?? 0} used={usedSinceReset} />
+
 
       <Tabs defaultValue="progress">
         <TabsList className="rounded-full">

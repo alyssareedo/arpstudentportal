@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, BookOpen, CalendarDays, Target, Flame } from "lucide-react";
 import { formatLessonsLeft } from "@/lib/lessons";
-import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 
 export default function Roadmap() {
   const { user } = useAuth();
@@ -55,7 +54,7 @@ export default function Roadmap() {
         <Card><CardContent className="pt-6"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Target className="h-4 w-4" /> Level</div><div className="text-2xl font-bold">{profile?.cefr_level || "—"}</div></CardContent></Card>
       </div>
 
-      {profile && <BalanceSourceNote studentId={profile.id} resetAt={resetAt} purchased={purchased} used={attended} />}
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card><CardHeader><CardTitle>Upcoming topics</CardTitle></CardHeader>

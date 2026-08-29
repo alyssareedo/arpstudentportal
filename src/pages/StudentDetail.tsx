@@ -152,7 +152,6 @@ export default function StudentDetail() {
         ))}
       </div>
 
-      <BalanceSourceNote studentId={profile.id} resetAt={resetAt} purchased={profile.lessons_purchased ?? 0} used={lessonsCountedFromReset} editable onUpdated={reload} />
 
       <Tabs defaultValue="overview">
         <TabsList className="rounded-full">

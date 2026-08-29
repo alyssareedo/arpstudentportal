@@ -74,7 +74,7 @@ export default function MyProfile() {
         ))}
       </div>
 
-      <BalanceSourceNote studentId={profile.id} resetAt={resetAt} purchased={profile.lessons_purchased ?? 0} used={usedSinceReset} />
+
 
       <Tabs defaultValue="progress">
         <TabsList className="rounded-full">

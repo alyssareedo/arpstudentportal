@@ -107,37 +107,44 @@ export default function AdminCalendar() {
   const loadGoogle = async () => {
     if (!user) return;
     setGcalLoading(true);
+    try {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const { data: current } = await supabase.auth.getSession();
+      const accessToken = refreshed.session?.access_token ?? current.session?.access_token;
+      if (!accessToken) {
+        setGcalEvents([]);
+        setGcalOn(false);
+        toast.error("Could not load Google Calendar — please sign in again.");
+        return;
+      }
 
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    const accessToken = refreshed.session?.access_token;
-    if (refreshError || !accessToken) {
+      const timeMin = startOfMonth(addWeeks(date, -6)).toISOString();
+      const timeMax = endOfMonth(addWeeks(date, 6)).toISOString();
+      const invokeOptions = (body: Record<string, unknown>) => ({
+        body,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const [ev, cals] = await Promise.all([
+        supabase.functions.invoke("google-calendar", invokeOptions({ action: "events", calendarId: gcalId, timeMin, timeMax })),
+        gcalList.length ? Promise.resolve(null) : supabase.functions.invoke("google-calendar", invokeOptions({ action: "calendars" })),
+      ]);
+      if (ev.error || (ev.data as any)?.error) {
+        toast.error((ev.data as any)?.error ?? "Could not load Google Calendar");
+        setGcalEvents([]);
+      } else {
+        setGcalEvents(Array.isArray((ev.data as any)?.events) ? (ev.data as any).events : []);
+      }
+      if (cals && !cals.error && Array.isArray((cals.data as any)?.calendars)) setGcalList((cals.data as any).calendars);
+    } catch (e: any) {
+      console.error("Google Calendar load failed", e);
       setGcalEvents([]);
-      setGcalLoading(false);
       setGcalOn(false);
-      toast.error("Your session has expired. Please sign in again to load Google Calendar.");
-      await supabase.auth.signOut({ scope: "local" });
-      return;
+      toast.error("Google Calendar is unavailable right now.");
+    } finally {
+      setGcalLoading(false);
     }
-
-    const timeMin = startOfMonth(addWeeks(date, -6)).toISOString();
-    const timeMax = endOfMonth(addWeeks(date, 6)).toISOString();
-    const invokeOptions = (body: Record<string, unknown>) => ({
-      body,
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    const [ev, cals] = await Promise.all([
-      supabase.functions.invoke("google-calendar", invokeOptions({ action: "events", calendarId: gcalId, timeMin, timeMax })),
-      gcalList.length ? Promise.resolve(null) : supabase.functions.invoke("google-calendar", invokeOptions({ action: "calendars" })),
-    ]);
-    if (ev.error || (ev.data as any)?.error) {
-      toast.error((ev.data as any)?.error ?? "Could not load Google Calendar");
-      setGcalEvents([]);
-    } else {
-      setGcalEvents((ev.data as any)?.events ?? []);
-    }
-    if (cals && !cals.error && (cals.data as any)?.calendars) setGcalList((cals.data as any).calendars);
-    setGcalLoading(false);
   };
+
 
 
   const loadAll = async () => {

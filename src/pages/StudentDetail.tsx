@@ -8,7 +8,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { formatLessonsLeft } from "@/lib/lessons";
-import { BalanceSourceNote } from "@/components/BalanceSourceNote";
+
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

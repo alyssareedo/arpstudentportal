@@ -136,7 +136,7 @@ export default function StudentDetail() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {[
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
@@ -150,7 +150,24 @@ export default function StudentDetail() {
             </CardContent>
           </Card>
         ))}
+        <Card className={`border-border/60 shadow-elegant ${owing > 0 ? "border-destructive/40" : ""}`}>
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Classes owing</p>
+            <p className={`mt-1 text-3xl font-bold ${owing > 0 ? "text-destructive" : "text-success"}`}>
+              {formatClassesOwing(owing)}
+            </p>
+            {isAdmin && (
+              <ClassesOwingDialog
+                studentId={profile.id}
+                owing={owing}
+                paidOff={profile.lessons_paid_off ?? 0}
+                onSaved={reload}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
+
 
 
       <Tabs defaultValue="overview">

@@ -12,3 +12,20 @@ export function lessonsRemaining(
 ): number {
   return Math.max(0, (purchased ?? 0) - attendedSinceReset);
 }
+
+/** Classes taken beyond the purchased package that have not been paid for yet. */
+export function classesOwing(
+  purchased: number | null | undefined,
+  attendedSinceReset: number,
+  paidOff: number | null | undefined,
+): number {
+  return Math.max(0, attendedSinceReset - (purchased ?? 0) - (paidOff ?? 0));
+}
+
+/** "No Classes Owing", "1 Class Owing", "3 Classes Owing". */
+export function formatClassesOwing(owing: number): string {
+  const n = Math.max(0, Math.floor(owing || 0));
+  if (n === 0) return "No Classes Owing";
+  return `${n} ${n === 1 ? "Class" : "Classes"} Owing`;
+}
+

@@ -78,6 +78,7 @@ export default function StudentDetail() {
     (!resetAt || l.lesson_date >= resetAt)
   ).length;
   const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsCountedFromReset);
+  const owing = classesOwing(profile.lessons_purchased, lessonsCountedFromReset, profile.lessons_paid_off);
 
   const saveProfile = async () => {
     const { error: pErr } = await supabase.from("profiles").update({

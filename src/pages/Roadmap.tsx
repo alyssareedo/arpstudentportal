@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, BookOpen, CalendarDays, Target, Flame } from "lucide-react";
 import { formatLessonsLeft } from "@/lib/lessons";
-import { BalanceSourceNote } from "@/components/BalanceSourceNote";
 
 export default function Roadmap() {
   const { user } = useAuth();

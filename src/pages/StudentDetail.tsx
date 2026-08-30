@@ -7,9 +7,11 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { formatLessonsLeft, classesOwing, formatClassesOwing } from "@/lib/lessons";
+import { formatLessonsLeft, classesOwing, formatClassesOwing, effectiveLessonsLeft } from "@/lib/lessons";
 
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
+import { CurriculumCalendar } from "@/components/CurriculumCalendar";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,8 +79,9 @@ export default function StudentDetail() {
     (l.attendance === "present" || l.attendance === "late") &&
     (!resetAt || l.lesson_date >= resetAt)
   ).length;
-  const lessonsRemaining = Math.max(0, (profile.lessons_purchased ?? 0) - lessonsCountedFromReset);
+  const lessonsLeft = effectiveLessonsLeft(profile.lessons_left_override, profile.lessons_purchased, lessonsCountedFromReset);
   const owing = classesOwing(profile.lessons_purchased, lessonsCountedFromReset, profile.lessons_paid_off);
+
 
   const saveProfile = async () => {
     const { error: pErr } = await supabase.from("profiles").update({
@@ -142,7 +145,6 @@ export default function StudentDetail() {
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
           { label: "Attendance", value: `${presentRate}%`, color: "text-success" },
-          { label: "Lesson balance", value: formatLessonsLeft(lessonsRemaining), color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60 shadow-elegant">
             <CardContent className="p-5">
@@ -151,6 +153,23 @@ export default function StudentDetail() {
             </CardContent>
           </Card>
         ))}
+        <Card className="border-border/60 shadow-elegant">
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Lesson balance</p>
+            <p className="mt-1 text-3xl font-bold text-foreground">{formatLessonsLeft(lessonsLeft)}</p>
+            {profile.lessons_left_override !== null && profile.lessons_left_override !== undefined && (
+              <p className="mt-1 text-xs text-muted-foreground">Set manually by an admin</p>
+            )}
+            {isAdmin && (
+              <ManualLessonsDialog
+                studentId={profile.id}
+                current={lessonsLeft}
+                hasOverride={profile.lessons_left_override !== null && profile.lessons_left_override !== undefined}
+                onSaved={() => { setInitialized(false); reload(); }}
+              />
+            )}
+          </CardContent>
+        </Card>
         <Card className={`border-border/60 shadow-elegant ${owing > 0 ? "border-destructive/40" : ""}`}>
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Classes owing</p>
@@ -171,13 +190,20 @@ export default function StudentDetail() {
 
 
 
+
       <Tabs defaultValue="overview">
         <TabsList className="rounded-full">
           <TabsTrigger value="overview" className="rounded-full">Overview</TabsTrigger>
           <TabsTrigger value="lessons" className="rounded-full">Lessons</TabsTrigger>
+          <TabsTrigger value="curriculum" className="rounded-full">Curriculum</TabsTrigger>
           <TabsTrigger value="homework" className="rounded-full">Homework</TabsTrigger>
           {isAdmin && <TabsTrigger value="edit" className="rounded-full">Edit</TabsTrigger>}
         </TabsList>
+
+        <TabsContent value="curriculum">
+          <CurriculumCalendar studentId={profile.id} canEdit={role === "admin" || role === "teacher"} />
+        </TabsContent>
+
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-3">
@@ -631,6 +657,60 @@ function ClassesOwingDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button onClick={markPaid} disabled={busy} className="gradient-primary text-primary-foreground">Confirm</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManualLessonsDialog({
+  studentId, current, hasOverride, onSaved,
+}: { studentId: string; current: number; hasOverride: boolean; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState(String(current));
+  const [busy, setBusy] = useState(false);
+
+  const save = async (value: number | null) => {
+    setBusy(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ lessons_left_override: value } as any)
+      .eq("id", studentId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(value === null ? "Back to automatic calculation" : `Lessons left set to ${value}`);
+    setOpen(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setCount(String(current)); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="mt-3 rounded-full">
+          <Pencil className="mr-1.5 h-3.5 w-3.5" /> Reset lessons left
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>Set lessons left manually</DialogTitle></DialogHeader>
+        <div className="grid gap-2">
+          <Label>Lessons remaining</Label>
+          <Input type="number" min={0} value={count} onChange={(e) => setCount(e.target.value)} />
+          <p className="text-xs text-muted-foreground">
+            This manual number overrides the automatic calculation until you change or clear it.
+            Lesson history, packages and invoices stay untouched.
+          </p>
+        </div>
+        <DialogFooter className="flex-row justify-between sm:justify-between">
+          {hasOverride ? (
+            <Button variant="outline" onClick={() => save(null)} disabled={busy}>Use automatic</Button>
+          ) : <span />}
+          <Button
+            onClick={() => save(Math.max(0, parseInt(count) || 0))}
+            disabled={busy}
+            className="gradient-primary text-primary-foreground"
+          >
+            <Save className="mr-1 h-4 w-4" /> Save
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

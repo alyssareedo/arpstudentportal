@@ -29,3 +29,16 @@ export function formatClassesOwing(owing: number): string {
   return `${n} ${n === 1 ? "Class" : "Classes"} Owing`;
 }
 
+
+/**
+ * Lessons left, honouring an admin's manual override.
+ * The override wins over the automatic calculation until it is cleared.
+ */
+export function effectiveLessonsLeft(
+  override: number | null | undefined,
+  purchased: number | null | undefined,
+  attendedSinceReset: number,
+): number {
+  if (override !== null && override !== undefined) return Math.max(0, Math.floor(override));
+  return lessonsRemaining(purchased, attendedSinceReset);
+}

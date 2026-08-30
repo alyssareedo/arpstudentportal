@@ -544,6 +544,84 @@ export type Database = {
           },
         ]
       }
+      curriculum_items: {
+        Row: {
+          activities: string | null
+          category: string
+          color: string
+          completed: boolean
+          created_at: string
+          created_by: string | null
+          duration_minutes: number | null
+          id: string
+          item_date: string
+          material_id: string | null
+          materials: string | null
+          notes: string | null
+          start_time: string | null
+          student_id: string
+          title: string
+          topic: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          activities?: string | null
+          category?: string
+          color?: string
+          completed?: boolean
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string
+          item_date: string
+          material_id?: string | null
+          materials?: string | null
+          notes?: string | null
+          start_time?: string | null
+          student_id: string
+          title: string
+          topic?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activities?: string | null
+          category?: string
+          color?: string
+          completed?: boolean
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string
+          item_date?: string
+          material_id?: string | null
+          materials?: string | null
+          notes?: string | null
+          start_time?: string | null
+          student_id?: string
+          title?: string
+          topic?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_items_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homework: {
         Row: {
           assigned_at: string
@@ -1030,6 +1108,7 @@ export type Database = {
           goals: string | null
           id: string
           joined_at: string
+          lessons_left_override: number | null
           lessons_paid_off: number
           lessons_purchased: number | null
           lessons_reset_at: string | null
@@ -1048,6 +1127,7 @@ export type Database = {
           goals?: string | null
           id: string
           joined_at?: string
+          lessons_left_override?: number | null
           lessons_paid_off?: number
           lessons_purchased?: number | null
           lessons_reset_at?: string | null
@@ -1066,6 +1146,7 @@ export type Database = {
           goals?: string | null
           id?: string
           joined_at?: string
+          lessons_left_override?: number | null
           lessons_paid_off?: number
           lessons_purchased?: number | null
           lessons_reset_at?: string | null

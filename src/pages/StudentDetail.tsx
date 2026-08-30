@@ -195,9 +195,15 @@ export default function StudentDetail() {
         <TabsList className="rounded-full">
           <TabsTrigger value="overview" className="rounded-full">Overview</TabsTrigger>
           <TabsTrigger value="lessons" className="rounded-full">Lessons</TabsTrigger>
+          <TabsTrigger value="curriculum" className="rounded-full">Curriculum</TabsTrigger>
           <TabsTrigger value="homework" className="rounded-full">Homework</TabsTrigger>
           {isAdmin && <TabsTrigger value="edit" className="rounded-full">Edit</TabsTrigger>}
         </TabsList>
+
+        <TabsContent value="curriculum">
+          <CurriculumCalendar studentId={profile.id} canEdit={role === "admin" || role === "teacher"} />
+        </TabsContent>
+
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-3">

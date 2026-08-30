@@ -142,7 +142,6 @@ export default function StudentDetail() {
           { label: "Speaking", value: latest?.speaking ?? 0, color: "text-primary" },
           { label: "Grammar", value: latest?.grammar ?? 0, color: "text-accent" },
           { label: "Attendance", value: `${presentRate}%`, color: "text-success" },
-          { label: "Lesson balance", value: formatLessonsLeft(lessonsRemaining), color: "text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="border-border/60 shadow-elegant">
             <CardContent className="p-5">
@@ -151,6 +150,23 @@ export default function StudentDetail() {
             </CardContent>
           </Card>
         ))}
+        <Card className="border-border/60 shadow-elegant">
+          <CardContent className="p-5">
+            <p className="text-sm text-muted-foreground">Lesson balance</p>
+            <p className="mt-1 text-3xl font-bold text-foreground">{formatLessonsLeft(lessonsLeft)}</p>
+            {profile.lessons_left_override !== null && profile.lessons_left_override !== undefined && (
+              <p className="mt-1 text-xs text-muted-foreground">Set manually by an admin</p>
+            )}
+            {isAdmin && (
+              <ManualLessonsDialog
+                studentId={profile.id}
+                current={lessonsLeft}
+                hasOverride={profile.lessons_left_override !== null && profile.lessons_left_override !== undefined}
+                onSaved={() => { setInitialized(false); reload(); }}
+              />
+            )}
+          </CardContent>
+        </Card>
         <Card className={`border-border/60 shadow-elegant ${owing > 0 ? "border-destructive/40" : ""}`}>
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Classes owing</p>
@@ -168,6 +184,7 @@ export default function StudentDetail() {
           </CardContent>
         </Card>
       </div>
+
 
 
 

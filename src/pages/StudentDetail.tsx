@@ -7,9 +7,11 @@ import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { formatLessonsLeft, classesOwing, formatClassesOwing } from "@/lib/lessons";
+import { formatLessonsLeft, classesOwing, formatClassesOwing, effectiveLessonsLeft } from "@/lib/lessons";
 
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
+import { CurriculumCalendar } from "@/components/CurriculumCalendar";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

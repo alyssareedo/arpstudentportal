@@ -662,3 +662,57 @@ function ClassesOwingDialog({
     </Dialog>
   );
 }
+
+function ManualLessonsDialog({
+  studentId, current, hasOverride, onSaved,
+}: { studentId: string; current: number; hasOverride: boolean; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [count, setCount] = useState(String(current));
+  const [busy, setBusy] = useState(false);
+
+  const save = async (value: number | null) => {
+    setBusy(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ lessons_left_override: value } as any)
+      .eq("id", studentId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(value === null ? "Back to automatic calculation" : `Lessons left set to ${value}`);
+    setOpen(false);
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setCount(String(current)); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="mt-3 rounded-full">
+          <Pencil className="mr-1.5 h-3.5 w-3.5" /> Reset lessons left
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader><DialogTitle>Set lessons left manually</DialogTitle></DialogHeader>
+        <div className="grid gap-2">
+          <Label>Lessons remaining</Label>
+          <Input type="number" min={0} value={count} onChange={(e) => setCount(e.target.value)} />
+          <p className="text-xs text-muted-foreground">
+            This manual number overrides the automatic calculation until you change or clear it.
+            Lesson history, packages and invoices stay untouched.
+          </p>
+        </div>
+        <DialogFooter className="flex-row justify-between sm:justify-between">
+          {hasOverride ? (
+            <Button variant="outline" onClick={() => save(null)} disabled={busy}>Use automatic</Button>
+          ) : <span />}
+          <Button
+            onClick={() => save(Math.max(0, parseInt(count) || 0))}
+            disabled={busy}
+            className="gradient-primary text-primary-foreground"
+          >
+            <Save className="mr-1 h-4 w-4" /> Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -18,6 +18,7 @@ export interface Profile {
   lessons_reset_at: string | null;
   placeholder_email: boolean | null;
   lessons_paid_off: number | null;
+  lessons_left_override: number | null;
 }
 
 

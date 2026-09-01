@@ -28,7 +28,7 @@ export default function MyProfile() {
   const usedSinceReset = lessons.filter((l) =>
     (l.attendance === "present" || l.attendance === "late") && (!resetAt || l.lesson_date >= resetAt)
   ).length;
-  const remaining = Math.max(0, (profile.lessons_purchased ?? 0) - usedSinceReset);
+  const remaining = effectiveLessonsLeft(profile.lessons_left_override, profile.lessons_purchased, usedSinceReset);
   const chartData = scores.map((s) => ({ month: s.month, speaking: s.speaking, grammar: s.grammar }));
 
   const toggleHw = async (id: string, completed: boolean) => {

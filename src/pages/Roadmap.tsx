@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, BookOpen, CalendarDays, Target, Flame } from "lucide-react";
-import { formatLessonsLeft } from "@/lib/lessons";
+import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
 
 export default function Roadmap() {
   const { user } = useAuth();

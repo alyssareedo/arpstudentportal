@@ -126,6 +126,18 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
     return map;
   }, [items]);
 
+  /** Map view: items grouped into units, like a textbook contents page. */
+  const unitGroups = useMemo(() => {
+    const groups = new Map<string, CurriculumItem[]>();
+    for (const it of items) {
+      const k = it.unit?.trim() || "General";
+      const list = groups.get(k) ?? [];
+      list.push(it);
+      groups.set(k, list);
+    }
+    return [...groups.entries()];
+  }, [items]);
+
   const dayItems = byDay.get(format(selected, "yyyy-MM-dd")) ?? [];
 
   const openNew = (d: Date) => {
@@ -206,7 +218,16 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
         <CardTitle className="flex items-center gap-2 text-base">
           <BookOpen className="h-4 w-4 text-primary" /> Personalized curriculum
         </CardTitle>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-full border border-border/60 p-0.5">
+            <Button size="sm" variant={view === "map" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("map")}>
+              <LayoutList className="mr-1 h-3.5 w-3.5" /> Map
+            </Button>
+            <Button size="sm" variant={view === "calendar" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("calendar")}>
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
+            </Button>
+          </div>
+          {view === "calendar" && (<>
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -214,6 +235,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
+          </>)}
           {canEdit && (
             <Button size="sm" className="gradient-primary text-primary-foreground" onClick={() => openNew(selected)}>
               <Plus className="mr-1 h-4 w-4" /> Add

@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudent } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatLessonsLeft } from "@/lib/lessons";
+import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
 
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();

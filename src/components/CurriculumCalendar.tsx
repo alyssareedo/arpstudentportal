@@ -3,7 +3,7 @@ import {
   addMonths, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO,
   startOfMonth, startOfWeek, eachDayOfInterval,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";

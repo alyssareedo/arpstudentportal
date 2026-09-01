@@ -251,6 +251,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
           ))}
         </div>
 
+        {view === "calendar" && (<>
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted-foreground">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
         </div>

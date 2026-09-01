@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, BookOpen, CalendarDays, Target, Flame } from "lucide-react";
-import { formatLessonsLeft } from "@/lib/lessons";
+import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
 
 export default function Roadmap() {
   const { user } = useAuth();
@@ -37,7 +37,7 @@ export default function Roadmap() {
   const purchased = profile?.lessons_purchased ?? 0;
   const resetAt = profile?.lessons_reset_at;
   const attended = completedLessons.filter(l => !resetAt || new Date(l.lesson_date) >= new Date(resetAt)).length;
-  const remaining = Math.max(0, purchased - attended);
+  const remaining = effectiveLessonsLeft(profile?.lessons_left_override, purchased, attended);
   const completionPct = purchased ? Math.round((attended / purchased) * 100) : 0;
 
   const matDone = materials.filter(m => progress[m.material_id]?.status === "completed").length;

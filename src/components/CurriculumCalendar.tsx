@@ -3,7 +3,7 @@ import {
   addMonths, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO,
   startOfMonth, startOfWeek, eachDayOfInterval,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,22 @@ export const CURRICULUM_COLORS: { value: string; label: string; className: strin
 const colorClass = (c: string) =>
   CURRICULUM_COLORS.find((x) => x.value === c)?.className ?? CURRICULUM_COLORS[0].className;
 
+/** Solid banner styles for unit headers in the curriculum map view. */
+const UNIT_BANNERS = [
+  "bg-primary text-primary-foreground",
+  "bg-accent text-accent-foreground",
+  "bg-success text-success-foreground",
+  "bg-warning text-warning-foreground",
+  "bg-destructive text-destructive-foreground",
+];
+const UNIT_BADGES = [
+  "bg-primary/15 text-primary border-primary/30",
+  "bg-accent/15 text-accent border-accent/30",
+  "bg-success/15 text-success border-success/30",
+  "bg-warning/15 text-warning-foreground border-warning/40",
+  "bg-destructive/10 text-destructive border-destructive/30",
+];
+
 const CATEGORIES = ["lesson", "unit", "topic", "activity", "material", "assessment", "review"];
 
 const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => ({
@@ -72,23 +88,26 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [form, setForm] = useState(emptyForm(format(new Date(), "yyyy-MM-dd")));
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<"map" | "calendar">("map");
 
   const load = useCallback(async () => {
     setLoading(true);
-    const from = format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd");
-    const to = format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd");
-    const { data, error } = await supabase
+    let q = supabase
       .from("curriculum_items")
       .select("*")
       .eq("student_id", studentId)
-      .gte("item_date", from)
-      .lte("item_date", to)
       .order("item_date")
       .order("start_time", { nullsFirst: true });
+    if (view === "calendar") {
+      q = q
+        .gte("item_date", format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd"))
+        .lte("item_date", format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd"));
+    }
+    const { data, error } = await q;
     if (error) toast.error(error.message);
     setItems((data as unknown as CurriculumItem[]) ?? []);
     setLoading(false);
-  }, [studentId, cursor]);
+  }, [studentId, cursor, view]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -105,6 +124,18 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
       map.set(it.item_date, list);
     }
     return map;
+  }, [items]);
+
+  /** Map view: items grouped into units, like a textbook contents page. */
+  const unitGroups = useMemo(() => {
+    const groups = new Map<string, CurriculumItem[]>();
+    for (const it of items) {
+      const k = it.unit?.trim() || "General";
+      const list = groups.get(k) ?? [];
+      list.push(it);
+      groups.set(k, list);
+    }
+    return [...groups.entries()];
   }, [items]);
 
   const dayItems = byDay.get(format(selected, "yyyy-MM-dd")) ?? [];
@@ -187,7 +218,16 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
         <CardTitle className="flex items-center gap-2 text-base">
           <BookOpen className="h-4 w-4 text-primary" /> Personalized curriculum
         </CardTitle>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-full border border-border/60 p-0.5">
+            <Button size="sm" variant={view === "map" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("map")}>
+              <LayoutList className="mr-1 h-3.5 w-3.5" /> Map
+            </Button>
+            <Button size="sm" variant={view === "calendar" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("calendar")}>
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
+            </Button>
+          </div>
+          {view === "calendar" && (<>
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -195,6 +235,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
+          </>)}
           {canEdit && (
             <Button size="sm" className="gradient-primary text-primary-foreground" onClick={() => openNew(selected)}>
               <Plus className="mr-1 h-4 w-4" /> Add
@@ -210,6 +251,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
           ))}
         </div>
 
+        {view === "calendar" && (<>
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted-foreground">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
         </div>
@@ -292,6 +334,58 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             </div>
           ))}
         </div>
+        </>)}
+
+        {view === "map" && (
+          <div className="space-y-6">
+            {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {!loading && unitGroups.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No curriculum items yet.{canEdit ? " Click Add to plan the first unit." : ""}
+              </p>
+            )}
+            {unitGroups.map(([unit, list], gi) => (
+              <div key={unit} className="overflow-hidden rounded-xl border border-border/60">
+                <div className={`flex flex-wrap items-center gap-2 px-4 py-2 ${UNIT_BANNERS[gi % UNIT_BANNERS.length]}`}>
+                  <span className="text-xs font-bold uppercase tracking-widest opacity-80">Unit {gi + 1}</span>
+                  <span className="text-sm font-bold">{unit}</span>
+                </div>
+                <div className="hidden grid-cols-[3rem_1.2fr_1.4fr_1.2fr] gap-2 border-b border-border/60 bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:grid">
+                  <span>#</span><span>Lesson</span><span>Topic &amp; activities</span><span>Materials &amp; notes</span>
+                </div>
+                {list.map((it, i) => (
+                  <button
+                    key={it.id}
+                    type="button"
+                    onClick={() => canEdit && openEdit(it)}
+                    className={`grid w-full grid-cols-1 gap-2 px-3 py-2.5 text-left text-xs transition-colors sm:grid-cols-[3rem_1.2fr_1.4fr_1.2fr] ${i % 2 ? "bg-muted/30" : "bg-card"} ${canEdit ? "hover:bg-muted/50" : "cursor-default"}`}
+                  >
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold ${UNIT_BADGES[gi % UNIT_BADGES.length]}`}>
+                      {i + 1}
+                    </span>
+                    <span className="space-y-0.5">
+                      <span className="block font-semibold">{it.title}</span>
+                      <span className="block capitalize text-muted-foreground">
+                        {it.category} · {it.item_date}{it.start_time ? ` ${it.start_time.slice(0, 5)}` : ""}
+                      </span>
+                      {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                    </span>
+                    <span className="space-y-0.5 text-foreground/80">
+                      {it.topic && <span className="block"><b>Topic:</b> {it.topic}</span>}
+                      {it.activities && <span className="block"><b>Activities:</b> {it.activities}</span>}
+                      {!it.topic && !it.activities && <span className="text-muted-foreground">—</span>}
+                    </span>
+                    <span className="space-y-0.5 text-foreground/80">
+                      {it.materials && <span className="block"><b>Materials:</b> {it.materials}</span>}
+                      {it.notes && <span className="block"><b>Notes:</b> {it.notes}</span>}
+                      {!it.materials && !it.notes && <span className="text-muted-foreground">—</span>}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
 
       <Dialog open={open} onOpenChange={setOpen}>

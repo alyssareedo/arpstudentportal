@@ -334,6 +334,58 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             </div>
           ))}
         </div>
+        </>)}
+
+        {view === "map" && (
+          <div className="space-y-6">
+            {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {!loading && unitGroups.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No curriculum items yet.{canEdit ? " Click Add to plan the first unit." : ""}
+              </p>
+            )}
+            {unitGroups.map(([unit, list], gi) => (
+              <div key={unit} className="overflow-hidden rounded-xl border border-border/60">
+                <div className={`flex flex-wrap items-center gap-2 px-4 py-2 ${UNIT_BANNERS[gi % UNIT_BANNERS.length]}`}>
+                  <span className="text-xs font-bold uppercase tracking-widest opacity-80">Unit {gi + 1}</span>
+                  <span className="text-sm font-bold">{unit}</span>
+                </div>
+                <div className="hidden grid-cols-[3rem_1.2fr_1.4fr_1.2fr] gap-2 border-b border-border/60 bg-muted/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:grid">
+                  <span>#</span><span>Lesson</span><span>Topic &amp; activities</span><span>Materials &amp; notes</span>
+                </div>
+                {list.map((it, i) => (
+                  <button
+                    key={it.id}
+                    type="button"
+                    onClick={() => canEdit && openEdit(it)}
+                    className={`grid w-full grid-cols-1 gap-2 px-3 py-2.5 text-left text-xs transition-colors sm:grid-cols-[3rem_1.2fr_1.4fr_1.2fr] ${i % 2 ? "bg-muted/30" : "bg-card"} ${canEdit ? "hover:bg-muted/50" : "cursor-default"}`}
+                  >
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold ${UNIT_BADGES[gi % UNIT_BADGES.length]}`}>
+                      {i + 1}
+                    </span>
+                    <span className="space-y-0.5">
+                      <span className="block font-semibold">{it.title}</span>
+                      <span className="block capitalize text-muted-foreground">
+                        {it.category} · {it.item_date}{it.start_time ? ` ${it.start_time.slice(0, 5)}` : ""}
+                      </span>
+                      {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                    </span>
+                    <span className="space-y-0.5 text-foreground/80">
+                      {it.topic && <span className="block"><b>Topic:</b> {it.topic}</span>}
+                      {it.activities && <span className="block"><b>Activities:</b> {it.activities}</span>}
+                      {!it.topic && !it.activities && <span className="text-muted-foreground">—</span>}
+                    </span>
+                    <span className="space-y-0.5 text-foreground/80">
+                      {it.materials && <span className="block"><b>Materials:</b> {it.materials}</span>}
+                      {it.notes && <span className="block"><b>Notes:</b> {it.notes}</span>}
+                      {!it.materials && !it.notes && <span className="text-muted-foreground">—</span>}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
 
       <Dialog open={open} onOpenChange={setOpen}>

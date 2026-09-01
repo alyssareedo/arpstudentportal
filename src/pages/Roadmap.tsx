@@ -37,7 +37,7 @@ export default function Roadmap() {
   const purchased = profile?.lessons_purchased ?? 0;
   const resetAt = profile?.lessons_reset_at;
   const attended = completedLessons.filter(l => !resetAt || new Date(l.lesson_date) >= new Date(resetAt)).length;
-  const remaining = Math.max(0, purchased - attended);
+  const remaining = effectiveLessonsLeft(profile?.lessons_left_override, purchased, attended);
   const completionPct = purchased ? Math.round((attended / purchased) * 100) : 0;
 
   const matDone = materials.filter(m => progress[m.material_id]?.status === "completed").length;

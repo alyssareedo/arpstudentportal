@@ -46,6 +46,22 @@ export const CURRICULUM_COLORS: { value: string; label: string; className: strin
 const colorClass = (c: string) =>
   CURRICULUM_COLORS.find((x) => x.value === c)?.className ?? CURRICULUM_COLORS[0].className;
 
+/** Solid banner styles for unit headers in the curriculum map view. */
+const UNIT_BANNERS = [
+  "bg-primary text-primary-foreground",
+  "bg-accent text-accent-foreground",
+  "bg-success text-success-foreground",
+  "bg-warning text-warning-foreground",
+  "bg-destructive text-destructive-foreground",
+];
+const UNIT_BADGES = [
+  "bg-primary/15 text-primary border-primary/30",
+  "bg-accent/15 text-accent border-accent/30",
+  "bg-success/15 text-success border-success/30",
+  "bg-warning/15 text-warning-foreground border-warning/40",
+  "bg-destructive/10 text-destructive border-destructive/30",
+];
+
 const CATEGORIES = ["lesson", "unit", "topic", "activity", "material", "assessment", "review"];
 
 const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => ({
@@ -72,23 +88,26 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [form, setForm] = useState(emptyForm(format(new Date(), "yyyy-MM-dd")));
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [view, setView] = useState<"map" | "calendar">("map");
 
   const load = useCallback(async () => {
     setLoading(true);
-    const from = format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd");
-    const to = format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd");
-    const { data, error } = await supabase
+    let q = supabase
       .from("curriculum_items")
       .select("*")
       .eq("student_id", studentId)
-      .gte("item_date", from)
-      .lte("item_date", to)
       .order("item_date")
       .order("start_time", { nullsFirst: true });
+    if (view === "calendar") {
+      q = q
+        .gte("item_date", format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd"))
+        .lte("item_date", format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd"));
+    }
+    const { data, error } = await q;
     if (error) toast.error(error.message);
     setItems((data as unknown as CurriculumItem[]) ?? []);
     setLoading(false);
-  }, [studentId, cursor]);
+  }, [studentId, cursor, view]);
 
   useEffect(() => { load(); }, [load]);
 

@@ -544,6 +544,42 @@ export type Database = {
           },
         ]
       }
+      curriculum_item_audit: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          changed_fields: string[]
+          id: string
+          item_id: string
+          new_values: Json | null
+          old_values: Json | null
+          student_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          id?: string
+          item_id: string
+          new_values?: Json | null
+          old_values?: Json | null
+          student_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          changed_fields?: string[]
+          id?: string
+          item_id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          student_id?: string
+        }
+        Relationships: []
+      }
       curriculum_items: {
         Row: {
           activities: string | null

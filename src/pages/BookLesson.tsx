@@ -23,7 +23,9 @@ function nextNDates(n: number) {
   return arr;
 }
 
-function fmtDate(d: Date) { return d.toISOString().slice(0,10); }
+function fmtDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 function* hourRange(start: string, end: string) {
   const [sh, sm] = start.split(":").map(Number);

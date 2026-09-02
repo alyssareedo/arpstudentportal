@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
+type EventKind = "slot" | "recurring" | "block" | "booking";
 
 // Offset (minutes) of a timezone at a given instant
 function tzOffset(date: Date, tz: string) {
@@ -179,20 +179,8 @@ export default function AdminCalendar() {
         start, end, raw: bk,
       });
     }
-    for (const g of gcalEvents) {
-      if (!g.start || !g.end) continue;
-      out.push({
-        id: `gcal-${g.id}`,
-        kind: "google",
-        title: `🗓 ${g.title}`,
-        start: shiftToTz(new Date(g.start), tzName),
-        end: shiftToTz(new Date(g.end), tzName),
-        allDay: !!g.allDay,
-        raw: g,
-      });
-    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date, gcalEvents, tzName]);
+  }, [slots, blocks, bookings, teachers, students, date, tzName]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -200,8 +188,8 @@ export default function AdminCalendar() {
       slot: "hsl(180 70% 45%)",
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
-      google: "hsl(265 70% 58%)",
     };
+
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
 
@@ -350,29 +338,7 @@ export default function AdminCalendar() {
             </div>
           )}
           <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
-            <div className="flex items-center gap-2">
-              <Switch id="gcal" checked={gcalOn} onCheckedChange={setGcalOn} />
-              <Label htmlFor="gcal" className="cursor-pointer text-sm">Show my Google Calendar</Label>
-            </div>
-            {gcalOn && (
-              <>
-                <Select value={gcalId} onValueChange={setGcalId}>
-                  <SelectTrigger className="w-[240px]"><SelectValue placeholder="Primary calendar" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="primary">Primary calendar</SelectItem>
-                    {gcalList.filter(c => !c.id.includes("#") && c.id !== "primary").map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.summary}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="sm" onClick={loadGoogle} disabled={gcalLoading}>
-                  <RefreshCw className={`mr-2 h-4 w-4 ${gcalLoading ? "animate-spin" : ""}`} /> Refresh
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {gcalLoading ? "Syncing…" : `${gcalEvents.length} Google events in view`}
-                </span>
-              </>
-            )}
+
             <div className="flex items-center gap-2">
               <Label className="text-sm">Show external times in</Label>
               <Select value={tz} onValueChange={setTz}>

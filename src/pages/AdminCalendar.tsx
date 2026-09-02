@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking" | "google";
+type EventKind = "slot" | "recurring" | "block" | "booking";
 
 // Offset (minutes) of a timezone at a given instant
 function tzOffset(date: Date, tz: string) {
@@ -84,66 +84,13 @@ export default function AdminCalendar() {
   // How many weekly repeats each paste creates (1 = just the clicked day)
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1");
 
-  // Google Calendar
-  const [gcalOn, setGcalOn] = useState<boolean>(() => localStorage.getItem("arp_gcal_on") === "1");
-  const [gcalId, setGcalId] = useState<string>(() => localStorage.getItem("arp_gcal_id") || "primary");
-  const [gcalList, setGcalList] = useState<{ id: string; summary: string }[]>([]);
-  const [gcalEvents, setGcalEvents] = useState<any[]>([]);
-  const [gcalLoading, setGcalLoading] = useState(false);
   const [tz, setTz] = useState<string>(() => localStorage.getItem("arp_cal_tz") || "local");
   const tzName = tz === "local" ? "" : tz;
 
   useEffect(() => { if (user) loadAll(); }, [user, date, teacherFilter]);
 
-  useEffect(() => {
-    localStorage.setItem("arp_gcal_on", gcalOn ? "1" : "0");
-    localStorage.setItem("arp_gcal_id", gcalId);
-    if (!gcalOn) { setGcalEvents([]); return; }
-    loadGoogle();
-  }, [gcalOn, gcalId, date, user]);
-
   useEffect(() => { localStorage.setItem("arp_cal_tz", tz); }, [tz]);
 
-  const loadGoogle = async () => {
-    if (!user) return;
-    setGcalLoading(true);
-    try {
-      const { data: refreshed } = await supabase.auth.refreshSession();
-      const { data: current } = await supabase.auth.getSession();
-      const accessToken = refreshed.session?.access_token ?? current.session?.access_token;
-      if (!accessToken) {
-        setGcalEvents([]);
-        setGcalOn(false);
-        toast.error("Could not load Google Calendar — please sign in again.");
-        return;
-      }
-
-      const timeMin = startOfMonth(addWeeks(date, -6)).toISOString();
-      const timeMax = endOfMonth(addWeeks(date, 6)).toISOString();
-      const invokeOptions = (body: Record<string, unknown>) => ({
-        body,
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const [ev, cals] = await Promise.all([
-        supabase.functions.invoke("google-calendar", invokeOptions({ action: "events", calendarId: gcalId, timeMin, timeMax })),
-        gcalList.length ? Promise.resolve(null) : supabase.functions.invoke("google-calendar", invokeOptions({ action: "calendars" })),
-      ]);
-      if (ev.error || (ev.data as any)?.error) {
-        toast.error((ev.data as any)?.error ?? "Could not load Google Calendar");
-        setGcalEvents([]);
-      } else {
-        setGcalEvents(Array.isArray((ev.data as any)?.events) ? (ev.data as any).events : []);
-      }
-      if (cals && !cals.error && Array.isArray((cals.data as any)?.calendars)) setGcalList((cals.data as any).calendars);
-    } catch (e: any) {
-      console.error("Google Calendar load failed", e);
-      setGcalEvents([]);
-      setGcalOn(false);
-      toast.error("Google Calendar is unavailable right now.");
-    } finally {
-      setGcalLoading(false);
-    }
-  };
 
 
 
@@ -232,20 +179,8 @@ export default function AdminCalendar() {
         start, end, raw: bk,
       });
     }
-    for (const g of gcalEvents) {
-      if (!g.start || !g.end) continue;
-      out.push({
-        id: `gcal-${g.id}`,
-        kind: "google",
-        title: `🗓 ${g.title}`,
-        start: shiftToTz(new Date(g.start), tzName),
-        end: shiftToTz(new Date(g.end), tzName),
-        allDay: !!g.allDay,
-        raw: g,
-      });
-    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date, gcalEvents, tzName]);
+  }, [slots, blocks, bookings, teachers, students, date, tzName]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
@@ -253,8 +188,8 @@ export default function AdminCalendar() {
       slot: "hsl(180 70% 45%)",
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
-      google: "hsl(265 70% 58%)",
     };
+
     return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
   };
 
@@ -346,7 +281,7 @@ export default function AdminCalendar() {
   };
 
   const deleteEvent = async (ev: CalEvent) => {
-    if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
+    
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);
@@ -403,29 +338,7 @@ export default function AdminCalendar() {
             </div>
           )}
           <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
-            <div className="flex items-center gap-2">
-              <Switch id="gcal" checked={gcalOn} onCheckedChange={setGcalOn} />
-              <Label htmlFor="gcal" className="cursor-pointer text-sm">Show my Google Calendar</Label>
-            </div>
-            {gcalOn && (
-              <>
-                <Select value={gcalId} onValueChange={setGcalId}>
-                  <SelectTrigger className="w-[240px]"><SelectValue placeholder="Primary calendar" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="primary">Primary calendar</SelectItem>
-                    {gcalList.filter(c => !c.id.includes("#") && c.id !== "primary").map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.summary}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" size="sm" onClick={loadGoogle} disabled={gcalLoading}>
-                  <RefreshCw className={`mr-2 h-4 w-4 ${gcalLoading ? "animate-spin" : ""}`} /> Refresh
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {gcalLoading ? "Syncing…" : `${gcalEvents.length} Google events in view`}
-                </span>
-              </>
-            )}
+
             <div className="flex items-center gap-2">
               <Label className="text-sm">Show external times in</Label>
               <Select value={tz} onValueChange={setTz}>
@@ -449,7 +362,7 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(180 70% 45%)" label="One-off availability" />
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
-            {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
+            
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar
@@ -576,16 +489,6 @@ export default function AdminCalendar() {
               {detailEvent.kind === "booking" && (
                 <p><b>Status:</b> {detailEvent.raw.status}</p>
               )}
-              {detailEvent.kind === "google" && (
-                <>
-                  {detailEvent.raw.location && <p><b>Where:</b> {detailEvent.raw.location}</p>}
-                  {detailEvent.raw.htmlLink && (
-                    <a className="text-primary underline" href={detailEvent.raw.htmlLink} target="_blank" rel="noreferrer">
-                      Open in Google Calendar
-                    </a>
-                  )}
-                </>
-              )}
             </div>
           )}
           <DialogFooter>
@@ -607,11 +510,10 @@ export default function AdminCalendar() {
                 <Copy className="mr-2 h-4 w-4" /> Copy student
               </Button>
             )}
-            {detailEvent?.kind !== "google" && (
-              <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </Button>
-            )}
+            <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </Button>
+
             <Button variant="outline" onClick={() => setDetailEvent(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

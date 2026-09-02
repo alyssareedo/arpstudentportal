@@ -37,6 +37,7 @@ const TABLES = [
   "toeic_assessments",
   "toeic_assessment_answers",
   "assessment_comments",
+  "curriculum_items",
 ];
 
 function json(body: unknown, status = 200) {

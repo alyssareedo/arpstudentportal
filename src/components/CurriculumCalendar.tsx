@@ -111,6 +111,20 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
 
   useEffect(() => { load(); }, [load]);
 
+  // Live feed: any curriculum change for this student refreshes map/calendar views.
+  useEffect(() => {
+    if (!studentId) return;
+    const channel = supabase
+      .channel(`curriculum-${studentId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "curriculum_items", filter: `student_id=eq.${studentId}` },
+        () => { load(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [studentId, load]);
+
   const days = useMemo(
     () => eachDayOfInterval({ start: startOfWeek(startOfMonth(cursor)), end: endOfWeek(endOfMonth(cursor)) }),
     [cursor],

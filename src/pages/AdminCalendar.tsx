@@ -281,7 +281,7 @@ export default function AdminCalendar() {
   };
 
   const deleteEvent = async (ev: CalEvent) => {
-    if (ev.kind === "google") return toast.info("Google Calendar events are managed in Google Calendar.");
+    
     if (!confirm("Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);
@@ -362,7 +362,7 @@ export default function AdminCalendar() {
             <LegendDot color="hsl(180 70% 45%)" label="One-off availability" />
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
-            {gcalOn && <LegendDot color="hsl(265 70% 58%)" label="Google Calendar" />}
+            
           </div>
           <div style={{ height: 680 }} className="rounded-xl border border-border/60 bg-card">
             <Calendar
@@ -489,16 +489,6 @@ export default function AdminCalendar() {
               {detailEvent.kind === "booking" && (
                 <p><b>Status:</b> {detailEvent.raw.status}</p>
               )}
-              {detailEvent.kind === "google" && (
-                <>
-                  {detailEvent.raw.location && <p><b>Where:</b> {detailEvent.raw.location}</p>}
-                  {detailEvent.raw.htmlLink && (
-                    <a className="text-primary underline" href={detailEvent.raw.htmlLink} target="_blank" rel="noreferrer">
-                      Open in Google Calendar
-                    </a>
-                  )}
-                </>
-              )}
             </div>
           )}
           <DialogFooter>
@@ -520,11 +510,10 @@ export default function AdminCalendar() {
                 <Copy className="mr-2 h-4 w-4" /> Copy student
               </Button>
             )}
-            {detailEvent?.kind !== "google" && (
-              <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
-                <Trash2 className="mr-2 h-4 w-4" /> Delete
-              </Button>
-            )}
+            <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </Button>
+
             <Button variant="outline" onClick={() => setDetailEvent(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>

@@ -190,9 +190,77 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
 
   const openNew = (d: Date) => {
     setEditing(null);
+    setErrors({});
+    setAudit([]);
+    setAuditOpen(false);
     setForm(emptyForm(format(d, "yyyy-MM-dd")));
     setOpen(true);
   };
+
+  /** Load the change history (who / when / previous values) for one item. */
+  const loadAudit = useCallback(async (itemId: string) => {
+    setAuditLoading(true);
+    const { data, error } = await supabase
+      .from("curriculum_item_audit")
+      .select("id, action, changed_at, changed_by, changed_fields, old_values, new_values")
+      .eq("item_id", itemId)
+      .order("changed_at", { ascending: false })
+      .limit(50);
+    if (error) {
+      setAuditLoading(false);
+      return toast.error(error.message);
+    }
+    const rows = (data as unknown as AuditEntry[]) ?? [];
+    const ids = [...new Set(rows.map((r) => r.changed_by).filter(Boolean))] as string[];
+    let names = new Map<string, string>();
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+      names = new Map((profs ?? []).map((p) => [p.id as string, p.full_name as string]));
+    }
+    setAudit(rows.map((r) => ({ ...r, author: (r.changed_by && names.get(r.changed_by)) || "System" })));
+    setAuditLoading(false);
+  }, []);
+
+  /** Download all curriculum lessons as an .ics file for any calendar app. */
+  const exportIcs = () => {
+    if (!items.length) return toast.error("No curriculum items to export");
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//ARP Speak English With Me//Curriculum//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "X-WR-CALNAME:Curriculum plan",
+    ];
+    for (const it of items) {
+      const desc = [
+        it.topic ? `Topic: ${it.topic}` : "",
+        it.activities ? `Activities: ${it.activities}` : "",
+        it.materials ? `Materials: ${it.materials}` : "",
+        it.notes ? `Notes: ${it.notes}` : "",
+      ].filter(Boolean).join("\n");
+      lines.push(
+        "BEGIN:VEVENT",
+        `UID:${it.id}@arpspeak`,
+        `DTSTAMP:${toIcsStamp(format(new Date(), "yyyy-MM-dd"), format(new Date(), "HH:mm"))}`,
+        `DTSTART:${toIcsStamp(it.item_date, it.start_time)}`,
+        `DTEND:${toIcsStamp(it.item_date, it.start_time, it.duration_minutes ?? 60)}`,
+        `SUMMARY:${icsEscape(it.unit ? `${it.unit} — ${it.title}` : it.title)}`,
+        desc ? `DESCRIPTION:${icsEscape(desc)}` : "DESCRIPTION:",
+        "END:VEVENT",
+      );
+    }
+    lines.push("END:VCALENDAR");
+    const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "curriculum.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Curriculum calendar (.ics) downloaded");
+  };
+
 
   const openEdit = (it: CurriculumItem) => {
     setEditing(it);

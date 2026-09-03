@@ -357,6 +357,9 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
             </Button>
           </div>
+          <Button size="sm" variant="outline" className="h-7 rounded-full px-3" onClick={exportIcs}>
+            <Download className="mr-1 h-3.5 w-3.5" /> Export .ics
+          </Button>
           {view === "calendar" && (<>
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />

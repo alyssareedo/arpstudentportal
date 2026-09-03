@@ -89,6 +89,10 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<"map" | "calendar">("map");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);

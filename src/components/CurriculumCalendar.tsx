@@ -542,8 +542,9 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Title</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Unit 3 — Talking about routines" />
+              <Label>Title *</Label>
+              <Input aria-invalid={!!errors.title} className={errors.title ? "border-destructive" : ""} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Unit 3 — Talking about routines" />
+              {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="grid gap-2">

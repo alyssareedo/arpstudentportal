@@ -278,11 +278,25 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
       color: it.color,
       completed: it.completed,
     });
+    setErrors({});
+    setAuditOpen(false);
+    setAudit([]);
     setOpen(true);
+    loadAudit(it.id);
+  };
+
+  const validate = () => {
+    const next: Record<string, string> = {};
+    for (const f of REQUIRED_FIELDS) {
+      if (!String(form[f.key] ?? "").trim()) next[f.key] = f.label;
+    }
+    if (!form.item_date) next.item_date = "Date is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const save = async () => {
-    if (!form.title.trim()) return toast.error("Add a title for this curriculum item");
+    if (!validate()) return toast.error("Fill in the highlighted fields before saving");
     setBusy(true);
     const payload = {
       student_id: studentId,

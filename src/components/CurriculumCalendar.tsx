@@ -568,12 +568,14 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Unit</Label>
-                <Input value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                <Label>Unit *</Label>
+                <Input aria-invalid={!!errors.unit} className={errors.unit ? "border-destructive" : ""} value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                {errors.unit && <p className="text-xs text-destructive">{errors.unit}</p>}
               </div>
               <div className="grid gap-2">
-                <Label>Topic</Label>
-                <Input value={form.topic ?? ""} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
+                <Label>Topic *</Label>
+                <Input aria-invalid={!!errors.topic} className={errors.topic ? "border-destructive" : ""} value={form.topic ?? ""} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
+                {errors.topic && <p className="text-xs text-destructive">{errors.topic}</p>}
               </div>
             </div>
             <div className="grid gap-2">

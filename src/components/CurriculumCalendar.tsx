@@ -3,7 +3,7 @@ import {
   addMonths, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO,
   startOfMonth, startOfWeek, eachDayOfInterval,
 } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList, History, Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -79,6 +79,36 @@ const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => (
   completed: false,
 });
 
+interface AuditEntry {
+  id: string;
+  action: string;
+  changed_at: string;
+  changed_by: string | null;
+  changed_fields: string[];
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  author?: string;
+}
+
+/** Fields that must be filled before a curriculum item can be saved. */
+const REQUIRED_FIELDS: { key: "title" | "unit" | "topic" | "materials"; label: string }[] = [
+  { key: "title", label: "Title is required" },
+  { key: "unit", label: "Unit is required" },
+  { key: "topic", label: "Topic is required" },
+  { key: "materials", label: "Materials / textbook is required" },
+];
+
+const icsEscape = (s: string) => s.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+
+const toIcsStamp = (date: string, time: string | null, addMinutes = 0) => {
+  const [y, m, d] = date.split("-").map(Number);
+  const [hh, mm] = (time ?? "09:00").split(":").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, hh || 0, mm || 0));
+  dt.setUTCMinutes(dt.getUTCMinutes() + addMinutes);
+  return dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+};
+
+
 export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; canEdit: boolean }) {
   const [cursor, setCursor] = useState(new Date());
   const [items, setItems] = useState<CurriculumItem[]>([]);
@@ -89,6 +119,10 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<"map" | "calendar">("map");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -156,9 +190,77 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
 
   const openNew = (d: Date) => {
     setEditing(null);
+    setErrors({});
+    setAudit([]);
+    setAuditOpen(false);
     setForm(emptyForm(format(d, "yyyy-MM-dd")));
     setOpen(true);
   };
+
+  /** Load the change history (who / when / previous values) for one item. */
+  const loadAudit = useCallback(async (itemId: string) => {
+    setAuditLoading(true);
+    const { data, error } = await supabase
+      .from("curriculum_item_audit")
+      .select("id, action, changed_at, changed_by, changed_fields, old_values, new_values")
+      .eq("item_id", itemId)
+      .order("changed_at", { ascending: false })
+      .limit(50);
+    if (error) {
+      setAuditLoading(false);
+      return toast.error(error.message);
+    }
+    const rows = (data as unknown as AuditEntry[]) ?? [];
+    const ids = [...new Set(rows.map((r) => r.changed_by).filter(Boolean))] as string[];
+    let names = new Map<string, string>();
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+      names = new Map((profs ?? []).map((p) => [p.id as string, p.full_name as string]));
+    }
+    setAudit(rows.map((r) => ({ ...r, author: (r.changed_by && names.get(r.changed_by)) || "System" })));
+    setAuditLoading(false);
+  }, []);
+
+  /** Download all curriculum lessons as an .ics file for any calendar app. */
+  const exportIcs = () => {
+    if (!items.length) return toast.error("No curriculum items to export");
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//ARP Speak English With Me//Curriculum//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "X-WR-CALNAME:Curriculum plan",
+    ];
+    for (const it of items) {
+      const desc = [
+        it.topic ? `Topic: ${it.topic}` : "",
+        it.activities ? `Activities: ${it.activities}` : "",
+        it.materials ? `Materials: ${it.materials}` : "",
+        it.notes ? `Notes: ${it.notes}` : "",
+      ].filter(Boolean).join("\n");
+      lines.push(
+        "BEGIN:VEVENT",
+        `UID:${it.id}@arpspeak`,
+        `DTSTAMP:${toIcsStamp(format(new Date(), "yyyy-MM-dd"), format(new Date(), "HH:mm"))}`,
+        `DTSTART:${toIcsStamp(it.item_date, it.start_time)}`,
+        `DTEND:${toIcsStamp(it.item_date, it.start_time, it.duration_minutes ?? 60)}`,
+        `SUMMARY:${icsEscape(it.unit ? `${it.unit} — ${it.title}` : it.title)}`,
+        desc ? `DESCRIPTION:${icsEscape(desc)}` : "DESCRIPTION:",
+        "END:VEVENT",
+      );
+    }
+    lines.push("END:VCALENDAR");
+    const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "curriculum.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Curriculum calendar (.ics) downloaded");
+  };
+
 
   const openEdit = (it: CurriculumItem) => {
     setEditing(it);
@@ -176,11 +278,25 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
       color: it.color,
       completed: it.completed,
     });
+    setErrors({});
+    setAuditOpen(false);
+    setAudit([]);
     setOpen(true);
+    loadAudit(it.id);
+  };
+
+  const validate = () => {
+    const next: Record<string, string> = {};
+    for (const f of REQUIRED_FIELDS) {
+      if (!String(form[f.key] ?? "").trim()) next[f.key] = f.label;
+    }
+    if (!form.item_date) next.item_date = "Date is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const save = async () => {
-    if (!form.title.trim()) return toast.error("Add a title for this curriculum item");
+    if (!validate()) return toast.error("Fill in the highlighted fields before saving");
     setBusy(true);
     const payload = {
       student_id: studentId,
@@ -241,6 +357,9 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
             </Button>
           </div>
+          <Button size="sm" variant="outline" className="h-7 rounded-full px-3" onClick={exportIcs}>
+            <Download className="mr-1 h-3.5 w-3.5" /> Export .ics
+          </Button>
           {view === "calendar" && (<>
           <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />
@@ -423,8 +542,9 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Title</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Unit 3 — Talking about routines" />
+              <Label>Title *</Label>
+              <Input aria-invalid={!!errors.title} className={errors.title ? "border-destructive" : ""} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Unit 3 — Talking about routines" />
+              {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="grid gap-2">
@@ -448,12 +568,14 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label>Unit</Label>
-                <Input value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                <Label>Unit *</Label>
+                <Input aria-invalid={!!errors.unit} className={errors.unit ? "border-destructive" : ""} value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+                {errors.unit && <p className="text-xs text-destructive">{errors.unit}</p>}
               </div>
               <div className="grid gap-2">
-                <Label>Topic</Label>
-                <Input value={form.topic ?? ""} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
+                <Label>Topic *</Label>
+                <Input aria-invalid={!!errors.topic} className={errors.topic ? "border-destructive" : ""} value={form.topic ?? ""} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
+                {errors.topic && <p className="text-xs text-destructive">{errors.topic}</p>}
               </div>
             </div>
             <div className="grid gap-2">
@@ -461,8 +583,9 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               <Textarea rows={2} value={form.activities ?? ""} onChange={(e) => setForm({ ...form, activities: e.target.value })} />
             </div>
             <div className="grid gap-2">
-              <Label>Materials / textbook</Label>
-              <Textarea rows={2} value={form.materials ?? ""} onChange={(e) => setForm({ ...form, materials: e.target.value })} />
+              <Label>Materials / textbook *</Label>
+              <Textarea rows={2} aria-invalid={!!errors.materials} className={errors.materials ? "border-destructive" : ""} value={form.materials ?? ""} onChange={(e) => setForm({ ...form, materials: e.target.value })} />
+              {errors.materials && <p className="text-xs text-destructive">{errors.materials}</p>}
             </div>
             <div className="grid gap-2">
               <Label>Notes</Label>
@@ -472,6 +595,44 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               <input type="checkbox" checked={form.completed} onChange={(e) => setForm({ ...form, completed: e.target.checked })} />
               Mark as completed
             </label>
+
+            {editing && (
+              <div className="rounded-xl border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setAuditOpen((v) => !v)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+                >
+                  <span className="flex items-center gap-2"><History className="h-4 w-4 text-primary" /> Change history</span>
+                  <span className="text-xs text-muted-foreground">{auditLoading ? "Loading…" : `${audit.length} entr${audit.length === 1 ? "y" : "ies"}`}</span>
+                </button>
+                {auditOpen && (
+                  <div className="max-h-56 space-y-2 overflow-y-auto border-t border-border/60 p-3 text-xs">
+                    {!auditLoading && audit.length === 0 && <p className="text-muted-foreground">No history recorded yet.</p>}
+                    {audit.map((a) => (
+                      <div key={a.id} className="rounded-lg bg-muted/40 p-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="rounded-full capitalize">{a.action}</Badge>
+                          <span className="font-medium">{a.author}</span>
+                          <span className="text-muted-foreground">{format(parseISO(a.changed_at), "d MMM yyyy HH:mm")}</span>
+                        </div>
+                        {a.action === "updated" && a.changed_fields?.length > 0 && (
+                          <ul className="mt-1 space-y-0.5">
+                            {a.changed_fields.map((f) => (
+                              <li key={f}>
+                                <b className="capitalize">{f.replace(/_/g, " ")}:</b>{" "}
+                                <span className="text-muted-foreground line-through">{String(a.old_values?.[f] ?? "—")}</span>{" → "}
+                                <span>{String(a.new_values?.[f] ?? "—")}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter className="flex-row justify-between sm:justify-between">
             {editing ? (

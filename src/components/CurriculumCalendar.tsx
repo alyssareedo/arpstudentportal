@@ -595,6 +595,44 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               <input type="checkbox" checked={form.completed} onChange={(e) => setForm({ ...form, completed: e.target.checked })} />
               Mark as completed
             </label>
+
+            {editing && (
+              <div className="rounded-xl border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setAuditOpen((v) => !v)}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+                >
+                  <span className="flex items-center gap-2"><History className="h-4 w-4 text-primary" /> Change history</span>
+                  <span className="text-xs text-muted-foreground">{auditLoading ? "Loading…" : `${audit.length} entr${audit.length === 1 ? "y" : "ies"}`}</span>
+                </button>
+                {auditOpen && (
+                  <div className="max-h-56 space-y-2 overflow-y-auto border-t border-border/60 p-3 text-xs">
+                    {!auditLoading && audit.length === 0 && <p className="text-muted-foreground">No history recorded yet.</p>}
+                    {audit.map((a) => (
+                      <div key={a.id} className="rounded-lg bg-muted/40 p-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="rounded-full capitalize">{a.action}</Badge>
+                          <span className="font-medium">{a.author}</span>
+                          <span className="text-muted-foreground">{format(parseISO(a.changed_at), "d MMM yyyy HH:mm")}</span>
+                        </div>
+                        {a.action === "updated" && a.changed_fields?.length > 0 && (
+                          <ul className="mt-1 space-y-0.5">
+                            {a.changed_fields.map((f) => (
+                              <li key={f}>
+                                <b className="capitalize">{f.replace(/_/g, " ")}:</b>{" "}
+                                <span className="text-muted-foreground line-through">{String(a.old_values?.[f] ?? "—")}</span>{" → "}
+                                <span>{String(a.new_values?.[f] ?? "—")}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter className="flex-row justify-between sm:justify-between">
             {editing ? (

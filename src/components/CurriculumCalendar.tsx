@@ -79,6 +79,36 @@ const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => (
   completed: false,
 });
 
+interface AuditEntry {
+  id: string;
+  action: string;
+  changed_at: string;
+  changed_by: string | null;
+  changed_fields: string[];
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  author?: string;
+}
+
+/** Fields that must be filled before a curriculum item can be saved. */
+const REQUIRED_FIELDS: { key: "title" | "unit" | "topic" | "materials"; label: string }[] = [
+  { key: "title", label: "Title is required" },
+  { key: "unit", label: "Unit is required" },
+  { key: "topic", label: "Topic is required" },
+  { key: "materials", label: "Materials / textbook is required" },
+];
+
+const icsEscape = (s: string) => s.replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+
+const toIcsStamp = (date: string, time: string | null, addMinutes = 0) => {
+  const [y, m, d] = date.split("-").map(Number);
+  const [hh, mm] = (time ?? "09:00").split(":").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, hh || 0, mm || 0));
+  dt.setUTCMinutes(dt.getUTCMinutes() + addMinutes);
+  return dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+};
+
+
 export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; canEdit: boolean }) {
   const [cursor, setCursor] = useState(new Date());
   const [items, setItems] = useState<CurriculumItem[]>([]);

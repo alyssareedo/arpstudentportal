@@ -37,6 +37,7 @@ import MyInvoices from "./pages/MyInvoices";
 import Roadmap from "./pages/Roadmap";
 import LatestNews from "./pages/LatestNews";
 import Pricing from "./pages/Pricing";
+import CurriculumPlan from "./pages/CurriculumPlan";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/students/:id" element={<StudentDetail />} />
               <Route path="/lessons" element={<Lessons />} />
               <Route path="/availability" element={<Availability />} />
+              <Route path="/curriculum-plan" element={<CurriculumPlan />} />
             </Route>
           </Route>
 

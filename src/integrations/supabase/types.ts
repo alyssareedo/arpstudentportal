@@ -658,6 +658,42 @@ export type Database = {
           },
         ]
       }
+      curriculum_options: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          name: string
+          parent_unit: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind: string
+          name: string
+          parent_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          name?: string
+          parent_unit?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           assigned_at: string

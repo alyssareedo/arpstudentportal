@@ -35,6 +35,7 @@ const teacherItems = [
   { title: "Teacher calendar", url: "/calendar-view", icon: CalendarDays },
   { title: "My Students", url: "/students", icon: Users },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
+  { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
   { title: "Availability", url: "/availability", icon: CalendarClock },

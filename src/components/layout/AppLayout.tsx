@@ -19,6 +19,7 @@ const titles: Record<string, string> = {
   "/availability": "Availability",
   "/book": "Book a lesson",
   "/calendar-view": "Teacher calendar",
+  "/curriculum-plan": "Curriculum Plan",
 };
 
 export default function AppLayout() {

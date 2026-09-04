@@ -20,6 +20,7 @@ const adminItems = [
   { title: "Teachers", url: "/teachers", icon: UserCog },
   { title: "Renewals", url: "/renewals", icon: RefreshCcw },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
+  { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
   { title: "Invoices", url: "/admin/invoices", icon: Receipt },

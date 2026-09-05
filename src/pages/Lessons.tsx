@@ -26,6 +26,7 @@ export default function Lessons() {
   const { lessons, loading, reload } = useAllLessons();
   const { role } = useAuth();
   const isAdmin = role === "admin";
+  const bulk = useBulkSelect();
   const upcoming = lessons.filter((l) => l.attendance === "scheduled");
   const past = lessons.filter((l) => l.attendance !== "scheduled");
 

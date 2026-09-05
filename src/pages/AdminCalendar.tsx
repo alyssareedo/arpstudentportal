@@ -483,8 +483,33 @@ export default function AdminCalendar() {
                   </Select>
                   <p className="mt-1 text-xs text-muted-foreground">Creates the same lesson on the same weekday and time.</p>
                 </div>
+                <div className="mt-3">
+                  <Label>Also book on these dates</Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />
+                    <Button type="button" variant="outline" size="sm"
+                      onClick={() => {
+                        if (!newDate || extraDates.includes(newDate)) return;
+                        setExtraDates(d => [...d, newDate].sort());
+                        setNewDate("");
+                      }}>Add date</Button>
+                  </div>
+                  {extraDates.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {extraDates.map(d => (
+                        <button key={d} type="button"
+                          onClick={() => setExtraDates(x => x.filter(v => v !== d))}
+                          className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs">
+                          {d} <X className="h-3 w-3" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">Same student and time on every date you add.</p>
+                </div>
               </div>
             )}
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>

@@ -264,23 +264,33 @@ export default function AdminCalendar() {
       if (!teacherId || !studentId) return toast.error("Pick teacher and student");
       const mins = Math.max(30, Math.round((draft.end.getTime() - draft.start.getTime()) / 60000));
       const weeks = Math.max(1, Number(repeatWeeks) || 1);
-      const rows = Array.from({ length: weeks }, (_, i) => {
-        const d = addWeeks(draft.start, i);
-        return {
-          teacher_id: teacherId,
-          student_id: studentId,
-          booking_date: format(d, "yyyy-MM-dd"),
-          start_time: format(d, "HH:mm:ss"),
-          duration_minutes: mins,
-          status: "approved" as const,
-          decided_by: user!.id,
-          decided_at: new Date().toISOString(),
-        };
-      });
+      const baseDates: Date[] = [draft.start];
+      for (const ds of extraDates) {
+        const d = new Date(`${ds}T00:00:00`);
+        d.setHours(draft.start.getHours(), draft.start.getMinutes(), 0, 0);
+        baseDates.push(d);
+      }
+      const rows = baseDates.flatMap((base) =>
+        Array.from({ length: weeks }, (_, i) => {
+          const d = addWeeks(base, i);
+          return {
+            teacher_id: teacherId,
+            student_id: studentId,
+            booking_date: format(d, "yyyy-MM-dd"),
+            start_time: format(d, "HH:mm:ss"),
+            duration_minutes: mins,
+            status: "approved" as const,
+            decided_by: user!.id,
+            decided_at: new Date().toISOString(),
+          };
+        }),
+      );
       const { error } = await supabase.from("bookings").insert(rows);
       if (error) return toast.error(error.message);
-      toast.success(weeks === 1 ? "Lesson scheduled" : `${weeks} weekly lessons scheduled`);
+      toast.success(rows.length === 1 ? "Lesson scheduled" : `${rows.length} lessons scheduled`);
+      setExtraDates([]);
     }
+
     setCreateOpen(false);
     loadAll();
   };

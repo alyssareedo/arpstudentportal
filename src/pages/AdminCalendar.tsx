@@ -83,6 +83,9 @@ export default function AdminCalendar() {
   const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);
   // How many weekly repeats each paste creates (1 = just the clicked day)
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1");
+  // Extra dates for bulk booking the same lesson
+  const [extraDates, setExtraDates] = useState<string[]>([]);
+  const [newDate, setNewDate] = useState("");
 
   const [tz, setTz] = useState<string>(() => localStorage.getItem("arp_cal_tz") || "local");
   const tzName = tz === "local" ? "" : tz;
@@ -222,14 +225,16 @@ export default function AdminCalendar() {
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     if (clipboard) { pasteLesson(start); return; }
-    setDraft({ start, end });
-    setCreateMode("slot");
+    setDraft({ start, end: end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60000) });
+    setCreateMode("lesson");
     setTeacherId(teacherFilter !== "all" ? teacherFilter : teachers[0]?.id ?? "");
     setStudentId("");
     setRecurring(false);
     setReason("");
+    setExtraDates([]);
     setCreateOpen(true);
   };
+
 
   const submitCreate = async () => {
     if (createMode === "slot") {

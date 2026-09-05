@@ -38,7 +38,28 @@ export default function Lessons() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">All scheduled and past lessons. Add lessons from each student's profile.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">All scheduled and past lessons. Add lessons from each student's profile.</p>
+        {isAdmin && (
+          <BulkSelectBar
+            active={bulk.active}
+            selected={bulk.selected}
+            allIds={lessons.map((l) => l.id)}
+            noun="lesson"
+            onStart={() => bulk.setActive(true)}
+            onStop={bulk.stop}
+            onSelectAll={(ids) => bulk.setSelected(ids)}
+            onClear={bulk.clear}
+            onDelete={async () => {
+              const { error } = await supabase.from("lessons").delete().in("id", bulk.selected);
+              if (error) throw error;
+              toast.success(`${bulk.selected.length} lessons deleted`);
+              bulk.stop();
+              reload();
+            }}
+          />
+        )}
+      </div>
 
       <Tabs defaultValue="upcoming">
         <TabsList className="rounded-full">
@@ -51,11 +72,15 @@ export default function Lessons() {
             {items.map((l) => (
               <Card key={l.id} className="border-border/60 shadow-elegant transition-colors hover:bg-secondary/30">
                 <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center">
+                  {isAdmin && bulk.active && (
+                    <Checkbox checked={bulk.selected.includes(l.id)} onCheckedChange={() => bulk.toggle(l.id)} />
+                  )}
                   <UserAvatar className="h-12 w-12" name={l.profiles.full_name} src={l.profiles.avatar_url} />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       
                       <p className="font-semibold">{l.topic || "Untitled lesson"}</p>
+
                       <Badge variant="outline" className="rounded-full">{l.profiles.level}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{l.profiles.full_name} · {l.lesson_date} at {l.lesson_time}</p>

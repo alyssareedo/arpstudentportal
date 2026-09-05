@@ -83,6 +83,9 @@ export default function AdminCalendar() {
   const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);
   // How many weekly repeats each paste creates (1 = just the clicked day)
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1");
+  // Extra dates for bulk booking the same lesson
+  const [extraDates, setExtraDates] = useState<string[]>([]);
+  const [newDate, setNewDate] = useState("");
 
   const [tz, setTz] = useState<string>(() => localStorage.getItem("arp_cal_tz") || "local");
   const tzName = tz === "local" ? "" : tz;
@@ -222,14 +225,16 @@ export default function AdminCalendar() {
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
     if (clipboard) { pasteLesson(start); return; }
-    setDraft({ start, end });
-    setCreateMode("slot");
+    setDraft({ start, end: end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60000) });
+    setCreateMode("lesson");
     setTeacherId(teacherFilter !== "all" ? teacherFilter : teachers[0]?.id ?? "");
     setStudentId("");
     setRecurring(false);
     setReason("");
+    setExtraDates([]);
     setCreateOpen(true);
   };
+
 
   const submitCreate = async () => {
     if (createMode === "slot") {
@@ -259,23 +264,33 @@ export default function AdminCalendar() {
       if (!teacherId || !studentId) return toast.error("Pick teacher and student");
       const mins = Math.max(30, Math.round((draft.end.getTime() - draft.start.getTime()) / 60000));
       const weeks = Math.max(1, Number(repeatWeeks) || 1);
-      const rows = Array.from({ length: weeks }, (_, i) => {
-        const d = addWeeks(draft.start, i);
-        return {
-          teacher_id: teacherId,
-          student_id: studentId,
-          booking_date: format(d, "yyyy-MM-dd"),
-          start_time: format(d, "HH:mm:ss"),
-          duration_minutes: mins,
-          status: "approved" as const,
-          decided_by: user!.id,
-          decided_at: new Date().toISOString(),
-        };
-      });
+      const baseDates: Date[] = [draft.start];
+      for (const ds of extraDates) {
+        const d = new Date(`${ds}T00:00:00`);
+        d.setHours(draft.start.getHours(), draft.start.getMinutes(), 0, 0);
+        baseDates.push(d);
+      }
+      const rows = baseDates.flatMap((base) =>
+        Array.from({ length: weeks }, (_, i) => {
+          const d = addWeeks(base, i);
+          return {
+            teacher_id: teacherId,
+            student_id: studentId,
+            booking_date: format(d, "yyyy-MM-dd"),
+            start_time: format(d, "HH:mm:ss"),
+            duration_minutes: mins,
+            status: "approved" as const,
+            decided_by: user!.id,
+            decided_at: new Date().toISOString(),
+          };
+        }),
+      );
       const { error } = await supabase.from("bookings").insert(rows);
       if (error) return toast.error(error.message);
-      toast.success(weeks === 1 ? "Lesson scheduled" : `${weeks} weekly lessons scheduled`);
+      toast.success(rows.length === 1 ? "Lesson scheduled" : `${rows.length} lessons scheduled`);
+      setExtraDates([]);
     }
+
     setCreateOpen(false);
     loadAll();
   };
@@ -468,8 +483,33 @@ export default function AdminCalendar() {
                   </Select>
                   <p className="mt-1 text-xs text-muted-foreground">Creates the same lesson on the same weekday and time.</p>
                 </div>
+                <div className="mt-3">
+                  <Label>Also book on these dates</Label>
+                  <div className="flex items-center gap-2">
+                    <Input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} />
+                    <Button type="button" variant="outline" size="sm"
+                      onClick={() => {
+                        if (!newDate || extraDates.includes(newDate)) return;
+                        setExtraDates(d => [...d, newDate].sort());
+                        setNewDate("");
+                      }}>Add date</Button>
+                  </div>
+                  {extraDates.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {extraDates.map(d => (
+                        <button key={d} type="button"
+                          onClick={() => setExtraDates(x => x.filter(v => v !== d))}
+                          className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs">
+                          {d} <X className="h-3 w-3" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">Same student and time on every date you add.</p>
+                </div>
               </div>
             )}
+
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
@@ -508,6 +548,25 @@ export default function AdminCalendar() {
                 }}
               >
                 <Copy className="mr-2 h-4 w-4" /> Copy student
+              </Button>
+            )}
+            {detailEvent?.kind === "booking" && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const bk = detailEvent.raw;
+                  setCreateMode("lesson");
+                  setStudentId(bk.student_id);
+                  setTeacherId(bk.teacher_id ?? teachers[0]?.id ?? "");
+                  setDraft({ start: detailEvent.start as Date, end: detailEvent.end as Date });
+                  setRepeatWeeks("1");
+                  setExtraDates([]);
+                  setNewDate("");
+                  setDetailEvent(null);
+                  setCreateOpen(true);
+                }}
+              >
+                <ClipboardPaste className="mr-2 h-4 w-4" /> Copy to other dates
               </Button>
             )}
             <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>

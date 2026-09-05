@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BulkSelectBar, useBulkSelect } from "@/components/BulkSelect";
 import { RevealCredentialDialog } from "@/components/RevealCredentialDialog";
 import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,6 +46,8 @@ export default function StudentDetail() {
   const [initialized, setInitialized] = useState(false);
   const [lessonQuery, setLessonQuery] = useState("");
   const [lessonStatus, setLessonStatus] = useState("all");
+  const bulk = useBulkSelect();
+
 
   const q = lessonQuery.trim().toLowerCase();
   const filteredLessons = lessons.filter((l) => {
@@ -258,6 +262,27 @@ export default function StudentDetail() {
                   <Button variant="ghost" size="sm" className="rounded-full" onClick={() => { setLessonQuery(""); setLessonStatus("all"); }}>Clear</Button>
                 )}
                 <span className="text-xs text-muted-foreground">{filteredLessons.length} of {lessons.length}</span>
+                {isAdmin && (
+                  <div className="ml-auto">
+                    <BulkSelectBar
+                      active={bulk.active}
+                      selected={bulk.selected}
+                      allIds={filteredLessons.map((l) => l.id)}
+                      noun="lesson"
+                      onStart={() => bulk.setActive(true)}
+                      onStop={bulk.stop}
+                      onSelectAll={(ids) => bulk.setSelected(ids)}
+                      onClear={bulk.clear}
+                      onDelete={async () => {
+                        const { error } = await supabase.from("lessons").delete().in("id", bulk.selected);
+                        if (error) throw error;
+                        toast.success(`${bulk.selected.length} lessons deleted`);
+                        bulk.stop();
+                        reload();
+                      }}
+                    />
+                  </div>
+                )}
               </div>
               <div className="relative space-y-4 border-l-2 border-border pl-6">
                 {filteredLessons.map((l) => (
@@ -270,7 +295,10 @@ export default function StudentDetail() {
                     </span>
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-medium">
+                        <p className="flex items-center gap-2 font-medium">
+                          {isAdmin && bulk.active && (
+                            <Checkbox checked={bulk.selected.includes(l.id)} onCheckedChange={() => bulk.toggle(l.id)} />
+                          )}
                           {l.topic}
                         </p>
 
@@ -285,6 +313,7 @@ export default function StudentDetail() {
                     </div>
                   </div>
                 ))}
+
                 {filteredLessons.length === 0 && <p className="text-sm text-muted-foreground">{lessons.length === 0 ? "No lessons yet." : "No lessons match your search."}</p>}
               </div>
             </CardContent>

@@ -550,6 +550,25 @@ export default function AdminCalendar() {
                 <Copy className="mr-2 h-4 w-4" /> Copy student
               </Button>
             )}
+            {detailEvent?.kind === "booking" && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const bk = detailEvent.raw;
+                  setCreateMode("lesson");
+                  setStudentId(bk.student_id);
+                  setTeacherId(bk.teacher_id ?? teachers[0]?.id ?? "");
+                  setDraft({ start: detailEvent.start as Date, end: detailEvent.end as Date });
+                  setRepeatWeeks("1");
+                  setExtraDates([]);
+                  setNewDate("");
+                  setDetailEvent(null);
+                  setCreateOpen(true);
+                }}
+              >
+                <ClipboardPaste className="mr-2 h-4 w-4" /> Copy to other dates
+              </Button>
+            )}
             <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>
               <Trash2 className="mr-2 h-4 w-4" /> Delete
             </Button>

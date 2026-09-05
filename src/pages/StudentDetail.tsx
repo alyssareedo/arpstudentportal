@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
+import { Checkbox } from "@/components/ui/checkbox";
+import { BulkSelectBar, useBulkSelect } from "@/components/BulkSelect";
 import { RevealCredentialDialog } from "@/components/RevealCredentialDialog";
 import { useStudent, Lesson } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
@@ -44,6 +46,8 @@ export default function StudentDetail() {
   const [initialized, setInitialized] = useState(false);
   const [lessonQuery, setLessonQuery] = useState("");
   const [lessonStatus, setLessonStatus] = useState("all");
+  const bulk = useBulkSelect();
+
 
   const q = lessonQuery.trim().toLowerCase();
   const filteredLessons = lessons.filter((l) => {

@@ -591,6 +591,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           item_date: string
+          lesson_id: string | null
           material_id: string | null
           materials: string | null
           notes: string | null
@@ -611,6 +612,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           item_date: string
+          lesson_id?: string | null
           material_id?: string | null
           materials?: string | null
           notes?: string | null
@@ -631,6 +633,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           item_date?: string
+          lesson_id?: string | null
           material_id?: string | null
           materials?: string | null
           notes?: string | null
@@ -642,6 +645,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "curriculum_items_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "curriculum_items_material_id_fkey"
             columns: ["material_id"]

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addMonths, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO,
-  startOfMonth, startOfWeek, eachDayOfInterval,
+  startOfMonth, startOfWeek, eachDayOfInterval, addDays, setMonth, setYear,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList, History, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -34,17 +34,85 @@ export interface CurriculumItem {
 }
 
 /** Colour options mapped to design tokens (no hardcoded colour utilities). */
-export const CURRICULUM_COLORS: { value: string; label: string; className: string }[] = [
-  { value: "primary", label: "Core lesson", className: "bg-primary/15 text-primary border-primary/30" },
-  { value: "accent", label: "Speaking", className: "bg-accent/15 text-accent border-accent/30" },
-  { value: "success", label: "Review", className: "bg-success/15 text-success border-success/30" },
-  { value: "warning", label: "Homework", className: "bg-warning/15 text-warning-foreground border-warning/40" },
-  { value: "destructive", label: "Assessment", className: "bg-destructive/10 text-destructive border-destructive/30" },
-  { value: "muted", label: "Other", className: "bg-muted text-muted-foreground border-border" },
+export const CURRICULUM_COLORS: { value: string; label: string; className: string; swatch: string }[] = [
+  { value: "primary", label: "Core lesson", className: "bg-primary/15 text-primary border-primary/30", swatch: "bg-primary" },
+  { value: "accent", label: "Speaking", className: "bg-accent/15 text-accent border-accent/30", swatch: "bg-accent" },
+  { value: "success", label: "Review", className: "bg-success/15 text-success border-success/30", swatch: "bg-success" },
+  { value: "warning", label: "Homework", className: "bg-warning/15 text-warning-foreground border-warning/40", swatch: "bg-warning" },
+  { value: "destructive", label: "Assessment", className: "bg-destructive/10 text-destructive border-destructive/30", swatch: "bg-destructive" },
+  { value: "rose", label: "Rose", className: "bg-[hsl(var(--cur-rose)/0.15)] text-[hsl(var(--cur-rose))] border-[hsl(var(--cur-rose)/0.35)]", swatch: "bg-[hsl(var(--cur-rose))]" },
+  { value: "amber", label: "Amber", className: "bg-[hsl(var(--cur-amber)/0.15)] text-[hsl(var(--cur-amber))] border-[hsl(var(--cur-amber)/0.35)]", swatch: "bg-[hsl(var(--cur-amber))]" },
+  { value: "emerald", label: "Emerald", className: "bg-[hsl(var(--cur-emerald)/0.15)] text-[hsl(var(--cur-emerald))] border-[hsl(var(--cur-emerald)/0.35)]", swatch: "bg-[hsl(var(--cur-emerald))]" },
+  { value: "sky", label: "Sky", className: "bg-[hsl(var(--cur-sky)/0.15)] text-[hsl(var(--cur-sky))] border-[hsl(var(--cur-sky)/0.35)]", swatch: "bg-[hsl(var(--cur-sky))]" },
+  { value: "violet", label: "Violet", className: "bg-[hsl(var(--cur-violet)/0.15)] text-[hsl(var(--cur-violet))] border-[hsl(var(--cur-violet)/0.35)]", swatch: "bg-[hsl(var(--cur-violet))]" },
+  { value: "teal", label: "Teal", className: "bg-[hsl(var(--cur-teal)/0.15)] text-[hsl(var(--cur-teal))] border-[hsl(var(--cur-teal)/0.35)]", swatch: "bg-[hsl(var(--cur-teal))]" },
+  { value: "indigo", label: "Indigo", className: "bg-[hsl(var(--cur-indigo)/0.15)] text-[hsl(var(--cur-indigo))] border-[hsl(var(--cur-indigo)/0.35)]", swatch: "bg-[hsl(var(--cur-indigo))]" },
+  { value: "muted", label: "Other", className: "bg-muted text-muted-foreground border-border", swatch: "bg-[hsl(var(--cur-slate))]" },
 ];
 
 const colorClass = (c: string) =>
   CURRICULUM_COLORS.find((x) => x.value === c)?.className ?? CURRICULUM_COLORS[0].className;
+
+/** Clickable colour swatches so a colour can be picked without a dropdown. */
+export function ColorSwatchPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {CURRICULUM_COLORS.map((c) => (
+        <button
+          key={c.value}
+          type="button"
+          title={c.label}
+          aria-label={c.label}
+          onClick={() => onChange(c.value)}
+          className={`h-7 w-7 rounded-full border-2 transition-transform ${c.swatch} ${
+            value === c.value ? "scale-110 border-foreground" : "border-transparent hover:scale-105"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Field that offers existing options as clickable chips and still allows free typing. */
+export function OptionPicker({
+  label, value, options, onChange, invalid, placeholder,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  invalid?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label>{label}</Label>
+      <Input
+        value={value}
+        placeholder={placeholder ?? `Choose below or type your own ${label.toLowerCase()}`}
+        aria-invalid={!!invalid}
+        className={invalid ? "border-destructive" : ""}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {options.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {options.map((o) => (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onChange(o)}
+              className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                value === o ? "border-primary bg-primary/10 text-primary" : "border-border/60 hover:bg-muted"
+              }`}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Solid banner styles for unit headers in the curriculum map view. */
 const UNIT_BANNERS = [
@@ -63,6 +131,10 @@ const UNIT_BADGES = [
 ];
 
 const CATEGORIES = ["lesson", "unit", "topic", "activity", "material", "assessment", "review"];
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const YEARS = Array.from({ length: 13 }, (_, i) => new Date().getFullYear() - 4 + i);
+const HOURS = Array.from({ length: 16 }, (_, i) => i + 7); // 07:00 – 22:00
 
 const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => ({
   item_date: date,
@@ -118,11 +190,13 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [form, setForm] = useState(emptyForm(format(new Date(), "yyyy-MM-dd")));
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [view, setView] = useState<"map" | "calendar">("map");
+  const [view, setView] = useState<"map" | "calendar" | "week">("map");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [auditOpen, setAuditOpen] = useState(false);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [unitOptions, setUnitOptions] = useState<string[]>([]);
+  const [topicOptions, setTopicOptions] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -136,6 +210,10 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
       q = q
         .gte("item_date", format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd"))
         .lte("item_date", format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd"));
+    } else if (view === "week") {
+      q = q
+        .gte("item_date", format(startOfWeek(cursor), "yyyy-MM-dd"))
+        .lte("item_date", format(endOfWeek(cursor), "yyyy-MM-dd"));
     }
     const { data, error } = await q;
     if (error) toast.error(error.message);
@@ -144,6 +222,21 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   }, [studentId, cursor, view]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Saved unit/topic options power the clickable chips in the edit dialog.
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("curriculum_options")
+        .select("kind, name, is_active")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("name");
+      const rows = (data as { kind: string; name: string }[]) ?? [];
+      setUnitOptions(rows.filter((r) => r.kind === "unit").map((r) => r.name));
+      setTopicOptions(rows.filter((r) => r.kind === "topic").map((r) => r.name));
+    })();
+  }, []);
 
   // Live feed: any curriculum change for this student refreshes map/calendar views.
   useEffect(() => {
@@ -161,6 +254,11 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
 
   const days = useMemo(
     () => eachDayOfInterval({ start: startOfWeek(startOfMonth(cursor)), end: endOfWeek(endOfMonth(cursor)) }),
+    [cursor],
+  );
+
+  const weekDays = useMemo(
+    () => eachDayOfInterval({ start: startOfWeek(cursor), end: endOfWeek(cursor) }),
     [cursor],
   );
 
@@ -353,20 +451,39 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             <Button size="sm" variant={view === "map" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("map")}>
               <LayoutList className="mr-1 h-3.5 w-3.5" /> Map
             </Button>
+            <Button size="sm" variant={view === "week" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("week")}>
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Timetable
+            </Button>
             <Button size="sm" variant={view === "calendar" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("calendar")}>
-              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Month
             </Button>
           </div>
           <Button size="sm" variant="outline" className="h-7 rounded-full px-3" onClick={exportIcs}>
             <Download className="mr-1 h-3.5 w-3.5" /> Export .ics
           </Button>
-          {view === "calendar" && (<>
-          <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
+          {view !== "map" && (<>
+          <Button variant="outline" size="icon" aria-label="Previous"
+            onClick={() => setCursor(view === "week" ? addDays(cursor, -7) : addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="min-w-[9rem] text-center text-sm font-medium">{format(cursor, "MMMM yyyy")}</span>
-          <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, 1))}>
+          <Select value={String(cursor.getMonth())} onValueChange={(v) => setCursor(setMonth(cursor, Number(v)))}>
+            <SelectTrigger className="h-9 w-[8.5rem]"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              {MONTHS.map((m, i) => <SelectItem key={m} value={String(i)}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={String(cursor.getFullYear())} onValueChange={(v) => setCursor(setYear(cursor, Number(v)))}>
+            <SelectTrigger className="h-9 w-[6rem]"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              {YEARS.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" aria-label="Next"
+            onClick={() => setCursor(view === "week" ? addDays(cursor, 7) : addMonths(cursor, 1))}>
             <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-9 rounded-full px-3" onClick={() => { setCursor(new Date()); setSelected(new Date()); }}>
+            Today
           </Button>
           </>)}
           {canEdit && (
@@ -383,6 +500,57 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             <span key={c.value} className={`rounded-full border px-2 py-0.5 ${c.className}`}>{c.label}</span>
           ))}
         </div>
+
+        {view === "week" && (
+          <div className="overflow-x-auto rounded-xl border border-border/60">
+            <div className="min-w-[52rem]">
+              <div className="grid grid-cols-[4.5rem_repeat(7,1fr)] border-b border-border/60 bg-muted/50">
+                <div className="px-2 py-2 text-[11px] font-semibold text-muted-foreground">Time</div>
+                {weekDays.map((d) => (
+                  <button
+                    key={d.toISOString()}
+                    type="button"
+                    onClick={() => setSelected(d)}
+                    className={`border-l border-border/60 px-2 py-2 text-center ${isSameDay(d, new Date()) ? "bg-primary/10" : ""}`}
+                  >
+                    <span className="block text-[11px] font-bold uppercase tracking-wide">{format(d, "EEE")}</span>
+                    <span className="block text-[11px] text-muted-foreground">{format(d, "d MMM")}</span>
+                  </button>
+                ))}
+              </div>
+              {HOURS.map((h) => (
+                <div key={h} className="grid grid-cols-[4.5rem_repeat(7,1fr)] border-b border-border/40 last:border-b-0">
+                  <div className="px-2 py-1.5 text-[11px] text-muted-foreground">{String(h).padStart(2, "0")}:00</div>
+                  {weekDays.map((d) => {
+                    const key = format(d, "yyyy-MM-dd");
+                    const list = (byDay.get(key) ?? []).filter(
+                      (it) => Number((it.start_time ?? "09:00").slice(0, 2)) === h,
+                    );
+                    return (
+                      <div
+                        key={key + h}
+                        onDoubleClick={() => canEdit && openNew(d)}
+                        className="min-h-[2.4rem] space-y-1 border-l border-border/40 p-1"
+                      >
+                        {list.map((it) => (
+                          <button
+                            key={it.id}
+                            type="button"
+                            onClick={() => canEdit && openEdit(it)}
+                            className={`block w-full truncate rounded border px-1.5 py-1 text-left text-[11px] ${colorClass(it.color)}`}
+                          >
+                            {it.start_time ? `${it.start_time.slice(0, 5)} ` : ""}{it.title}
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
 
         {view === "calendar" && (<>
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted-foreground">

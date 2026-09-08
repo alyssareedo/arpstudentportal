@@ -34,17 +34,85 @@ export interface CurriculumItem {
 }
 
 /** Colour options mapped to design tokens (no hardcoded colour utilities). */
-export const CURRICULUM_COLORS: { value: string; label: string; className: string }[] = [
-  { value: "primary", label: "Core lesson", className: "bg-primary/15 text-primary border-primary/30" },
-  { value: "accent", label: "Speaking", className: "bg-accent/15 text-accent border-accent/30" },
-  { value: "success", label: "Review", className: "bg-success/15 text-success border-success/30" },
-  { value: "warning", label: "Homework", className: "bg-warning/15 text-warning-foreground border-warning/40" },
-  { value: "destructive", label: "Assessment", className: "bg-destructive/10 text-destructive border-destructive/30" },
-  { value: "muted", label: "Other", className: "bg-muted text-muted-foreground border-border" },
+export const CURRICULUM_COLORS: { value: string; label: string; className: string; swatch: string }[] = [
+  { value: "primary", label: "Core lesson", className: "bg-primary/15 text-primary border-primary/30", swatch: "bg-primary" },
+  { value: "accent", label: "Speaking", className: "bg-accent/15 text-accent border-accent/30", swatch: "bg-accent" },
+  { value: "success", label: "Review", className: "bg-success/15 text-success border-success/30", swatch: "bg-success" },
+  { value: "warning", label: "Homework", className: "bg-warning/15 text-warning-foreground border-warning/40", swatch: "bg-warning" },
+  { value: "destructive", label: "Assessment", className: "bg-destructive/10 text-destructive border-destructive/30", swatch: "bg-destructive" },
+  { value: "rose", label: "Rose", className: "bg-[hsl(var(--cur-rose)/0.15)] text-[hsl(var(--cur-rose))] border-[hsl(var(--cur-rose)/0.35)]", swatch: "bg-[hsl(var(--cur-rose))]" },
+  { value: "amber", label: "Amber", className: "bg-[hsl(var(--cur-amber)/0.15)] text-[hsl(var(--cur-amber))] border-[hsl(var(--cur-amber)/0.35)]", swatch: "bg-[hsl(var(--cur-amber))]" },
+  { value: "emerald", label: "Emerald", className: "bg-[hsl(var(--cur-emerald)/0.15)] text-[hsl(var(--cur-emerald))] border-[hsl(var(--cur-emerald)/0.35)]", swatch: "bg-[hsl(var(--cur-emerald))]" },
+  { value: "sky", label: "Sky", className: "bg-[hsl(var(--cur-sky)/0.15)] text-[hsl(var(--cur-sky))] border-[hsl(var(--cur-sky)/0.35)]", swatch: "bg-[hsl(var(--cur-sky))]" },
+  { value: "violet", label: "Violet", className: "bg-[hsl(var(--cur-violet)/0.15)] text-[hsl(var(--cur-violet))] border-[hsl(var(--cur-violet)/0.35)]", swatch: "bg-[hsl(var(--cur-violet))]" },
+  { value: "teal", label: "Teal", className: "bg-[hsl(var(--cur-teal)/0.15)] text-[hsl(var(--cur-teal))] border-[hsl(var(--cur-teal)/0.35)]", swatch: "bg-[hsl(var(--cur-teal))]" },
+  { value: "indigo", label: "Indigo", className: "bg-[hsl(var(--cur-indigo)/0.15)] text-[hsl(var(--cur-indigo))] border-[hsl(var(--cur-indigo)/0.35)]", swatch: "bg-[hsl(var(--cur-indigo))]" },
+  { value: "muted", label: "Other", className: "bg-muted text-muted-foreground border-border", swatch: "bg-[hsl(var(--cur-slate))]" },
 ];
 
 const colorClass = (c: string) =>
   CURRICULUM_COLORS.find((x) => x.value === c)?.className ?? CURRICULUM_COLORS[0].className;
+
+/** Clickable colour swatches so a colour can be picked without a dropdown. */
+export function ColorSwatchPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {CURRICULUM_COLORS.map((c) => (
+        <button
+          key={c.value}
+          type="button"
+          title={c.label}
+          aria-label={c.label}
+          onClick={() => onChange(c.value)}
+          className={`h-7 w-7 rounded-full border-2 transition-transform ${c.swatch} ${
+            value === c.value ? "scale-110 border-foreground" : "border-transparent hover:scale-105"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Field that offers existing options as clickable chips and still allows free typing. */
+export function OptionPicker({
+  label, value, options, onChange, invalid, placeholder,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  invalid?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label>{label}</Label>
+      <Input
+        value={value}
+        placeholder={placeholder ?? `Choose below or type your own ${label.toLowerCase()}`}
+        aria-invalid={!!invalid}
+        className={invalid ? "border-destructive" : ""}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {options.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {options.map((o) => (
+            <button
+              key={o}
+              type="button"
+              onClick={() => onChange(o)}
+              className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                value === o ? "border-primary bg-primary/10 text-primary" : "border-border/60 hover:bg-muted"
+              }`}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Solid banner styles for unit headers in the curriculum map view. */
 const UNIT_BANNERS = [

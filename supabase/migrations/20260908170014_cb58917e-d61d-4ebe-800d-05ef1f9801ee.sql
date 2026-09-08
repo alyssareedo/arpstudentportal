@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_lesson_to_curriculum() FROM PUBLIC, anon, authenticated;

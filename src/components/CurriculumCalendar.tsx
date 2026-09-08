@@ -186,11 +186,13 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [form, setForm] = useState(emptyForm(format(new Date(), "yyyy-MM-dd")));
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [view, setView] = useState<"map" | "calendar">("map");
+  const [view, setView] = useState<"map" | "calendar" | "week">("map");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [auditOpen, setAuditOpen] = useState(false);
   const [auditLoading, setAuditLoading] = useState(false);
+  const [unitOptions, setUnitOptions] = useState<string[]>([]);
+  const [topicOptions, setTopicOptions] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -204,6 +206,10 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
       q = q
         .gte("item_date", format(startOfWeek(startOfMonth(cursor)), "yyyy-MM-dd"))
         .lte("item_date", format(endOfWeek(endOfMonth(cursor)), "yyyy-MM-dd"));
+    } else if (view === "week") {
+      q = q
+        .gte("item_date", format(startOfWeek(cursor), "yyyy-MM-dd"))
+        .lte("item_date", format(endOfWeek(cursor), "yyyy-MM-dd"));
     }
     const { data, error } = await q;
     if (error) toast.error(error.message);
@@ -212,6 +218,21 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   }, [studentId, cursor, view]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Saved unit/topic options power the clickable chips in the edit dialog.
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("curriculum_options")
+        .select("kind, name, is_active")
+        .eq("is_active", true)
+        .order("sort_order")
+        .order("name");
+      const rows = (data as { kind: string; name: string }[]) ?? [];
+      setUnitOptions(rows.filter((r) => r.kind === "unit").map((r) => r.name));
+      setTopicOptions(rows.filter((r) => r.kind === "topic").map((r) => r.name));
+    })();
+  }, []);
 
   // Live feed: any curriculum change for this student refreshes map/calendar views.
   useEffect(() => {
@@ -229,6 +250,11 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
 
   const days = useMemo(
     () => eachDayOfInterval({ start: startOfWeek(startOfMonth(cursor)), end: endOfWeek(endOfMonth(cursor)) }),
+    [cursor],
+  );
+
+  const weekDays = useMemo(
+    () => eachDayOfInterval({ start: startOfWeek(cursor), end: endOfWeek(cursor) }),
     [cursor],
   );
 

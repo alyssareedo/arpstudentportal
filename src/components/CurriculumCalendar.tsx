@@ -447,20 +447,39 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             <Button size="sm" variant={view === "map" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("map")}>
               <LayoutList className="mr-1 h-3.5 w-3.5" /> Map
             </Button>
+            <Button size="sm" variant={view === "week" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("week")}>
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Timetable
+            </Button>
             <Button size="sm" variant={view === "calendar" ? "default" : "ghost"} className="h-7 rounded-full px-3" onClick={() => setView("calendar")}>
-              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Calendar
+              <CalendarDays className="mr-1 h-3.5 w-3.5" /> Month
             </Button>
           </div>
           <Button size="sm" variant="outline" className="h-7 rounded-full px-3" onClick={exportIcs}>
             <Download className="mr-1 h-3.5 w-3.5" /> Export .ics
           </Button>
-          {view === "calendar" && (<>
-          <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, -1))}>
+          {view !== "map" && (<>
+          <Button variant="outline" size="icon" aria-label="Previous"
+            onClick={() => setCursor(view === "week" ? addDays(cursor, -7) : addMonths(cursor, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="min-w-[9rem] text-center text-sm font-medium">{format(cursor, "MMMM yyyy")}</span>
-          <Button variant="outline" size="icon" onClick={() => setCursor(addMonths(cursor, 1))}>
+          <Select value={String(cursor.getMonth())} onValueChange={(v) => setCursor(setMonth(cursor, Number(v)))}>
+            <SelectTrigger className="h-9 w-[8.5rem]"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              {MONTHS.map((m, i) => <SelectItem key={m} value={String(i)}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={String(cursor.getFullYear())} onValueChange={(v) => setCursor(setYear(cursor, Number(v)))}>
+            <SelectTrigger className="h-9 w-[6rem]"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-72">
+              {YEARS.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" aria-label="Next"
+            onClick={() => setCursor(view === "week" ? addDays(cursor, 7) : addMonths(cursor, 1))}>
             <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className="h-9 rounded-full px-3" onClick={() => { setCursor(new Date()); setSelected(new Date()); }}>
+            Today
           </Button>
           </>)}
           {canEdit && (
@@ -477,6 +496,57 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
             <span key={c.value} className={`rounded-full border px-2 py-0.5 ${c.className}`}>{c.label}</span>
           ))}
         </div>
+
+        {view === "week" && (
+          <div className="overflow-x-auto rounded-xl border border-border/60">
+            <div className="min-w-[52rem]">
+              <div className="grid grid-cols-[4.5rem_repeat(7,1fr)] border-b border-border/60 bg-muted/50">
+                <div className="px-2 py-2 text-[11px] font-semibold text-muted-foreground">Time</div>
+                {weekDays.map((d) => (
+                  <button
+                    key={d.toISOString()}
+                    type="button"
+                    onClick={() => setSelected(d)}
+                    className={`border-l border-border/60 px-2 py-2 text-center ${isSameDay(d, new Date()) ? "bg-primary/10" : ""}`}
+                  >
+                    <span className="block text-[11px] font-bold uppercase tracking-wide">{format(d, "EEE")}</span>
+                    <span className="block text-[11px] text-muted-foreground">{format(d, "d MMM")}</span>
+                  </button>
+                ))}
+              </div>
+              {HOURS.map((h) => (
+                <div key={h} className="grid grid-cols-[4.5rem_repeat(7,1fr)] border-b border-border/40 last:border-b-0">
+                  <div className="px-2 py-1.5 text-[11px] text-muted-foreground">{String(h).padStart(2, "0")}:00</div>
+                  {weekDays.map((d) => {
+                    const key = format(d, "yyyy-MM-dd");
+                    const list = (byDay.get(key) ?? []).filter(
+                      (it) => Number((it.start_time ?? "09:00").slice(0, 2)) === h,
+                    );
+                    return (
+                      <div
+                        key={key + h}
+                        onDoubleClick={() => canEdit && openNew(d)}
+                        className="min-h-[2.4rem] space-y-1 border-l border-border/40 p-1"
+                      >
+                        {list.map((it) => (
+                          <button
+                            key={it.id}
+                            type="button"
+                            onClick={() => canEdit && openEdit(it)}
+                            className={`block w-full truncate rounded border px-1.5 py-1 text-left text-[11px] ${colorClass(it.color)}`}
+                          >
+                            {it.start_time ? `${it.start_time.slice(0, 5)} ` : ""}{it.title}
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
 
         {view === "calendar" && (<>
         <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted-foreground">

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addMonths, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO,
-  startOfMonth, startOfWeek, eachDayOfInterval,
+  startOfMonth, startOfWeek, eachDayOfInterval, addDays, setMonth, setYear,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Save, BookOpen, CalendarDays, LayoutList, History, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -131,6 +131,10 @@ const UNIT_BADGES = [
 ];
 
 const CATEGORIES = ["lesson", "unit", "topic", "activity", "material", "assessment", "review"];
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const YEARS = Array.from({ length: 13 }, (_, i) => new Date().getFullYear() - 4 + i);
+const HOURS = Array.from({ length: 16 }, (_, i) => i + 7); // 07:00 – 22:00
 
 const emptyForm = (date: string): Omit<CurriculumItem, "id" | "student_id"> => ({
   item_date: date,

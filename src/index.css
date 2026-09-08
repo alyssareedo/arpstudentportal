@@ -99,6 +99,15 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 20%;
     --sidebar-ring: 213 94% 68%;
+
+    --cur-rose: 340 78% 65%;
+    --cur-amber: 38 95% 62%;
+    --cur-emerald: 158 60% 52%;
+    --cur-sky: 199 89% 62%;
+    --cur-violet: 265 78% 70%;
+    --cur-teal: 180 55% 52%;
+    --cur-slate: 215 20% 65%;
+    --cur-indigo: 232 70% 68%;
   }
 }
 

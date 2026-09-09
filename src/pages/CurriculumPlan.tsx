@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CURRICULUM_COLORS } from "@/components/CurriculumCalendar";
+import { CURRICULUM_COLORS, CurriculumCalendar, ColorSwatchPicker, OptionPicker } from "@/components/CurriculumCalendar";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 interface Option {

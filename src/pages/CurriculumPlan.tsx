@@ -241,25 +241,26 @@ function PlanBuilder({
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Unit</Label>
-              <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v, topic: "" })}>
-                <SelectTrigger className={err("unit")}><SelectValue placeholder="Choose a unit" /></SelectTrigger>
-                <SelectContent>
-                  {units.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <OptionPicker
+                label="Unit"
+                value={form.unit}
+                options={units.map((u) => u.name)}
+                invalid={!!errors.unit}
+                onChange={(v) => setForm({ ...form, unit: v })}
+              />
               {errors.unit && <p className="text-xs text-destructive">{errors.unit}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>Topic</Label>
-              <Select value={form.topic} onValueChange={(v) => setForm({ ...form, topic: v })}>
-                <SelectTrigger className={err("topic")}><SelectValue placeholder="Choose a topic" /></SelectTrigger>
-                <SelectContent>
-                  {topicChoices.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <OptionPicker
+                label="Topic"
+                value={form.topic}
+                options={topicChoices.map((t) => t.name)}
+                invalid={!!errors.topic}
+                onChange={(v) => setForm({ ...form, topic: v })}
+              />
               {errors.topic && <p className="text-xs text-destructive">{errors.topic}</p>}
             </div>
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Title</Label>
               <Input value={form.title} className={err("title")} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Talking about routines" />

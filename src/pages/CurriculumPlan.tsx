@@ -292,13 +292,9 @@ function PlanBuilder({
             </div>
             <div className="space-y-1.5">
               <Label>Colour</Label>
-              <Select value={form.color} onValueChange={(v) => setForm({ ...form, color: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CURRICULUM_COLORS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ColorSwatchPicker value={form.color} onChange={(v) => setForm({ ...form, color: v })} />
             </div>
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Materials / textbook</Label>
               <Input value={form.materials} className={err("materials")} onChange={(e) => setForm({ ...form, materials: e.target.value })} />

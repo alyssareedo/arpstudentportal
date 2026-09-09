@@ -61,11 +61,16 @@ export default function CurriculumPlan() {
         </p>
       </div>
 
-      <Tabs defaultValue="plan">
+      <Tabs defaultValue="student">
         <TabsList className="rounded-full">
-          <TabsTrigger value="plan" className="rounded-full">Plan builder</TabsTrigger>
+          <TabsTrigger value="student" className="rounded-full">Per-student plan</TabsTrigger>
+          <TabsTrigger value="plan" className="rounded-full">Bulk plan builder</TabsTrigger>
           <TabsTrigger value="options" className="rounded-full">Units &amp; Topics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="student" className="mt-4">
+          <StudentPlan students={students} loading={studentsLoading} />
+        </TabsContent>
 
         <TabsContent value="plan" className="mt-4">
           <PlanBuilder
@@ -83,6 +88,41 @@ export default function CurriculumPlan() {
     </div>
   );
 }
+
+/* --------------------------- Per-student planner --------------------------- */
+
+function StudentPlan({ students, loading }: { students: { id: string; full_name: string }[]; loading: boolean }) {
+  const [studentId, setStudentId] = useState<string>("");
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-border/60 shadow-elegant">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-primary" /> Choose a student
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={studentId} onValueChange={setStudentId}>
+            <SelectTrigger className="w-full sm:w-[20rem]">
+              <SelectValue placeholder={loading ? "Loading…" : "Select a student"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {studentId ? (
+        <CurriculumCalendar studentId={studentId} canEdit />
+      ) : (
+        <p className="text-sm text-muted-foreground">Pick a student to build and edit their own curriculum plan.</p>
+      )}
+    </div>
+  );
+}
+
 
 /* ------------------------------ Plan builder ------------------------------ */
 

@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CURRICULUM_COLORS } from "@/components/CurriculumCalendar";
+import { CURRICULUM_COLORS, CurriculumCalendar, ColorSwatchPicker, OptionPicker } from "@/components/CurriculumCalendar";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 
 interface Option {
@@ -61,11 +61,16 @@ export default function CurriculumPlan() {
         </p>
       </div>
 
-      <Tabs defaultValue="plan">
+      <Tabs defaultValue="student">
         <TabsList className="rounded-full">
-          <TabsTrigger value="plan" className="rounded-full">Plan builder</TabsTrigger>
+          <TabsTrigger value="student" className="rounded-full">Per-student plan</TabsTrigger>
+          <TabsTrigger value="plan" className="rounded-full">Bulk plan builder</TabsTrigger>
           <TabsTrigger value="options" className="rounded-full">Units &amp; Topics</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="student" className="mt-4">
+          <StudentPlan students={students} loading={studentsLoading} />
+        </TabsContent>
 
         <TabsContent value="plan" className="mt-4">
           <PlanBuilder
@@ -83,6 +88,41 @@ export default function CurriculumPlan() {
     </div>
   );
 }
+
+/* --------------------------- Per-student planner --------------------------- */
+
+function StudentPlan({ students, loading }: { students: { id: string; full_name: string }[]; loading: boolean }) {
+  const [studentId, setStudentId] = useState<string>("");
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-border/60 shadow-elegant">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-primary" /> Choose a student
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={studentId} onValueChange={setStudentId}>
+            <SelectTrigger className="w-full sm:w-[20rem]">
+              <SelectValue placeholder={loading ? "Loading…" : "Select a student"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {studentId ? (
+        <CurriculumCalendar studentId={studentId} canEdit />
+      ) : (
+        <p className="text-sm text-muted-foreground">Pick a student to build and edit their own curriculum plan.</p>
+      )}
+    </div>
+  );
+}
+
 
 /* ------------------------------ Plan builder ------------------------------ */
 
@@ -201,25 +241,26 @@ function PlanBuilder({
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Unit</Label>
-              <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v, topic: "" })}>
-                <SelectTrigger className={err("unit")}><SelectValue placeholder="Choose a unit" /></SelectTrigger>
-                <SelectContent>
-                  {units.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <OptionPicker
+                label="Unit"
+                value={form.unit}
+                options={units.map((u) => u.name)}
+                invalid={!!errors.unit}
+                onChange={(v) => setForm({ ...form, unit: v })}
+              />
               {errors.unit && <p className="text-xs text-destructive">{errors.unit}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label>Topic</Label>
-              <Select value={form.topic} onValueChange={(v) => setForm({ ...form, topic: v })}>
-                <SelectTrigger className={err("topic")}><SelectValue placeholder="Choose a topic" /></SelectTrigger>
-                <SelectContent>
-                  {topicChoices.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <OptionPicker
+                label="Topic"
+                value={form.topic}
+                options={topicChoices.map((t) => t.name)}
+                invalid={!!errors.topic}
+                onChange={(v) => setForm({ ...form, topic: v })}
+              />
               {errors.topic && <p className="text-xs text-destructive">{errors.topic}</p>}
             </div>
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Title</Label>
               <Input value={form.title} className={err("title")} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Talking about routines" />
@@ -251,13 +292,9 @@ function PlanBuilder({
             </div>
             <div className="space-y-1.5">
               <Label>Colour</Label>
-              <Select value={form.color} onValueChange={(v) => setForm({ ...form, color: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CURRICULUM_COLORS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ColorSwatchPicker value={form.color} onChange={(v) => setForm({ ...form, color: v })} />
             </div>
+
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Materials / textbook</Label>
               <Input value={form.materials} className={err("materials")} onChange={(e) => setForm({ ...form, materials: e.target.value })} />

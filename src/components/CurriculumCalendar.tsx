@@ -726,26 +726,32 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
               </div>
               <div className="grid gap-2">
                 <Label>Colour</Label>
-                <Select value={form.color} onValueChange={(v) => setForm({ ...form, color: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRICULUM_COLORS.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <ColorSwatchPicker value={form.color ?? "primary"} onChange={(v) => setForm({ ...form, color: v })} />
               </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>Unit *</Label>
-                <Input aria-invalid={!!errors.unit} className={errors.unit ? "border-destructive" : ""} value={form.unit ?? ""} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-1">
+                <OptionPicker
+                  label="Unit *"
+                  value={form.unit ?? ""}
+                  options={unitOptions}
+                  invalid={!!errors.unit}
+                  onChange={(v) => setForm({ ...form, unit: v })}
+                />
                 {errors.unit && <p className="text-xs text-destructive">{errors.unit}</p>}
               </div>
-              <div className="grid gap-2">
-                <Label>Topic *</Label>
-                <Input aria-invalid={!!errors.topic} className={errors.topic ? "border-destructive" : ""} value={form.topic ?? ""} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
+              <div className="grid gap-1">
+                <OptionPicker
+                  label="Topic *"
+                  value={form.topic ?? ""}
+                  options={topicOptions}
+                  invalid={!!errors.topic}
+                  onChange={(v) => setForm({ ...form, topic: v })}
+                />
                 {errors.topic && <p className="text-xs text-destructive">{errors.topic}</p>}
               </div>
             </div>
+
             <div className="grid gap-2">
               <Label>Activities</Label>
               <Textarea rows={2} value={form.activities ?? ""} onChange={(e) => setForm({ ...form, activities: e.target.value })} />

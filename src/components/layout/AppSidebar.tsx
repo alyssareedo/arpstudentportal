@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog, BookOpen, Receipt, Map, Newspaper, Tag,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -23,6 +23,7 @@ const adminItems = [
   { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
+  { title: "Videos", url: "/videos", icon: Video },
   { title: "Invoices", url: "/admin/invoices", icon: Receipt },
   { title: "Promotions & Pricing", url: "/pricing", icon: Tag },
   { title: "Reports", url: "/reports", icon: FileBarChart },
@@ -38,6 +39,7 @@ const teacherItems = [
   { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
+  { title: "Videos", url: "/videos", icon: Video },
   { title: "Availability", url: "/availability", icon: CalendarClock },
   { title: "My Profile", url: "/my-profile", icon: UserCircle },
 ];
@@ -49,6 +51,7 @@ const studentItems = [
   { title: "Teacher calendar", url: "/calendar-view", icon: CalendarDays },
   { title: "Materials", url: "/materials", icon: BookOpen },
   { title: "Latest News", url: "/news", icon: Newspaper },
+  { title: "Videos", url: "/videos", icon: Video },
   { title: "Invoices", url: "/my-invoices", icon: Receipt },
   { title: "Courses & Pricing", url: "/pricing", icon: Tag },
   { title: "Language Assessments", url: "/assessments", icon: Award },

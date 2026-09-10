@@ -186,7 +186,9 @@ export function ExternalAssessments() {
             {visible.map((r) => (
               <div key={r.id} className="flex gap-3 rounded-lg border p-3">
                 {r.image_url && (
-                  <img src={r.image_url} alt={r.title} loading="lazy" className="h-16 w-16 rounded object-cover" />
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded border bg-muted">
+                    <img src={r.image_url} alt={r.title} loading="lazy" className="max-h-full max-w-full object-contain" />
+                  </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

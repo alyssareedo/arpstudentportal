@@ -14,6 +14,7 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { CefrAnswerKey } from "@/components/CefrAnswerKey";
 import { ToeicAnswerKey } from "@/components/ToeicAnswerKey";
 import { AdminCefrResults } from "@/components/AdminCefrResults";
+import { ExternalAssessments } from "@/components/ExternalAssessments";
 
 interface Row {
   id: string;
@@ -214,6 +215,8 @@ export default function AdminAssessments() {
       <ToeicAnswerKey />
 
       <CefrAnswerKey />
+
+      <ExternalAssessments />
 
     </div>
   );

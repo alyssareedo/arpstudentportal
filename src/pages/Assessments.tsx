@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { ExternalAssessments } from "@/components/ExternalAssessments";
 
 interface ToeicRow {
   id: string;
@@ -217,6 +218,8 @@ export default function Assessments() {
           </CardContent>
         </Card>
       )}
+
+      <ExternalAssessments />
     </div>
   );
 }

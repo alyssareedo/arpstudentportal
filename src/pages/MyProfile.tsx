@@ -11,6 +11,7 @@ import { useStudent } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
+import { CurriculumCalendar } from "@/components/CurriculumCalendar";
 
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -80,6 +81,7 @@ export default function MyProfile() {
           <TabsTrigger value="progress" className="rounded-full">Progress</TabsTrigger>
           <TabsTrigger value="lessons" className="rounded-full">My lessons</TabsTrigger>
           <TabsTrigger value="homework" className="rounded-full">Homework</TabsTrigger>
+          <TabsTrigger value="curriculum" className="rounded-full">Curriculum</TabsTrigger>
         </TabsList>
 
         <TabsContent value="progress" className="space-y-4">
@@ -166,6 +168,10 @@ export default function MyProfile() {
               {homework.length === 0 && <p className="text-center text-sm text-muted-foreground">No homework assigned yet.</p>}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="curriculum">
+          <CurriculumCalendar studentId={profile.id} canEdit={false} />
         </TabsContent>
       </Tabs>
     </div>

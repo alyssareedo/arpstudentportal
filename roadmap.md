@@ -8,3 +8,5 @@
 - [x] Curriculum: inline validation (title, unit, topic, materials) blocking save
 - [x] Curriculum: audit log table + change history panel in edit dialog
 - [x] Curriculum: ICS export of curriculum lessons
+- [x] Show every student their own curriculum on their profile
+- [x] Add the two long-vowel lesson schedules to Peach and Pear

@@ -10,3 +10,5 @@
 - [x] Curriculum: ICS export of curriculum lessons
 - [x] Show every student their own curriculum on their profile
 - [x] Add the two long-vowel lesson schedules to Peach and Pear
+- [x] Curriculum items now create/sync a Lessons record (completed)
+- [ ] Clarify request: "953 Foreign Business Owners Have Left Japan in 2026"

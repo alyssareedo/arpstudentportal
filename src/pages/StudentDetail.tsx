@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { formatLessonsLeft, classesOwing, formatClassesOwing, effectiveLessonsLeft } from "@/lib/lessons";
+import { LessonBalanceDisclaimer } from "@/components/LessonBalanceDisclaimer";
 
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { CurriculumCalendar } from "@/components/CurriculumCalendar";

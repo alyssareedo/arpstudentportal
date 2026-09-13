@@ -654,6 +654,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
                   {it.start_time && <span className="text-xs">{it.start_time.slice(0, 5)}</span>}
                   {it.duration_minutes && <span className="text-xs">· {it.duration_minutes} min</span>}
                   {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                  <LessonStatusBadge linked={!!it.lesson_id} lesson={it.lesson_id ? lessonMap[it.lesson_id] : undefined} />
                 </div>
                 {canEdit && (
                   <div className="flex items-center gap-2">

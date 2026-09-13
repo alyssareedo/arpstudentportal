@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { formatLessonsLeft, classesOwing, formatClassesOwing, effectiveLessonsLeft } from "@/lib/lessons";
+import { LessonBalanceDisclaimer } from "@/components/LessonBalanceDisclaimer";
 
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
 import { CurriculumCalendar } from "@/components/CurriculumCalendar";
@@ -161,6 +162,7 @@ export default function StudentDetail() {
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Lesson balance</p>
             <p className="mt-1 text-3xl font-bold text-foreground">{formatLessonsLeft(lessonsLeft)}</p>
+            <LessonBalanceDisclaimer />
             {profile.lessons_left_override !== null && profile.lessons_left_override !== undefined && (
               <p className="mt-1 text-xs text-muted-foreground">Set manually by an admin</p>
             )}

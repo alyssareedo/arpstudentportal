@@ -31,6 +31,31 @@ export interface CurriculumItem {
   notes: string | null;
   color: string;
   completed: boolean;
+  lesson_id?: string | null;
+}
+
+interface LinkedLesson {
+  attendance: string;
+  completed: boolean;
+  lesson_date: string;
+}
+
+/** Small badge showing the status of the lesson linked to a curriculum item. */
+function LessonStatusBadge({ lesson, linked }: { lesson?: LinkedLesson; linked: boolean }) {
+  if (!linked) {
+    return <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">No lesson recorded</Badge>;
+  }
+  if (!lesson) return null;
+  if (lesson.completed || lesson.attendance === "present") {
+    return <Badge className="rounded-full bg-success/15 text-success border-success/30 text-[10px]">✓ Lesson completed</Badge>;
+  }
+  if (lesson.attendance === "absent") {
+    return <Badge className="rounded-full bg-destructive/10 text-destructive border-destructive/30 text-[10px]">Marked absent</Badge>;
+  }
+  if (lesson.attendance === "late") {
+    return <Badge className="rounded-full bg-warning/15 text-warning-foreground border-warning/40 text-[10px]">Attended late</Badge>;
+  }
+  return <Badge variant="outline" className="rounded-full text-[10px]">Lesson scheduled</Badge>;
 }
 
 /** Colour options mapped to design tokens (no hardcoded colour utilities). */
@@ -197,6 +222,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [auditLoading, setAuditLoading] = useState(false);
   const [unitOptions, setUnitOptions] = useState<string[]>([]);
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
+  const [lessonMap, setLessonMap] = useState<Record<string, LinkedLesson>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -217,7 +243,23 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
     }
     const { data, error } = await q;
     if (error) toast.error(error.message);
-    setItems((data as unknown as CurriculumItem[]) ?? []);
+    const rows = (data as unknown as CurriculumItem[]) ?? [];
+    setItems(rows);
+    // Load the status of any linked lessons so "Done" is explainable.
+    const lessonIds = rows.map((r) => r.lesson_id).filter(Boolean) as string[];
+    if (lessonIds.length) {
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id, attendance, completed, lesson_date")
+        .in("id", lessonIds);
+      const map: Record<string, LinkedLesson> = {};
+      for (const l of (lessons as unknown as (LinkedLesson & { id: string })[]) ?? []) {
+        map[l.id] = { attendance: l.attendance, completed: l.completed, lesson_date: l.lesson_date };
+      }
+      setLessonMap(map);
+    } else {
+      setLessonMap({});
+    }
     setLoading(false);
   }, [studentId, cursor, view]);
 
@@ -612,6 +654,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
                   {it.start_time && <span className="text-xs">{it.start_time.slice(0, 5)}</span>}
                   {it.duration_minutes && <span className="text-xs">· {it.duration_minutes} min</span>}
                   {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                  <LessonStatusBadge linked={!!it.lesson_id} lesson={it.lesson_id ? lessonMap[it.lesson_id] : undefined} />
                 </div>
                 {canEdit && (
                   <div className="flex items-center gap-2">
@@ -669,7 +712,10 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
                       <span className="block capitalize text-muted-foreground">
                         {it.category} · {it.item_date}{it.start_time ? ` ${it.start_time.slice(0, 5)}` : ""}
                       </span>
-                      {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                      <span className="flex flex-wrap gap-1">
+                        {it.completed && <Badge variant="secondary" className="rounded-full">Done</Badge>}
+                        <LessonStatusBadge linked={!!it.lesson_id} lesson={it.lesson_id ? lessonMap[it.lesson_id] : undefined} />
+                      </span>
                     </span>
                     <span className="space-y-0.5 text-foreground/80">
                       {it.topic && <span className="block"><b>Topic:</b> {it.topic}</span>}

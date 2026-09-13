@@ -11,6 +11,7 @@ import { useStudent } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
+import { LessonBalanceDisclaimer } from "@/components/LessonBalanceDisclaimer";
 import { CurriculumCalendar } from "@/components/CurriculumCalendar";
 
 export default function MyProfile() {
@@ -73,6 +74,7 @@ export default function MyProfile() {
           </Card>
         ))}
       </div>
+      <LessonBalanceDisclaimer />
 
 
 

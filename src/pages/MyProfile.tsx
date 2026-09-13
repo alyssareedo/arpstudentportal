@@ -73,6 +73,7 @@ export default function MyProfile() {
           </Card>
         ))}
       </div>
+      <LessonBalanceDisclaimer />
 
 
 

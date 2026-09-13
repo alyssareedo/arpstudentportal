@@ -161,6 +161,7 @@ export default function StudentDetail() {
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Lesson balance</p>
             <p className="mt-1 text-3xl font-bold text-foreground">{formatLessonsLeft(lessonsLeft)}</p>
+            <LessonBalanceDisclaimer />
             {profile.lessons_left_override !== null && profile.lessons_left_override !== undefined && (
               <p className="mt-1 text-xs text-muted-foreground">Set manually by an admin</p>
             )}

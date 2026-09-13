@@ -31,6 +31,31 @@ export interface CurriculumItem {
   notes: string | null;
   color: string;
   completed: boolean;
+  lesson_id?: string | null;
+}
+
+interface LinkedLesson {
+  attendance: string;
+  completed: boolean;
+  lesson_date: string;
+}
+
+/** Small badge showing the status of the lesson linked to a curriculum item. */
+function LessonStatusBadge({ lesson, linked }: { lesson?: LinkedLesson; linked: boolean }) {
+  if (!linked) {
+    return <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">No lesson recorded</Badge>;
+  }
+  if (!lesson) return null;
+  if (lesson.completed || lesson.attendance === "present") {
+    return <Badge className="rounded-full bg-success/15 text-success border-success/30 text-[10px]">✓ Lesson completed</Badge>;
+  }
+  if (lesson.attendance === "absent") {
+    return <Badge className="rounded-full bg-destructive/10 text-destructive border-destructive/30 text-[10px]">Marked absent</Badge>;
+  }
+  if (lesson.attendance === "late") {
+    return <Badge className="rounded-full bg-warning/15 text-warning-foreground border-warning/40 text-[10px]">Attended late</Badge>;
+  }
+  return <Badge variant="outline" className="rounded-full text-[10px]">Lesson scheduled</Badge>;
 }
 
 /** Colour options mapped to design tokens (no hardcoded colour utilities). */
@@ -197,6 +222,7 @@ export function CurriculumCalendar({ studentId, canEdit }: { studentId: string; 
   const [auditLoading, setAuditLoading] = useState(false);
   const [unitOptions, setUnitOptions] = useState<string[]>([]);
   const [topicOptions, setTopicOptions] = useState<string[]>([]);
+  const [lessonMap, setLessonMap] = useState<Record<string, LinkedLesson>>({});
 
   const load = useCallback(async () => {
     setLoading(true);

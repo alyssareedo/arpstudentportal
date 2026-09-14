@@ -436,7 +436,7 @@ export default function AdminCalendar() {
               onView={setView}
               selectable
               onSelectSlot={handleSelectSlot}
-              onSelectEvent={(e) => setDetailEvent(e as CalEvent)}
+              onSelectEvent={(e) => openDetail(e as CalEvent)}
               eventPropGetter={eventStyle as any}
               views={["day", "week", "month"]}
               style={{ height: "100%", padding: 8 }}
@@ -638,6 +638,11 @@ export default function AdminCalendar() {
                 }}
               >
                 <ClipboardPaste className="mr-2 h-4 w-4" /> Copy to other dates
+              </Button>
+            )}
+            {detailEvent?.kind === "booking" && (
+              <Button onClick={saveBooking} disabled={saving}>
+                {saving ? "Saving…" : "Save changes"}
               </Button>
             )}
             <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>

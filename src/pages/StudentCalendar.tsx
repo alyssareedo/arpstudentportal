@@ -24,7 +24,7 @@ interface CalEvent extends RbcEvent {
 }
 
 const COLORS: Record<Kind, string> = {
-  open: "hsl(160 70% 42%)",
+  open: "hsl(var(--success))",
   taken: "hsl(30 95% 55%)",
   closed: "hsl(0 70% 55%)",
 };
@@ -118,7 +118,7 @@ export default function StudentCalendar() {
             </TabsList>
           </Tabs>
           <div className="flex flex-wrap gap-3 pb-3 text-xs text-muted-foreground">
-            <Legend color={COLORS.open} label="Open slot" />
+            <Legend color={COLORS.open} label="Available to learn" />
             <Legend color={COLORS.taken} label="Booked lesson" />
             <Legend color={COLORS.closed} label="Closed / holiday" />
           </div>

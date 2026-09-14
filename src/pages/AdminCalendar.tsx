@@ -15,13 +15,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { CalendarPlus, CalendarX, Trash2, Users, RefreshCw, Copy, ClipboardPaste, X } from "lucide-react";
+import { CalendarCheck, CalendarPlus, CalendarX, Check, Trash2, Users, Copy, ClipboardPaste, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
-type EventKind = "slot" | "recurring" | "block" | "booking";
+type EventKind = "slot" | "recurring" | "block" | "booking" | "selected";
 
 // Offset (minutes) of a timezone at a given instant
 function tzOffset(date: Date, tz: string) {
@@ -68,6 +68,11 @@ export default function AdminCalendar() {
   const [blocks, setBlocks] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectingAvailability, setSelectingAvailability] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState<{ start: Date; end: Date }[]>([]);
+  const [availabilityTeacherId, setAvailabilityTeacherId] = useState("");
+  const [availabilityRecurring, setAvailabilityRecurring] = useState(false);
+  const [savingAvailability, setSavingAvailability] = useState(false);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createMode, setCreateMode] = useState<"slot" | "block" | "lesson">("slot");
@@ -188,18 +193,29 @@ export default function AdminCalendar() {
         start, end, raw: bk,
       });
     }
+    for (const selected of selectedAvailability) {
+      out.push({
+        id: `selected-${selected.start.toISOString()}-${selected.end.toISOString()}`,
+        kind: "selected",
+        title: "Available",
+        start: selected.start,
+        end: selected.end,
+        raw: selected,
+      });
+    }
     return out;
-  }, [slots, blocks, bookings, teachers, students, date, tzName]);
+  }, [slots, blocks, bookings, teachers, students, date, tzName, selectedAvailability]);
 
   const eventStyle = (ev: CalEvent) => {
     const map: Record<EventKind, string> = {
-      recurring: "hsl(210 90% 60%)",
-      slot: "hsl(180 70% 45%)",
+      recurring: "hsl(var(--success))",
+      slot: "hsl(var(--success))",
+      selected: "hsl(var(--success))",
       block: "hsl(0 70% 55%)",
       booking: "hsl(30 95% 55%)",
     };
 
-    return { style: { backgroundColor: map[ev.kind], borderRadius: 8, border: "none", padding: "2px 6px", fontSize: 12 } };
+    return { style: { backgroundColor: map[ev.kind], color: "hsl(var(--success-foreground))", borderRadius: 8, border: ev.kind === "selected" ? "2px solid hsl(var(--success-foreground))" : "none", padding: "2px 6px", fontSize: 12 } };
   };
 
 
@@ -230,6 +246,15 @@ export default function AdminCalendar() {
   };
 
   const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
+    if (selectingAvailability) {
+      const normalizedEnd = end.getTime() > start.getTime() ? end : new Date(start.getTime() + 30 * 60000);
+      const key = `${start.toISOString()}_${normalizedEnd.toISOString()}`;
+      setSelectedAvailability(current => {
+        const exists = current.some(item => `${item.start.toISOString()}_${item.end.toISOString()}` === key);
+        return exists ? current.filter(item => `${item.start.toISOString()}_${item.end.toISOString()}` !== key) : [...current, { start, end: normalizedEnd }];
+      });
+      return;
+    }
     if (clipboard) { pasteLesson(start); return; }
     setDraft({ start, end: end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60000) });
     setCreateMode("lesson");
@@ -239,6 +264,39 @@ export default function AdminCalendar() {
     setReason("");
     setExtraDates([]);
     setCreateOpen(true);
+  };
+
+  const startAvailabilitySelection = () => {
+    setSelectingAvailability(true);
+    setSelectedAvailability([]);
+    setAvailabilityTeacherId(teacherFilter !== "all" ? teacherFilter : teachers[0]?.id ?? "");
+    setAvailabilityRecurring(false);
+  };
+
+  const cancelAvailabilitySelection = () => {
+    setSelectingAvailability(false);
+    setSelectedAvailability([]);
+  };
+
+  const saveSelectedAvailability = async () => {
+    if (!availabilityTeacherId) return toast.error("Pick a teacher");
+    if (selectedAvailability.length === 0) return toast.error("Select at least one time on the calendar");
+    setSavingAvailability(true);
+    const rows = selectedAvailability.map(({ start, end }) => ({
+      teacher_id: availabilityTeacherId,
+      weekday: getDay(start),
+      start_time: format(start, "HH:mm:ss"),
+      end_time: format(end, "HH:mm:ss"),
+      is_active: true,
+      ...(availabilityRecurring ? {} : { slot_date: format(start, "yyyy-MM-dd") }),
+    }));
+    const { error } = await supabase.from("availability_slots").insert(rows);
+    setSavingAvailability(false);
+    if (error) return toast.error(error.message);
+    toast.success(`${rows.length} available time${rows.length === 1 ? "" : "s"} saved`);
+    setSelectingAvailability(false);
+    setSelectedAvailability([]);
+    loadAll();
   };
 
 
@@ -373,12 +431,43 @@ export default function AdminCalendar() {
             <Button variant="outline" size="sm" onClick={() => { setCreateMode("block"); setDraft({ start: new Date(), end: addDays(new Date(), 1) }); setTeacherId(""); setReason(""); setCreateOpen(true); }}>
               <CalendarX className="mr-2 h-4 w-4" /> Block dates
             </Button>
+            <Button variant="outline" size="sm" onClick={startAvailabilitySelection} disabled={selectingAvailability}>
+              <CalendarCheck className="mr-2 h-4 w-4" /> Select availability
+            </Button>
             <Button size="sm" onClick={() => { setCreateMode("lesson"); const s = new Date(); s.setMinutes(0, 0, 0); setDraft({ start: s, end: new Date(s.getTime() + 60 * 60000) }); setTeacherId(teachers[0]?.id ?? ""); setStudentId(""); setCreateOpen(true); }}>
               <CalendarPlus className="mr-2 h-4 w-4" /> Schedule lesson
             </Button>
           </div>
         </CardHeader>
         <CardContent>
+          {selectingAvailability && (
+            <div className="mb-3 space-y-3 rounded-lg border border-success/40 bg-success/10 p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <CalendarCheck className="h-4 w-4 text-success" />
+                <span className="text-sm font-medium">Click or drag across multiple times. Selected times appear green.</span>
+                <span className="rounded-full bg-success px-2.5 py-1 text-xs font-semibold text-success-foreground">
+                  {selectedAvailability.length} selected
+                </span>
+              </div>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="min-w-[220px] flex-1">
+                  <Label className="text-xs">Teacher</Label>
+                  <Select value={availabilityTeacherId} onValueChange={setAvailabilityTeacherId}>
+                    <SelectTrigger className="bg-card"><SelectValue placeholder="Select teacher" /></SelectTrigger>
+                    <SelectContent>{teachers.map(t => <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <label className="flex h-10 items-center gap-2 text-sm">
+                  <Switch checked={availabilityRecurring} onCheckedChange={setAvailabilityRecurring} />
+                  Repeat every week
+                </label>
+                <Button variant="outline" onClick={cancelAvailabilitySelection}><X className="mr-2 h-4 w-4" /> Cancel</Button>
+                <Button onClick={saveSelectedAvailability} disabled={savingAvailability || selectedAvailability.length === 0}>
+                  <Check className="mr-2 h-4 w-4" /> {savingAvailability ? "Saving…" : "Save available times"}
+                </Button>
+              </div>
+            </div>
+          )}
           {clipboard && (
             <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3 text-sm">
               <ClipboardPaste className="h-4 w-4 text-primary" />
@@ -420,8 +509,7 @@ export default function AdminCalendar() {
             </TabsList>
           </Tabs>
           <div className="flex flex-wrap gap-3 pb-3 text-xs text-muted-foreground">
-            <LegendDot color="hsl(210 90% 60%)" label="Recurring availability" />
-            <LegendDot color="hsl(180 70% 45%)" label="One-off availability" />
+            <LegendDot color="hsl(var(--success))" label="Available to learn" />
             <LegendDot color="hsl(30 95% 55%)" label="Booked lesson" />
             <LegendDot color="hsl(0 70% 55%)" label="Blocked / holiday" />
             
@@ -436,7 +524,14 @@ export default function AdminCalendar() {
               onView={setView}
               selectable
               onSelectSlot={handleSelectSlot}
-              onSelectEvent={(e) => openDetail(e as CalEvent)}
+              onSelectEvent={(e) => {
+                const event = e as CalEvent;
+                if (event.kind === "selected") {
+                  setSelectedAvailability(current => current.filter(item => item !== event.raw));
+                  return;
+                }
+                openDetail(event);
+              }}
               eventPropGetter={eventStyle as any}
               views={["day", "week", "month"]}
               style={{ height: "100%", padding: 8 }}

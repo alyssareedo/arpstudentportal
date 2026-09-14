@@ -570,11 +570,35 @@ export default function AdminCalendar() {
         <DialogContent>
           <DialogHeader><DialogTitle>{detailEvent?.title as string}</DialogTitle></DialogHeader>
           {detailEvent && (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-3 text-sm">
               <p><b>When:</b> {format(detailEvent.start as Date, "PPP p")} – {format(detailEvent.end as Date, "p")}</p>
               <p><b>Type:</b> {detailEvent.kind}</p>
               {detailEvent.kind === "booking" && (
-                <p><b>Status:</b> {detailEvent.raw.status}</p>
+                <>
+                  <p><b>Status:</b> {detailEvent.raw.status}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs">Date</Label>
+                      <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Start time</Label>
+                      <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Minutes</Label>
+                      <Input type="number" min={15} step={15} value={editDuration} onChange={(e) => setEditDuration(e.target.value)} />
+                    </div>
+                  </div>
+                  <label className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-2 text-xs">
+                    <input type="checkbox" className="mt-0.5" checked={applyAll} onChange={(e) => setApplyAll(e.target.checked)} />
+                    <span>
+                      Apply to <b>all lessons for this student</b> ({siblingBookings(detailEvent.raw).length} other
+                      {siblingBookings(detailEvent.raw).length === 1 ? " lesson" : " lessons"}). Saving changes their time and length;
+                      deleting removes them all. Their dates stay as they are.
+                    </span>
+                  </label>
+                </>
               )}
             </div>
           )}

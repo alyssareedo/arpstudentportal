@@ -78,6 +78,12 @@ export default function AdminCalendar() {
   const [reason, setReason] = useState("");
 
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null);
+  // Inline edit of a booking's date/time/duration
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [editDuration, setEditDuration] = useState("60");
+  const [applyAll, setApplyAll] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Copy / paste a recurring student's lesson
   const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);
@@ -295,15 +301,56 @@ export default function AdminCalendar() {
     loadAll();
   };
 
+  const openDetail = (ev: CalEvent) => {
+    setApplyAll(false);
+    if (ev.kind === "booking") {
+      setEditDate(ev.raw.booking_date);
+      setEditTime(String(ev.raw.start_time).slice(0, 5));
+      setEditDuration(String(ev.raw.duration_minutes || 60));
+    }
+    setDetailEvent(ev);
+  };
+
+  // Other approved/pending bookings of the same student (today onward)
+  const siblingBookings = (bk: any) =>
+    bookings.filter(b => b.student_id === bk.student_id && b.id !== bk.id);
+
+  const saveBooking = async () => {
+    if (!detailEvent) return;
+    const bk = detailEvent.raw;
+    setSaving(true);
+    const patch = { booking_date: editDate, start_time: editTime + ":00", duration_minutes: Number(editDuration) || 60 };
+    const { error } = await supabase.from("bookings").update(patch).eq("id", bk.id);
+    if (error) { setSaving(false); return toast.error(error.message); }
+
+    if (applyAll) {
+      const ids = siblingBookings(bk).map(b => b.id);
+      if (ids.length) {
+        const { error: e2 } = await supabase
+          .from("bookings")
+          .update({ start_time: patch.start_time, duration_minutes: patch.duration_minutes })
+          .in("id", ids);
+        if (e2) { setSaving(false); return toast.error(e2.message); }
+      }
+      toast.success(`Updated this lesson and ${ids.length} other lesson${ids.length === 1 ? "" : "s"} for this student`);
+    } else {
+      toast.success("Lesson updated");
+    }
+    setSaving(false);
+    setDetailEvent(null);
+    loadAll();
+  };
+
   const deleteEvent = async (ev: CalEvent) => {
-    
-    if (!confirm("Delete this item?")) return;
+    const alsoAll = ev.kind === "booking" && applyAll;
+    if (!confirm(alsoAll ? "Delete every booking for this student?" : "Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);
     } else if (ev.kind === "block") {
       await supabase.from("availability_blocks").delete().eq("id", ev.raw.id);
     } else if (ev.kind === "booking") {
-      await supabase.from("bookings").delete().eq("id", ev.raw.id);
+      const ids = alsoAll ? [ev.raw.id, ...siblingBookings(ev.raw).map(b => b.id)] : [ev.raw.id];
+      await supabase.from("bookings").delete().in("id", ids);
     }
     toast.success("Deleted");
     setDetailEvent(null);
@@ -389,7 +436,7 @@ export default function AdminCalendar() {
               onView={setView}
               selectable
               onSelectSlot={handleSelectSlot}
-              onSelectEvent={(e) => setDetailEvent(e as CalEvent)}
+              onSelectEvent={(e) => openDetail(e as CalEvent)}
               eventPropGetter={eventStyle as any}
               views={["day", "week", "month"]}
               style={{ height: "100%", padding: 8 }}
@@ -523,11 +570,35 @@ export default function AdminCalendar() {
         <DialogContent>
           <DialogHeader><DialogTitle>{detailEvent?.title as string}</DialogTitle></DialogHeader>
           {detailEvent && (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-3 text-sm">
               <p><b>When:</b> {format(detailEvent.start as Date, "PPP p")} – {format(detailEvent.end as Date, "p")}</p>
               <p><b>Type:</b> {detailEvent.kind}</p>
               {detailEvent.kind === "booking" && (
-                <p><b>Status:</b> {detailEvent.raw.status}</p>
+                <>
+                  <p><b>Status:</b> {detailEvent.raw.status}</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs">Date</Label>
+                      <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Start time</Label>
+                      <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Minutes</Label>
+                      <Input type="number" min={15} step={15} value={editDuration} onChange={(e) => setEditDuration(e.target.value)} />
+                    </div>
+                  </div>
+                  <label className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/30 p-2 text-xs">
+                    <input type="checkbox" className="mt-0.5" checked={applyAll} onChange={(e) => setApplyAll(e.target.checked)} />
+                    <span>
+                      Apply to <b>all lessons for this student</b> ({siblingBookings(detailEvent.raw).length} other
+                      {siblingBookings(detailEvent.raw).length === 1 ? " lesson" : " lessons"}). Saving changes their time and length;
+                      deleting removes them all. Their dates stay as they are.
+                    </span>
+                  </label>
+                </>
               )}
             </div>
           )}
@@ -567,6 +638,11 @@ export default function AdminCalendar() {
                 }}
               >
                 <ClipboardPaste className="mr-2 h-4 w-4" /> Copy to other dates
+              </Button>
+            )}
+            {detailEvent?.kind === "booking" && (
+              <Button onClick={saveBooking} disabled={saving}>
+                {saving ? "Saving…" : "Save changes"}
               </Button>
             )}
             <Button variant="destructive" onClick={() => detailEvent && deleteEvent(detailEvent)}>

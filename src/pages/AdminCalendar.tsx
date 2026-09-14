@@ -78,6 +78,12 @@ export default function AdminCalendar() {
   const [reason, setReason] = useState("");
 
   const [detailEvent, setDetailEvent] = useState<CalEvent | null>(null);
+  // Inline edit of a booking's date/time/duration
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [editDuration, setEditDuration] = useState("60");
+  const [applyAll, setApplyAll] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Copy / paste a recurring student's lesson
   const [clipboard, setClipboard] = useState<{ studentId: string; teacherId: string | null; duration: number; name: string } | null>(null);

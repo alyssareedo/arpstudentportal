@@ -301,15 +301,56 @@ export default function AdminCalendar() {
     loadAll();
   };
 
+  const openDetail = (ev: CalEvent) => {
+    setApplyAll(false);
+    if (ev.kind === "booking") {
+      setEditDate(ev.raw.booking_date);
+      setEditTime(String(ev.raw.start_time).slice(0, 5));
+      setEditDuration(String(ev.raw.duration_minutes || 60));
+    }
+    setDetailEvent(ev);
+  };
+
+  // Other approved/pending bookings of the same student (today onward)
+  const siblingBookings = (bk: any) =>
+    bookings.filter(b => b.student_id === bk.student_id && b.id !== bk.id);
+
+  const saveBooking = async () => {
+    if (!detailEvent) return;
+    const bk = detailEvent.raw;
+    setSaving(true);
+    const patch = { booking_date: editDate, start_time: editTime + ":00", duration_minutes: Number(editDuration) || 60 };
+    const { error } = await supabase.from("bookings").update(patch).eq("id", bk.id);
+    if (error) { setSaving(false); return toast.error(error.message); }
+
+    if (applyAll) {
+      const ids = siblingBookings(bk).map(b => b.id);
+      if (ids.length) {
+        const { error: e2 } = await supabase
+          .from("bookings")
+          .update({ start_time: patch.start_time, duration_minutes: patch.duration_minutes })
+          .in("id", ids);
+        if (e2) { setSaving(false); return toast.error(e2.message); }
+      }
+      toast.success(`Updated this lesson and ${ids.length} other lesson${ids.length === 1 ? "" : "s"} for this student`);
+    } else {
+      toast.success("Lesson updated");
+    }
+    setSaving(false);
+    setDetailEvent(null);
+    loadAll();
+  };
+
   const deleteEvent = async (ev: CalEvent) => {
-    
-    if (!confirm("Delete this item?")) return;
+    const alsoAll = ev.kind === "booking" && applyAll;
+    if (!confirm(alsoAll ? "Delete every booking for this student?" : "Delete this item?")) return;
     if (ev.kind === "slot" || ev.kind === "recurring") {
       await supabase.from("availability_slots").delete().eq("id", ev.raw.id);
     } else if (ev.kind === "block") {
       await supabase.from("availability_blocks").delete().eq("id", ev.raw.id);
     } else if (ev.kind === "booking") {
-      await supabase.from("bookings").delete().eq("id", ev.raw.id);
+      const ids = alsoAll ? [ev.raw.id, ...siblingBookings(ev.raw).map(b => b.id)] : [ev.raw.id];
+      await supabase.from("bookings").delete().in("id", ids);
     }
     toast.success("Deleted");
     setDetailEvent(null);

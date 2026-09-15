@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
 import { LessonBalanceDisclaimer } from "@/components/LessonBalanceDisclaimer";
 import { CurriculumCalendar } from "@/components/CurriculumCalendar";
+import { StudentTestResults } from "@/components/StudentTestResults";
 
 export default function MyProfile() {
   const { user, loading: authLoading } = useAuth();
@@ -105,6 +106,7 @@ export default function MyProfile() {
               </div>
             </CardContent>
           </Card>
+          <StudentTestResults studentId={profile.id} canEdit={false} />
           {profile.goals && (
             <Card className="border-border/60 shadow-elegant">
               <CardHeader><CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> My goals</CardTitle></CardHeader>
@@ -144,6 +146,11 @@ export default function MyProfile() {
                     <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{l.lesson_date}</p>
+                  {l.quiz_score !== null && l.quiz_score !== undefined && (
+                    <p className="mt-1 text-sm"><span className="font-medium">{l.quiz_name || "Quiz"}: </span>
+                      <span className="font-semibold text-primary">{l.quiz_score}{l.quiz_max != null ? ` / ${l.quiz_max}` : ""}</span>
+                    </p>
+                  )}
                   {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                 </div>
               ))}

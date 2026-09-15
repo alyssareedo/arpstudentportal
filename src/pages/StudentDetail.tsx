@@ -444,7 +444,7 @@ function AddScoreDialog({ studentId, onSaved }: { studentId: string; onSaved: ()
 
 function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "" });
+  const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "", quiz_name: "", quiz_score: "", quiz_max: "" });
   const save = async () => {
     if (!form.lesson_date || !form.topic) return toast.error("Date & topic required");
     const { error } = await supabase.from("lessons").insert({
@@ -455,6 +455,9 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
       zoom_link: form.zoom_link || null,
       homework: form.homework || null,
       notes: form.notes || null,
+      quiz_name: form.quiz_name || null,
+      quiz_score: form.quiz_score === "" ? null : Number(form.quiz_score),
+      quiz_max: form.quiz_max === "" ? null : Number(form.quiz_max),
       attendance: "scheduled",
     });
     if (error) return toast.error(error.message);
@@ -475,6 +478,11 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-2"><Label>Quiz / test name</Label><Input value={form.quiz_name} onChange={(e) => setForm({ ...form, quiz_name: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Score</Label><Input type="number" value={form.quiz_score} onChange={(e) => setForm({ ...form, quiz_score: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Out of</Label><Input type="number" value={form.quiz_max} onChange={(e) => setForm({ ...form, quiz_max: e.target.value })} /></div>
+          </div>
         </div>
         <DialogFooter><Button onClick={save} className="gradient-primary text-primary-foreground">Save</Button></DialogFooter>
       </DialogContent>
@@ -491,6 +499,9 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     zoom_link: lesson.zoom_link ?? "",
     homework: lesson.homework ?? "",
     notes: lesson.notes ?? "",
+    quiz_name: lesson.quiz_name ?? "",
+    quiz_score: lesson.quiz_score != null ? String(lesson.quiz_score) : "",
+    quiz_max: lesson.quiz_max != null ? String(lesson.quiz_max) : "",
     attendance: lesson.attendance,
   });
   const [busy, setBusy] = useState(false);
@@ -504,6 +515,9 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
       zoom_link: form.zoom_link || null,
       homework: form.homework || null,
       notes: form.notes || null,
+      quiz_name: form.quiz_name || null,
+      quiz_score: form.quiz_score === "" ? null : Number(form.quiz_score),
+      quiz_max: form.quiz_max === "" ? null : Number(form.quiz_max),
       attendance: form.attendance as any,
       completed: form.attendance !== "scheduled",
     } as any).eq("id", lesson.id);
@@ -550,6 +564,11 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-2"><Label>Quiz / test name</Label><Input value={form.quiz_name} onChange={(e) => setForm({ ...form, quiz_name: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Score</Label><Input type="number" value={form.quiz_score} onChange={(e) => setForm({ ...form, quiz_score: e.target.value })} /></div>
+            <div className="grid gap-2"><Label>Out of</Label><Input type="number" value={form.quiz_max} onChange={(e) => setForm({ ...form, quiz_max: e.target.value })} /></div>
+          </div>
         </div>
         <DialogFooter className="flex-row justify-between sm:justify-between">
           <Button variant="destructive" onClick={remove} disabled={busy}><Trash2 className="mr-1 h-4 w-4" /> Delete</Button>

@@ -11,6 +11,7 @@ import { formatLessonsLeft, classesOwing, formatClassesOwing, effectiveLessonsLe
 import { LessonBalanceDisclaimer } from "@/components/LessonBalanceDisclaimer";
 
 import { CefrResultsWidget } from "@/components/CefrResultsWidget";
+import { StudentTestResults } from "@/components/StudentTestResults";
 import { CurriculumCalendar } from "@/components/CurriculumCalendar";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,6 +238,7 @@ export default function StudentDetail() {
             </Card>
           </div>
           <CefrResultsWidget studentId={profile.id} />
+          <StudentTestResults studentId={profile.id} canEdit={role === "admin" || role === "teacher"} />
         </TabsContent>
 
 
@@ -310,6 +312,11 @@ export default function StudentDetail() {
                         </div>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{l.lesson_date} · {l.lesson_time}</p>
+                      {l.quiz_score !== null && l.quiz_score !== undefined && (
+                        <p className="mt-2 text-sm"><span className="font-medium">{l.quiz_name || "Quiz"}: </span>
+                          <span className="font-semibold text-primary">{l.quiz_score}{l.quiz_max != null ? ` / ${l.quiz_max}` : ""}</span>
+                        </p>
+                      )}
                       {l.homework && <p className="mt-2 text-sm"><span className="font-medium">Homework: </span>{l.homework}</p>}
                       {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                     </div>

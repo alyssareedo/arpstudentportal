@@ -925,6 +925,9 @@ export type Database = {
           lesson_time: string
           notes: string | null
           planned_date: string | null
+          quiz_max: number | null
+          quiz_name: string | null
+          quiz_score: number | null
           student_id: string
           teacher_id: string | null
           teams_link: string | null
@@ -942,6 +945,9 @@ export type Database = {
           lesson_time?: string
           notes?: string | null
           planned_date?: string | null
+          quiz_max?: number | null
+          quiz_name?: string | null
+          quiz_score?: number | null
           student_id: string
           teacher_id?: string | null
           teams_link?: string | null
@@ -959,6 +965,9 @@ export type Database = {
           lesson_time?: string
           notes?: string | null
           planned_date?: string | null
+          quiz_max?: number | null
+          quiz_name?: string | null
+          quiz_score?: number | null
           student_id?: string
           teacher_id?: string | null
           teams_link?: string | null
@@ -1429,6 +1438,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      student_test_results: {
+        Row: {
+          cefr_level: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          max_score: number | null
+          notes: string | null
+          provider: string | null
+          score: number | null
+          student_id: string
+          test_date: string
+          test_name: string
+          updated_at: string
+        }
+        Insert: {
+          cefr_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_score?: number | null
+          notes?: string | null
+          provider?: string | null
+          score?: number | null
+          student_id: string
+          test_date?: string
+          test_name: string
+          updated_at?: string
+        }
+        Update: {
+          cefr_level?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_score?: number | null
+          notes?: string | null
+          provider?: string | null
+          score?: number | null
+          student_id?: string
+          test_date?: string
+          test_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_test_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_assignments: {
         Row: {

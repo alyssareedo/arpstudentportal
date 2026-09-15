@@ -34,6 +34,9 @@ export interface Lesson {
   notes: string | null;
   attendance: "present" | "absent" | "late" | "scheduled";
   completed: boolean;
+  quiz_name?: string | null;
+  quiz_score?: number | null;
+  quiz_max?: number | null;
 }
 
 export interface Score {

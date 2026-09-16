@@ -444,9 +444,16 @@ function AddScoreDialog({ studentId, onSaved }: { studentId: string; onSaved: ()
 
 function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "", quiz_name: "", quiz_score: "", quiz_max: "" });
+  const [form, setForm] = useState({ lesson_date: "", lesson_time: "10:00", topic: "", zoom_link: "", homework: "", notes: "" });
+  const [quizzes, setQuizzes] = useState([{ name: "", score: "", max: "" }]);
+  const setQuiz = (i: number, patch: Partial<{ name: string; score: string; max: string }>) =>
+    setQuizzes((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
   const save = async () => {
     if (!form.lesson_date || !form.topic) return toast.error("Date & topic required");
+    const savedQuizzes = quizzes
+      .filter((q) => q.name.trim() || q.score !== "" || q.max !== "")
+      .map((q) => ({ name: q.name.trim() || "Quiz", score: q.score === "" ? null : Number(q.score), max: q.max === "" ? null : Number(q.max) }));
+    const first = savedQuizzes[0];
     const { error } = await supabase.from("lessons").insert({
       student_id: studentId,
       lesson_date: form.lesson_date,
@@ -455,11 +462,12 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
       zoom_link: form.zoom_link || null,
       homework: form.homework || null,
       notes: form.notes || null,
-      quiz_name: form.quiz_name || null,
-      quiz_score: form.quiz_score === "" ? null : Number(form.quiz_score),
-      quiz_max: form.quiz_max === "" ? null : Number(form.quiz_max),
+      quizzes: savedQuizzes.length ? savedQuizzes : null,
+      quiz_name: first?.name ?? null,
+      quiz_score: first ? first.score : null,
+      quiz_max: first ? first.max : null,
       attendance: "scheduled",
-    });
+    } as any);
     if (error) return toast.error(error.message);
     toast.success("Lesson scheduled");
     setOpen(false); onSaved();
@@ -478,10 +486,23 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="grid gap-2"><Label>Quiz / test name</Label><Input value={form.quiz_name} onChange={(e) => setForm({ ...form, quiz_name: e.target.value })} /></div>
-            <div className="grid gap-2"><Label>Score</Label><Input type="number" value={form.quiz_score} onChange={(e) => setForm({ ...form, quiz_score: e.target.value })} /></div>
-            <div className="grid gap-2"><Label>Out of</Label><Input type="number" value={form.quiz_max} onChange={(e) => setForm({ ...form, quiz_max: e.target.value })} /></div>
+          <div className="space-y-2">
+            <Label>Quiz / test scores</Label>
+            {quizzes.map((q, i) => (
+              <div key={i} className="grid grid-cols-[1fr_5rem_5rem_auto] items-center gap-2">
+                <Input placeholder="Quiz / test name" value={q.name} onChange={(e) => setQuiz(i, { name: e.target.value })} />
+                <Input type="number" placeholder="Score" value={q.score} onChange={(e) => setQuiz(i, { score: e.target.value })} />
+                <Input type="number" placeholder="Out of" value={q.max} onChange={(e) => setQuiz(i, { max: e.target.value })} />
+                {quizzes.length > 1 && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setQuizzes((qs) => qs.filter((_, idx) => idx !== i))}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setQuizzes((qs) => [...qs, { name: "", score: "", max: "" }])}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add another test
+            </Button>
           </div>
         </div>
         <DialogFooter><Button onClick={save} className="gradient-primary text-primary-foreground">Save</Button></DialogFooter>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
-import { useStudent } from "@/hooks/useData";
+import { useStudent, lessonQuizzes } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatLessonsLeft, effectiveLessonsLeft } from "@/lib/lessons";
@@ -146,11 +146,11 @@ export default function MyProfile() {
                     <Badge variant="outline" className="rounded-full capitalize">{l.attendance}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">{l.lesson_date}</p>
-                  {l.quiz_score !== null && l.quiz_score !== undefined && (
-                    <p className="mt-1 text-sm"><span className="font-medium">{l.quiz_name || "Quiz"}: </span>
-                      <span className="font-semibold text-primary">{l.quiz_score}{l.quiz_max != null ? ` / ${l.quiz_max}` : ""}</span>
+                  {lessonQuizzes(l).map((q, i) => (
+                    <p key={i} className="mt-1 text-sm"><span className="font-medium">{q.name}: </span>
+                      <span className="font-semibold text-primary">{q.score}{q.max != null ? ` / ${q.max}` : ""}</span>
                     </p>
-                  )}
+                  ))}
                   {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                 </div>
               ))}

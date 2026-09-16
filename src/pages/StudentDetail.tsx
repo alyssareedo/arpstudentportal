@@ -599,10 +599,23 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
           <div className="grid gap-2"><Label>Zoom link</Label><Input value={form.zoom_link} onChange={(e) => setForm({ ...form, zoom_link: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Homework</Label><Textarea rows={2} value={form.homework} onChange={(e) => setForm({ ...form, homework: e.target.value })} /></div>
           <div className="grid gap-2"><Label>Lesson links</Label><Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="grid gap-2"><Label>Quiz / test name</Label><Input value={form.quiz_name} onChange={(e) => setForm({ ...form, quiz_name: e.target.value })} /></div>
-            <div className="grid gap-2"><Label>Score</Label><Input type="number" value={form.quiz_score} onChange={(e) => setForm({ ...form, quiz_score: e.target.value })} /></div>
-            <div className="grid gap-2"><Label>Out of</Label><Input type="number" value={form.quiz_max} onChange={(e) => setForm({ ...form, quiz_max: e.target.value })} /></div>
+          <div className="space-y-2">
+            <Label>Quiz / test scores</Label>
+            {quizzes.map((q, i) => (
+              <div key={i} className="grid grid-cols-[1fr_5rem_5rem_auto] items-center gap-2">
+                <Input placeholder="Quiz / test name" value={q.name} onChange={(e) => setQuiz(i, { name: e.target.value })} />
+                <Input type="number" placeholder="Score" value={q.score} onChange={(e) => setQuiz(i, { score: e.target.value })} />
+                <Input type="number" placeholder="Out of" value={q.max} onChange={(e) => setQuiz(i, { max: e.target.value })} />
+                {quizzes.length > 1 && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setQuizzes((qs) => qs.filter((_, idx) => idx !== i))}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setQuizzes((qs) => [...qs, { name: "", score: "", max: "" }])}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add another test
+            </Button>
           </div>
         </div>
         <DialogFooter className="flex-row justify-between sm:justify-between">

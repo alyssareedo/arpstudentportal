@@ -513,6 +513,11 @@ function AddLessonDialog({ studentId, onSaved }: { studentId: string; onSaved: (
 
 export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
+  const toRow = (q: { name?: string | null; score?: number | null; max?: number | null }) => ({
+    name: q.name ?? "",
+    score: q.score != null ? String(q.score) : "",
+    max: q.max != null ? String(q.max) : "",
+  });
   const [form, setForm] = useState({
     lesson_date: lesson.lesson_date,
     lesson_time: lesson.lesson_time?.slice(0, 5) ?? "10:00",
@@ -520,11 +525,15 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     zoom_link: lesson.zoom_link ?? "",
     homework: lesson.homework ?? "",
     notes: lesson.notes ?? "",
-    quiz_name: lesson.quiz_name ?? "",
-    quiz_score: lesson.quiz_score != null ? String(lesson.quiz_score) : "",
-    quiz_max: lesson.quiz_max != null ? String(lesson.quiz_max) : "",
     attendance: lesson.attendance,
   });
+  const [quizzes, setQuizzes] = useState(
+    lesson.quizzes && lesson.quizzes.length
+      ? lesson.quizzes.map(toRow)
+      : [toRow({ name: lesson.quiz_name, score: lesson.quiz_score, max: lesson.quiz_max })]
+  );
+  const setQuiz = (i: number, patch: Partial<{ name: string; score: string; max: string }>) =>
+    setQuizzes((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
   const [busy, setBusy] = useState(false);
 
   const save = async () => {

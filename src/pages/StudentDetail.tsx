@@ -538,6 +538,10 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
 
   const save = async () => {
     setBusy(true);
+    const savedQuizzes = quizzes
+      .filter((q) => q.name.trim() || q.score !== "" || q.max !== "")
+      .map((q) => ({ name: q.name.trim() || "Quiz", score: q.score === "" ? null : Number(q.score), max: q.max === "" ? null : Number(q.max) }));
+    const first = savedQuizzes[0];
     const { error } = await supabase.from("lessons").update({
       lesson_date: form.lesson_date,
       lesson_time: form.lesson_time,
@@ -545,9 +549,10 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
       zoom_link: form.zoom_link || null,
       homework: form.homework || null,
       notes: form.notes || null,
-      quiz_name: form.quiz_name || null,
-      quiz_score: form.quiz_score === "" ? null : Number(form.quiz_score),
-      quiz_max: form.quiz_max === "" ? null : Number(form.quiz_max),
+      quizzes: savedQuizzes.length ? savedQuizzes : null,
+      quiz_name: first?.name ?? null,
+      quiz_score: first ? first.score : null,
+      quiz_max: first ? first.max : null,
       attendance: form.attendance as any,
       completed: form.attendance !== "scheduled",
     } as any).eq("id", lesson.id);

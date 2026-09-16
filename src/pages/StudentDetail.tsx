@@ -527,11 +527,10 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
     notes: lesson.notes ?? "",
     attendance: lesson.attendance,
   });
-  const [quizzes, setQuizzes] = useState(
-    lesson.quizzes && lesson.quizzes.length
-      ? lesson.quizzes.map(toRow)
-      : [toRow({ name: lesson.quiz_name, score: lesson.quiz_score, max: lesson.quiz_max })]
-  );
+  const [quizzes, setQuizzes] = useState(() => {
+    const rows = lessonQuizzes(lesson).map(toRow);
+    return rows.length ? rows : [{ name: "", score: "", max: "" }];
+  });
   const setQuiz = (i: number, patch: Partial<{ name: string; score: string; max: string }>) =>
     setQuizzes((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
   const [busy, setBusy] = useState(false);

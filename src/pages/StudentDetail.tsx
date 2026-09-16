@@ -28,7 +28,7 @@ import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BulkSelectBar, useBulkSelect } from "@/components/BulkSelect";
 import { RevealCredentialDialog } from "@/components/RevealCredentialDialog";
-import { useStudent, Lesson } from "@/hooks/useData";
+import { useStudent, Lesson, lessonQuizzes } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -312,11 +312,11 @@ export default function StudentDetail() {
                         </div>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">{l.lesson_date} · {l.lesson_time}</p>
-                      {l.quiz_score !== null && l.quiz_score !== undefined && (
-                        <p className="mt-2 text-sm"><span className="font-medium">{l.quiz_name || "Quiz"}: </span>
-                          <span className="font-semibold text-primary">{l.quiz_score}{l.quiz_max != null ? ` / ${l.quiz_max}` : ""}</span>
+                      {lessonQuizzes(l).map((q, i) => (
+                        <p key={i} className="mt-2 text-sm"><span className="font-medium">{q.name}: </span>
+                          <span className="font-semibold text-primary">{q.score}{q.max != null ? ` / ${q.max}` : ""}</span>
                         </p>
-                      )}
+                      ))}
                       {l.homework && <p className="mt-2 text-sm"><span className="font-medium">Homework: </span>{l.homework}</p>}
                       {l.notes && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">Lesson links:</span> {l.notes}</p>}
                     </div>

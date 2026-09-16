@@ -928,6 +928,7 @@ export type Database = {
           quiz_max: number | null
           quiz_name: string | null
           quiz_score: number | null
+          quizzes: Json | null
           student_id: string
           teacher_id: string | null
           teams_link: string | null
@@ -948,6 +949,7 @@ export type Database = {
           quiz_max?: number | null
           quiz_name?: string | null
           quiz_score?: number | null
+          quizzes?: Json | null
           student_id: string
           teacher_id?: string | null
           teams_link?: string | null
@@ -968,6 +970,7 @@ export type Database = {
           quiz_max?: number | null
           quiz_name?: string | null
           quiz_score?: number | null
+          quizzes?: Json | null
           student_id?: string
           teacher_id?: string | null
           teams_link?: string | null

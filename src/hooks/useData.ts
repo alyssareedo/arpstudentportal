@@ -37,6 +37,16 @@ export interface Lesson {
   quiz_name?: string | null;
   quiz_score?: number | null;
   quiz_max?: number | null;
+  quizzes?: { name: string; score: number | null; max: number | null }[] | null;
+}
+
+export interface QuizEntry { name: string; score: number | null; max: number | null }
+
+export function lessonQuizzes(l: Pick<Lesson, "quizzes" | "quiz_name" | "quiz_score" | "quiz_max">): QuizEntry[] {
+  if (l.quizzes && l.quizzes.length > 0) return l.quizzes;
+  if (l.quiz_score !== null && l.quiz_score !== undefined)
+    return [{ name: l.quiz_name || "Quiz", score: l.quiz_score, max: l.quiz_max ?? null }];
+  return [];
 }
 
 export interface Score {

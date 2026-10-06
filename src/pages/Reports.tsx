@@ -132,23 +132,21 @@ export default function Reports() {
             <div className="overflow-hidden rounded-xl border border-border/60">
               <table className="w-full text-sm">
                 <thead className="bg-secondary/50 text-left text-xs uppercase text-muted-foreground">
-                  <tr><th className="p-3">Date</th><th className="p-3">Topic</th><th className="p-3">Link</th><th className="p-3">Attendance</th></tr>
+                  <tr><th className="p-3">Date</th><th className="p-3">Topic</th><th className="p-3">Lesson</th><th className="p-3">Attendance</th></tr>
                 </thead>
                 <tbody>
                   {lessons.map((l) => {
-                    const link = l.zoom_link || l.teams_link;
                     return (
                       <tr key={l.id} className="border-t border-border/60">
                         <td className="p-3 text-muted-foreground">{l.lesson_date}</td>
                         <td className="p-3 font-medium">{l.topic}</td>
                         <td className="p-3">
-                          {link ? (
-                            <a href={link} target="_blank" rel="noreferrer" className="text-primary underline underline-offset-2">
-                              {l.zoom_link ? "Zoom" : "Teams"}
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                          <a
+                            href={`/students/${studentId}?lesson=${l.id}`}
+                            className="text-primary underline underline-offset-2"
+                          >
+                            Open lesson
+                          </a>
                         </td>
                         <td className="p-3 capitalize">{l.attendance}</td>
                       </tr>

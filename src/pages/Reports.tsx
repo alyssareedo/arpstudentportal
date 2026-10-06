@@ -141,12 +141,9 @@ export default function Reports() {
                         <td className="p-3 text-muted-foreground">{l.lesson_date}</td>
                         <td className="p-3 font-medium">{l.topic}</td>
                         <td className="p-3">
-                          <a
-                            href={`/students/${studentId}?lesson=${l.id}`}
-                            className="text-primary underline underline-offset-2"
-                          >
-                            Open lesson
-                          </a>
+                          <span className="block break-all font-mono text-xs text-muted-foreground">
+                            {`${typeof window !== "undefined" ? window.location.origin : ""}/students/${studentId}?lesson=${l.id}`}
+                          </span>
                         </td>
                         <td className="p-3 capitalize">{l.attendance}</td>
                       </tr>

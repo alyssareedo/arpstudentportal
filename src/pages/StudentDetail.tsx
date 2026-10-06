@@ -1,5 +1,5 @@
-import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft, Mail, Phone, Target, Calendar, CheckCircle2, XCircle, Clock, Plus, Save, Pencil, Trash2, KeyRound, UserCog, Copy,
 } from "lucide-react";
@@ -48,7 +48,14 @@ export default function StudentDetail() {
   const [initialized, setInitialized] = useState(false);
   const [lessonQuery, setLessonQuery] = useState("");
   const [lessonStatus, setLessonStatus] = useState("all");
+  const [searchParams] = useSearchParams();
+  const highlightedLessonId = searchParams.get("lesson");
   const bulk = useBulkSelect();
+
+  useEffect(() => {
+    if (!highlightedLessonId || loading) return;
+    document.getElementById(`lesson-${highlightedLessonId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedLessonId, loading]);
 
 
   const q = lessonQuery.trim().toLowerCase();
@@ -290,7 +297,11 @@ export default function StudentDetail() {
               </div>
               <div className="relative space-y-4 border-l-2 border-border pl-6">
                 {filteredLessons.map((l) => (
-                  <div key={l.id} className="relative">
+                  <div
+                    key={l.id}
+                    id={`lesson-${l.id}`}
+                    className={`relative rounded-xl transition-shadow duration-500 ${highlightedLessonId === l.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                  >
                     <span className="absolute -left-[31px] flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
                       {l.attendance === "present" && <CheckCircle2 className="h-3 w-3" />}
                       {l.attendance === "absent" && <XCircle className="h-3 w-3" />}

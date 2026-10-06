@@ -41,6 +41,12 @@ export default function Reports() {
 
   if (!profile) return <p className="text-center text-muted-foreground">{students.length === 0 ? "Add students first to generate reports." : "Loading…"}</p>;
 
+  const lessonLinks = (notes?: string | null) => {
+    if (!notes) return null;
+    const urls = notes.split(/\s+/).filter((p) => /^https?:\/\//i.test(p));
+    return urls.length > 0 ? urls : null;
+  };
+
   const latest = scores[scores.length - 1];
 
   return (
@@ -132,18 +138,25 @@ export default function Reports() {
             <div className="overflow-hidden rounded-xl border border-border/60">
               <table className="w-full text-sm">
                 <thead className="bg-secondary/50 text-left text-xs uppercase text-muted-foreground">
-                  <tr><th className="p-3">Date</th><th className="p-3">Topic</th><th className="p-3">Lesson</th><th className="p-3">Attendance</th></tr>
+                  <tr><th className="p-3">Date</th><th className="p-3">Topic</th><th className="p-3">Lesson links</th><th className="p-3">Attendance</th></tr>
                 </thead>
                 <tbody>
                   {lessons.map((l) => {
+                    const links = lessonLinks(l.notes);
                     return (
-                      <tr key={l.id} className="border-t border-border/60">
+                      <tr key={l.id} className="border-t border-border/60 align-top">
                         <td className="p-3 text-muted-foreground">{l.lesson_date}</td>
                         <td className="p-3 font-medium">{l.topic}</td>
                         <td className="p-3">
-                          <span className="block break-all font-mono text-xs text-muted-foreground">
-                            {`${typeof window !== "undefined" ? window.location.origin : ""}/students/${studentId}?lesson=${l.id}`}
-                          </span>
+                          {links ? (
+                            <ul className="min-w-48 space-y-1">
+                              {links.map((u, i) => (
+                                <li key={i} className="break-all font-mono text-xs text-muted-foreground">{u}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            l.notes ? <span className="text-xs text-muted-foreground">{l.notes}</span> : <span className="text-muted-foreground">—</span>
+                          )}
                         </td>
                         <td className="p-3 capitalize">{l.attendance}</td>
                       </tr>

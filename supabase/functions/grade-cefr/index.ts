@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
       const { data } = await userClient.auth.getUser();
       userId = data.user?.id ?? null;
     }
+    if (!userId) return json({ error: "Please sign in to take the test" }, 401);
 
     const body = await req.json().catch(() => null) as
       | { answers?: SubmittedAnswer[]; intake?: Record<string, unknown> }

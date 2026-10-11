@@ -39,6 +39,7 @@ import LatestNews from "./pages/LatestNews";
 import Pricing from "./pages/Pricing";
 import CurriculumPlan from "./pages/CurriculumPlan";
 import Videos from "./pages/Videos";
+import AdminInstallments from "./pages/AdminInstallments";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/calendar" element={<AdminCalendar />} />
               <Route path="/admin/materials" element={<AdminMaterials />} />
               <Route path="/admin/invoices" element={<AdminInvoices />} />
+              <Route path="/admin/instalments" element={<AdminInstallments />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
           </Route>

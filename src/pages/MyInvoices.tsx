@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { InstallmentSchedule, type Plan, type Installment } from "@/components/InstallmentSchedule";
 import { Receipt, Download, Upload } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,18 +28,32 @@ export default function MyInvoices() {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [amount, setAmount] = useState("");
 
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [insts, setInsts] = useState<Installment[]>([]);
+
   useEffect(() => { if (user) load(); }, [user]);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: inv }, { data: pays }] = await Promise.all([
+    const [{ data: inv }, { data: pays }, { data: pl }, { data: ins }] = await Promise.all([
       supabase.from("invoices").select("*").eq("student_id", user!.id).order("issue_date", { ascending: false }),
       supabase.from("invoice_payments").select("*"),
+      supabase.from("installment_plans").select("*").eq("student_id", user!.id).order("created_at", { ascending: false }),
+      supabase.from("installments").select("*").eq("student_id", user!.id),
     ]);
     setInvoices(inv ?? []);
     setPayments(pays ?? []);
+    setPlans((pl as any) ?? []);
+    setInsts((ins as any) ?? []);
     setLoading(false);
   };
+
+  const payInstallment = (i: Installment) => {
+    const inv = invoices.find((x) => x.id === i.invoice_id);
+    if (!inv) return toast.error("Invoice not found for this instalment");
+    setProofFor(inv); setAmount(String(i.amount));
+  };
+  const proofIds = new Set<string>(payments.map((p) => p.invoice_id));
 
   const downloadPdf = async (path: string) => {
     const { data } = await supabase.storage.from("invoices").createSignedUrl(path, 300);
@@ -60,6 +75,26 @@ export default function MyInvoices() {
   };
 
   return (
+    <div className="mx-auto max-w-3xl space-y-4">
+    {plans.map((p) => (
+      <InstallmentSchedule key={p.id} plan={p} items={insts.filter((i) => i.plan_id === p.id)} proofInvoiceIds={proofIds} onPay={payInstallment} />
+    ))}
+    {proofFor && insts.some((i) => i.invoice_id === proofFor.id) && (
+      <Dialog open onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Make payment — {proofFor.package_name}</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Pay by bank transfer / PromptPay using the instructions shown, then upload your slip. Your teacher will confirm it.</p>
+          <div className="space-y-3">
+            <div><Label>Amount</Label><Input type="number" value={amount} onChange={e => setAmount(e.target.value)} /></div>
+            <div><Label>Payment slip</Label><Input type="file" accept="image/*,application/pdf" onChange={e => setProofFile(e.target.files?.[0] ?? null)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProofFor(null)}>Cancel</Button>
+            <Button onClick={uploadProof}>Submit</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
     <Card className="shadow-elegant">
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Receipt className="h-5 w-5" /> My invoices</CardTitle>
@@ -83,7 +118,7 @@ export default function MyInvoices() {
                     <div className="flex gap-2">
                       {i.pdf_path && <Button size="sm" variant="outline" onClick={() => downloadPdf(i.pdf_path)}><Download className="mr-1.5 h-3.5 w-3.5" /> PDF</Button>}
                       {i.status !== "paid" && i.status !== "cancelled" && (
-                        <Dialog open={proofFor?.id === i.id} onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
+                        <Dialog open={proofFor?.id === i.id && !insts.some((x) => x.invoice_id === i.id)} onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
                           <DialogTrigger asChild><Button size="sm" onClick={() => { setProofFor(i); setAmount(String(Number(i.total) - paidSum)); }}><Upload className="mr-1.5 h-3.5 w-3.5" /> Upload proof</Button></DialogTrigger>
                           <DialogContent>
                             <DialogHeader><DialogTitle>Upload payment proof</DialogTitle></DialogHeader>
@@ -107,5 +142,6 @@ export default function MyInvoices() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { InstallmentSchedule, type Plan, type Installment } from "@/components/InstallmentSchedule";
 import { Receipt, Download, Upload } from "lucide-react";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -78,7 +79,7 @@ export default function MyInvoices() {
     {plans.map((p) => (
       <InstallmentSchedule key={p.id} plan={p} items={insts.filter((i) => i.plan_id === p.id)} proofInvoiceIds={proofIds} onPay={payInstallment} />
     ))}
-    {proofFor && !invoices.some(() => false) && plans.length > 0 && insts.some((i) => i.invoice_id === proofFor.id) && (
+    {proofFor && insts.some((i) => i.invoice_id === proofFor.id) && (
       <Dialog open onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Make payment — {proofFor.package_name}</DialogTitle></DialogHeader>
@@ -117,7 +118,7 @@ export default function MyInvoices() {
                     <div className="flex gap-2">
                       {i.pdf_path && <Button size="sm" variant="outline" onClick={() => downloadPdf(i.pdf_path)}><Download className="mr-1.5 h-3.5 w-3.5" /> PDF</Button>}
                       {i.status !== "paid" && i.status !== "cancelled" && (
-                        <Dialog open={proofFor?.id === i.id} onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
+                        <Dialog open={proofFor?.id === i.id && !insts.some((x) => x.invoice_id === i.id)} onOpenChange={(o) => { if (!o) { setProofFor(null); setProofFile(null); setAmount(""); } }}>
                           <DialogTrigger asChild><Button size="sm" onClick={() => { setProofFor(i); setAmount(String(Number(i.total) - paidSum)); }}><Upload className="mr-1.5 h-3.5 w-3.5" /> Upload proof</Button></DialogTrigger>
                           <DialogContent>
                             <DialogHeader><DialogTitle>Upload payment proof</DialogTitle></DialogHeader>
@@ -141,5 +142,6 @@ export default function MyInvoices() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }

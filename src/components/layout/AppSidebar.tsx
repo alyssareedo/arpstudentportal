@@ -25,6 +25,7 @@ const adminItems = [
   { title: "Latest News", url: "/news", icon: Newspaper },
   { title: "Videos", url: "/videos", icon: Video },
   { title: "Invoices", url: "/admin/invoices", icon: Receipt },
+  { title: "Instalment plans", url: "/admin/instalments", icon: CalendarClock },
   { title: "Promotions & Pricing", url: "/pricing", icon: Tag },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Language Assessments", url: "/assessments", icon: Award },

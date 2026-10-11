@@ -803,6 +803,155 @@ export type Database = {
           },
         ]
       }
+      installment_audit: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          installment_id: string
+          new_status: string | null
+          note: string | null
+          old_status: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          installment_id: string
+          new_status?: string | null
+          note?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          installment_id?: string
+          new_status?: string | null
+          note?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installment_audit_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "installments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      installment_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          first_due_date: string
+          id: string
+          installments_count: number
+          lessons_added: number
+          monthly_amount: number
+          package_name: string
+          payment_instructions: string | null
+          purchase_date: string
+          status: string
+          student_id: string
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          first_due_date: string
+          id?: string
+          installments_count: number
+          lessons_added?: number
+          monthly_amount: number
+          package_name: string
+          payment_instructions?: string | null
+          purchase_date?: string
+          status?: string
+          student_id: string
+          total_amount: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          first_due_date?: string
+          id?: string
+          installments_count?: number
+          lessons_added?: number
+          monthly_amount?: number
+          package_name?: string
+          payment_instructions?: string | null
+          purchase_date?: string
+          status?: string
+          student_id?: string
+          total_amount?: number
+        }
+        Relationships: []
+      }
+      installments: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          invoice_id: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          plan_id: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number: number
+          invoice_id?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          plan_id: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          invoice_id?: string | null
+          paid_at?: string | null
+          payment_reference?: string | null
+          plan_id?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "installment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_payments: {
         Row: {
           amount: number
@@ -1752,6 +1901,19 @@ export type Database = {
         Args: { _enabled: boolean; _minutes?: number }
         Returns: Json
       }
+      create_installment_plan: {
+        Args: {
+          _count: number
+          _first_due: string
+          _instructions: string
+          _lessons: number
+          _package: string
+          _purchase: string
+          _student: string
+          _total: number
+        }
+        Returns: string
+      }
       get_cefr_questions: {
         Args: never
         Returns: {
@@ -1823,6 +1985,16 @@ export type Database = {
         }[]
       }
       next_invoice_number: { Args: never; Returns: string }
+      set_installment_status: {
+        Args: {
+          _id: string
+          _note: string
+          _paid_at: string
+          _reference: string
+          _status: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "student" | "teacher"

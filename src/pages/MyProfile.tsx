@@ -1,5 +1,7 @@
-import { Navigate } from "react-router-dom";
-import { Mail, Calendar, Target, BookOpen, CheckCircle2, } from "lucide-react";
+import { Navigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Mail, Calendar, Target, BookOpen, CheckCircle2, ArrowRight } from "lucide-react";
+import { InstallmentSchedule, type Plan, type Installment } from "@/components/InstallmentSchedule";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EditableUserAvatar } from "@/components/UserAvatar";
@@ -85,6 +87,7 @@ export default function MyProfile() {
           <TabsTrigger value="lessons" className="rounded-full">My lessons</TabsTrigger>
           <TabsTrigger value="homework" className="rounded-full">Homework</TabsTrigger>
           <TabsTrigger value="curriculum" className="rounded-full">Curriculum</TabsTrigger>
+          <TabsTrigger value="payments" className="rounded-full">Payments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="progress" className="space-y-4">
@@ -182,7 +185,53 @@ export default function MyProfile() {
         <TabsContent value="curriculum">
           <CurriculumCalendar studentId={profile.id} canEdit={false} />
         </TabsContent>
+
+        <TabsContent value="payments">
+          <MyInstallments studentId={profile.id} />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function MyInstallments({ studentId }: { studentId: string }) {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [insts, setInsts] = useState<Installment[]>([]);
+  const [proofIds, setProofIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const [{ data: p }, { data: i }, { data: pay }] = await Promise.all([
+        supabase.from("installment_plans").select("*").eq("student_id", studentId).order("created_at", { ascending: false }),
+        supabase.from("installments").select("*").eq("student_id", studentId),
+        supabase.from("invoice_payments").select("invoice_id"),
+      ]);
+      setPlans((p as Plan[]) ?? []);
+      setInsts((i as Installment[]) ?? []);
+      setProofIds(new Set((pay ?? []).map((r: any) => r.invoice_id)));
+      setLoading(false);
+    })();
+  }, [studentId]);
+
+  if (loading) return <p className="text-center text-sm text-muted-foreground">Loading…</p>;
+  if (plans.length === 0) {
+    return (
+      <Card className="border-border/60 shadow-elegant">
+        <CardContent className="p-6 text-center text-sm text-muted-foreground">
+          No instalment plan yet. Your regular invoices are under <Link to="/my-invoices" className="text-primary underline">Invoices</Link>.
+        </CardContent>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-4">
+      {plans.map((p) => (
+        <InstallmentSchedule key={p.id} plan={p} items={insts.filter((i) => i.plan_id === p.id)} proofInvoiceIds={proofIds} />
+      ))}
+      <Button asChild variant="outline" className="rounded-full">
+        <Link to="/my-invoices">Go to Invoices to make a payment <ArrowRight className="ml-1 h-4 w-4" /></Link>
+      </Button>
     </div>
   );
 }

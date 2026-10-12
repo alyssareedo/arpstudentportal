@@ -35,26 +35,21 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { student_id } = await req.json();
+    const { student_id, password: requestedPassword, send_email } = await req.json();
     if (!student_id) {
       return new Response(JSON.stringify({ error: "student_id required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Determine whether this account has a real inbox. Accounts with a real
-    // email get a recovery link emailed to them — the password is never
-    // exposed to the browser. Only placeholder accounts (no inbox) receive a
-    // temporary password back, since there is no other way to deliver it.
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("placeholder_email, email")
-      .eq("id", student_id)
-      .maybeSingle();
-
-    const isPlaceholder =
-      profile?.placeholder_email === true ||
-      (profile?.email ?? "").endsWith("@arpspeak.local");
-
-    if (!isPlaceholder && profile?.email) {
+    // Admin explicitly asked to email a reset link instead.
+    if (send_email) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("email")
+        .eq("id", student_id)
+        .maybeSingle();
+      if (!profile?.email) {
+        return new Response(JSON.stringify({ error: "Student has no email" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       const { error: linkErr } = await admin.auth.resetPasswordForEmail(profile.email);
       if (linkErr) {
         return new Response(JSON.stringify({ error: "Could not send reset email" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -64,7 +59,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    const password = tempPassword();
+    // Direct password set — no email involved. Use the admin-chosen password
+    // when provided, otherwise generate a temporary one and return it once.
+    const password = (typeof requestedPassword === "string" && requestedPassword.length >= 6)
+      ? requestedPassword
+      : tempPassword();
+
     const { error } = await admin.auth.admin.updateUserById(student_id, { password });
     if (error) {
       return new Response(JSON.stringify({ error: "Could not reset password" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

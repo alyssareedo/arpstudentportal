@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BulkSelectBar, useBulkSelect } from "@/components/BulkSelect";
@@ -638,29 +638,64 @@ export function EditLessonDialog({ lesson, onSaved }: { lesson: Lesson; onSaved:
 }
 
 function ResetPasswordButton({ studentId }: { studentId: string }) {
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [newPwd, setNewPwd] = useState("");
   const [tempPwd, setTempPwd] = useState<string | null>(null);
-  const run = async () => {
-    if (!confirm("Reset this student's password? Their current password will stop working.")) return;
+
+  const run = async (password?: string) => {
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("admin-reset-password", { body: { student_id: studentId } });
+    const { data, error } = await supabase.functions.invoke("admin-reset-password", {
+      body: { student_id: studentId, password },
+    });
     setBusy(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error ?? error?.message ?? "Failed");
-    if ((data as any)?.mode === "email_sent") {
-      return toast.success("Password reset link emailed to the student");
-    }
+    setOpen(false);
+    setNewPwd("");
     setTempPwd((data as any)?.password as string);
   };
+
   return (
     <>
-      <Button variant="outline" onClick={run} disabled={busy}>
-        <KeyRound className="mr-1 h-4 w-4" /> Reset password
-      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline"><KeyRound className="mr-1 h-4 w-4" /> Reset password</Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Set a new password</DialogTitle>
+            <DialogDescription>
+              No email is sent — the new password works immediately. Their current password will stop working.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>New password</Label>
+            <Input
+              type="text"
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+              placeholder="At least 6 characters"
+            />
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              onClick={() => run(newPwd)}
+              disabled={busy || newPwd.length < 6}
+              className="w-full gradient-primary text-primary-foreground"
+            >
+              Set this password
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => run()} disabled={busy}>
+              Generate a temporary password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <RevealCredentialDialog
         open={!!tempPwd}
         onOpenChange={(v) => !v && setTempPwd(null)}
-        title="Temporary password"
-        description="This account has no inbox, so the password must be handed over directly."
+        title="New password set"
+        description="Share this password with the student — it works right away."
         value={tempPwd ?? ""}
       />
     </>

@@ -18,7 +18,6 @@ const adminItems = [
   { title: "Availability (list)", url: "/availability", icon: CalendarClock },
   { title: "Students", url: "/students", icon: Users },
   { title: "Teachers", url: "/teachers", icon: UserCog },
-  { title: "Renewals", url: "/renewals", icon: RefreshCcw },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },

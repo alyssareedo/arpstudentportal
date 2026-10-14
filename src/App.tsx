@@ -27,7 +27,6 @@ import ToeicTest from "./pages/ToeicTest";
 import ToeicResult from "./pages/ToeicResult";
 import CefrResult from "./pages/CefrResult";
 import AdminAssessments from "./pages/AdminAssessments";
-import Renewals from "./pages/Renewals";
 import Teachers from "./pages/Teachers";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminMaterials from "./pages/AdminMaterials";
@@ -91,7 +90,6 @@ const App = () => (
               <Route path="/reports" element={<Reports />} />
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/admin/assessments" element={<AdminAssessments />} />
-              <Route path="/renewals" element={<Renewals />} />
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/calendar" element={<AdminCalendar />} />
               <Route path="/admin/materials" element={<AdminMaterials />} />

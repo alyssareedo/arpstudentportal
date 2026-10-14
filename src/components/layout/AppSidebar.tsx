@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, RefreshCcw, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -18,7 +18,6 @@ const adminItems = [
   { title: "Availability (list)", url: "/availability", icon: CalendarClock },
   { title: "Students", url: "/students", icon: Users },
   { title: "Teachers", url: "/teachers", icon: UserCog },
-  { title: "Renewals", url: "/renewals", icon: RefreshCcw },
   { title: "Lessons", url: "/lessons", icon: CalendarDays },
   { title: "Curriculum Plan", url: "/curriculum-plan", icon: Map },
   { title: "Materials", url: "/admin/materials", icon: BookOpen },

@@ -8,6 +8,13 @@
       "when": 1791724769310,
       "tag": "0000_installment_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793550794499,
+      "tag": "0001_security_fixes_selected",
+      "breakpoints": true
     }
   ]
 }

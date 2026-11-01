@@ -137,9 +137,7 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       try {
         const body = await req.json();
-        if (typeof body?.spreadsheet_id === "string" && body.spreadsheet_id.trim()) {
-          requestedId = body.spreadsheet_id.trim();
-        }
+        // Destination is never taken from the request; only the stored setting is used.
         if (body?.full === true) forceFull = true;
       } catch (_) { /* no body */ }
     }

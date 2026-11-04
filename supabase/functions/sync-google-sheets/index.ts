@@ -6,6 +6,10 @@ const corsHeaders = {
 };
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_sheets/v4";
+// Direct-to-Google transport (used when the project holds its own service-account key).
+const DIRECT_BASE = "https://sheets.googleapis.com/v4";
+const SA_SCOPE = "https://www.googleapis.com/auth/spreadsheets";
+const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SETTING_KEY = "google_sheets_sync";
 const CRON_KEY = "google_sheets_cron";
 const MAX_ROWS = 5000;
@@ -55,10 +59,103 @@ function sheetsHeaders() {
   };
 }
 
+// ---- transports ---------------------------------------------------------
+// Two ways to reach Google Sheets:
+//  1. "direct": the project holds its own service-account key
+//     (GOOGLE_SERVICE_ACCOUNT_JSON) and talks to Google itself.
+//  2. "gateway": Lovable's connection (LOVABLE_API_KEY + GOOGLE_SHEETS_API_KEY).
+// Direct wins when configured, so the same function runs on a database the
+// owner controls; gateway keeps the Lovable-hosted app working unchanged.
+
+function base64url(bytes: Uint8Array) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function pemToDer(pem: string) {
+  const body = pem.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  const bin = atob(body);
+  const der = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) der[i] = bin.charCodeAt(i);
+  return der;
+}
+
+let saToken: { value: string; expiresAt: number } | null = null;
+
+async function serviceAccountToken(raw: string) {
+  let sa: any;
+  try {
+    sa = JSON.parse(raw);
+  } catch (_) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not valid JSON");
+  }
+  if (!sa.client_email || !sa.private_key) {
+    throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON must be a Google service-account key file");
+  }
+  const tokenUrl = sa.token_uri || TOKEN_URL;
+  const now = Math.floor(Date.now() / 1000);
+  const enc = new TextEncoder();
+  const header = base64url(enc.encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
+  const claims = base64url(
+    enc.encode(
+      JSON.stringify({
+        iss: sa.client_email,
+        scope: SA_SCOPE,
+        aud: tokenUrl,
+        iat: now,
+        exp: now + 3600,
+      }),
+    ),
+  );
+  const signingInput = `${header}.${claims}`;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToDer(sa.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = new Uint8Array(
+    await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc.encode(signingInput)),
+  );
+  const assertion = `${signingInput}.${base64url(sig)}`;
+  const res = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion,
+    }).toString(),
+  });
+  if (!res.ok) {
+    throw new Error(`Google sign-in failed [${res.status}] ${await res.text()}`);
+  }
+  const tok = await res.json();
+  if (!tok.access_token) throw new Error("Google returned no access token");
+  return String(tok.access_token);
+}
+
+async function directAccessToken() {
+  const raw = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+  if (!raw) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON is not set");
+  if (saToken && saToken.expiresAt > Date.now()) return saToken.value;
+  const value = await serviceAccountToken(raw);
+  saToken = { value, expiresAt: Date.now() + 50 * 60 * 1000 };
+  return value;
+}
+
+function useDirect() {
+  return !!Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+}
+
 async function sheetsCall(path: string, method = "GET", body?: unknown) {
-  const res = await fetch(`${GATEWAY}${path}`, {
+  const direct = useDirect();
+  const res = await fetch(`${direct ? DIRECT_BASE : GATEWAY}${path}`, {
     method,
-    headers: sheetsHeaders(),
+    headers: direct
+      ? { Authorization: `Bearer ${await directAccessToken()}`, "Content-Type": "application/json" }
+      : sheetsHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
@@ -103,9 +200,13 @@ Deno.serve(async (req) => {
   let mode = "manual";
 
   try {
-    if (!Deno.env.get("LOVABLE_API_KEY") || !Deno.env.get("GOOGLE_SHEETS_API_KEY")) {
+    const hasDirect = !!Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+    const hasGateway =
+      !!Deno.env.get("LOVABLE_API_KEY") && !!Deno.env.get("GOOGLE_SHEETS_API_KEY");
+    if (!hasDirect && !hasGateway) {
       return json({ error: "Google Sheets connection is not configured" }, 500);
     }
+    console.log(`Sheets transport: ${hasDirect ? "direct service account" : "Lovable gateway"}`);
 
     // ---- auth: admin JWT, or the scheduled job's shared secret ----
     const cronSecret = req.headers.get("x-sync-secret");

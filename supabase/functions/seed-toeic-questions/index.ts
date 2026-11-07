@@ -58,14 +58,20 @@ Each question MUST have exactly 4 options. correct_answer MUST be one of the 4 o
     },
   };
 
-  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  // On the user's own Supabase project, GEMINI_API_KEY calls Google directly;
+  // on Lovable Cloud, fall back to the Lovable AI gateway.
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const url = geminiKey
+    ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    : "https://ai.gateway.lovable.dev/v1/chat/completions";
+  const resp = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${geminiKey ?? apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: geminiKey ? "gemini-2.5-flash" : "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -92,8 +98,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY") ?? "";
+    if (!apiKey && !Deno.env.get("GEMINI_API_KEY")) {
+      throw new Error("No AI key configured (set GEMINI_API_KEY)");
+    }
 
     // Auth: only admins
     const authHeader = req.headers.get("Authorization") ?? "";

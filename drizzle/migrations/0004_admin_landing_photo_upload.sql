@@ -1,0 +1,2 @@
+CREATE POLICY "Admins upload landing photos" ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = 'landing' AND private.has_role(auth.uid(), 'admin'));

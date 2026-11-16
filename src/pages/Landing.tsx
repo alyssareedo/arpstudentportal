@@ -1,130 +1,141 @@
 import { Link } from "react-router-dom";
-import {
-  GraduationCap,
-  CalendarCheck,
-  BookOpen,
-  BarChart3,
-  CreditCard,
-  Video,
-  ArrowRight,
-  LogIn,
-} from "lucide-react";
+import { CalendarCheck, BookOpen, BarChart3, CreditCard, Video, UserCheck, Check, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
+import teacher from "@/assets/landing-teacher.jpg";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+
+const steps = [
+  { n: 1, title: "Create your account", text: "Sign up in a minute — your teacher will set up your profile." },
+  { n: 2, title: "Book a lesson", text: "Pick a green available time that suits your schedule." },
+  { n: 3, title: "Learn 1-on-1", text: "Join your private lesson and follow your personal curriculum." },
+];
 
 const features = [
-  {
-    icon: CalendarCheck,
-    title: "Book & track lessons",
-    text: "See available times, book lessons, and follow your schedule in one place.",
-  },
-  {
-    icon: BookOpen,
-    title: "Your own curriculum",
-    text: "Every student has a personal learning plan with lesson records and links.",
-  },
-  {
-    icon: BarChart3,
-    title: "Progress & assessments",
-    text: "CEFR levels, quiz scores, and reports show how your English is growing.",
-  },
-  {
-    icon: CreditCard,
-    title: "Clear payments",
-    text: "View invoices and installment plans so you always know where you stand.",
-  },
-  {
-    icon: Video,
-    title: "Tips & videos",
-    text: "Watch teaching clips and English tips shared by your teacher.",
-  },
-  {
-    icon: GraduationCap,
-    title: "Made for learners",
-    text: "Kids, teens, and adults — one simple portal for every student.",
-  },
+  { icon: UserCheck, title: "1-on-1 private lessons", text: "Lessons made just for you, at your level and pace." },
+  { icon: CalendarCheck, title: "Flexible booking", text: "See open times and book lessons whenever it suits you." },
+  { icon: BookOpen, title: "Your own curriculum", text: "A personal learning plan with every lesson and link saved." },
+  { icon: BarChart3, title: "Track your progress", text: "CEFR levels, quiz scores and reports show how you grow." },
+  { icon: Video, title: "Tips & videos", text: "Watch English tips and teaching clips anytime." },
+  { icon: CreditCard, title: "Clear payments", text: "Invoices and instalment plans all in one place." },
 ];
 
 export default function Landing() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-secondary via-background to-secondary/40">
-      <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-accent/20 blur-3xl" />
-
-      {/* Header */}
-      <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="ARP Speak English With Me" className="h-12 w-auto" />
-          <span className="hidden text-lg font-semibold sm:block">ARP Speak English With Me</span>
-        </div>
-        <Button asChild>
-          <Link to="/auth">
-            <LogIn className="mr-2 h-4 w-4" /> Student sign in
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Nav */}
+      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="ARP Speak English With Me" className="h-10 w-auto" />
+            <span className="hidden font-bold sm:block">ARP Speak English With Me</span>
           </Link>
-        </Button>
+          <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+            <a href="#how" className="hover:text-foreground">How it works</a>
+            <a href="#features" className="hover:text-foreground">Features</a>
+            <a href="#faq" className="hover:text-foreground">FAQ</a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" asChild><Link to="/auth">Log in</Link></Button>
+            <Button className="rounded-full px-5" asChild><Link to="/auth">Sign up</Link></Button>
+          </div>
+        </div>
       </header>
 
       {/* Hero */}
-      <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-6 py-14 lg:grid-cols-2">
-        <div>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-            Learn English{" "}
-            <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
-              with confidence
-            </span>
-          </h1>
-          <p className="mt-4 max-w-lg text-lg text-muted-foreground">
-            Welcome to your student portal. Book lessons, follow your personal curriculum,
-            track your progress, and manage payments — all in one place.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" asChild>
-              <Link to="/auth">
-                Sign in to your portal <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link to="/auth">Create an account</Link>
-            </Button>
+      <section className="bg-secondary/50">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 lg:grid-cols-2 lg:py-24">
+          <div>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+              1-on-1 private online English lessons
+            </h1>
+            <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+              Speak English with confidence. Personal lessons, your own curriculum, and clear
+              progress tracking — all in one student portal.
+            </p>
+            <ul className="mt-6 space-y-2">
+              {["Lessons for kids, teens and adults", "Learn at your own pace", "See every lesson and score"].map((t) => (
+                <li key={t} className="flex items-center gap-2 font-medium">
+                  <Check className="h-5 w-5 text-primary" /> {t}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button size="lg" className="h-14 rounded-full px-8 text-base" asChild>
+                <Link to="/auth">Start learning <ArrowRight className="ml-2 h-5 w-5" /></Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-14 rounded-full px-8 text-base" asChild>
+                <Link to="/auth">Student log in</Link>
+              </Button>
+            </div>
           </div>
-          <p className="mt-4 text-sm text-muted-foreground">
-            New student? Your teacher will help you get started after you create an account.
-          </p>
-        </div>
-        <div className="hidden justify-center lg:flex">
-          <img src={logo} alt="ARP Speak English With Me" className="h-72 w-auto drop-shadow-xl" />
+          <div className="relative">
+            <img src={teacher} alt="Teacher giving an online English lesson" width={1024} height={896}
+              className="w-full rounded-3xl object-cover shadow-xl" />
+          </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="relative mx-auto max-w-6xl px-6 pb-20">
-        <h2 className="text-center text-2xl font-bold sm:text-3xl">Everything you need to learn</h2>
-        <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">
-          One simple portal for lessons, learning materials, and your progress.
-        </p>
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <Card key={f.title} className="border-border/60 bg-card/80 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 font-semibold">{f.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{f.text}</p>
-              </CardContent>
-            </Card>
+      {/* How it works */}
+      <section id="how" className="mx-auto max-w-6xl px-6 py-20">
+        <h2 className="text-center text-3xl font-extrabold sm:text-4xl">How it works</h2>
+        <div className="mt-12 grid gap-8 md:grid-cols-3">
+          {steps.map((s) => (
+            <div key={s.n} className="text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">{s.n}</div>
+              <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
+              <p className="mt-2 text-muted-foreground">{s.text}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-border/60 py-6">
+      {/* Features */}
+      <section id="features" className="bg-secondary/50 py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-3xl font-extrabold sm:text-4xl">Why learn with us</h2>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((f) => (
+              <div key={f.title} className="rounded-2xl bg-card p-7 shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <f.icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold">{f.title}</h3>
+                <p className="mt-2 text-muted-foreground">{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl px-6 py-20">
+        <h2 className="text-center text-3xl font-extrabold sm:text-4xl">Frequently asked questions</h2>
+        <div className="mt-10 space-y-4">
+          {[
+            ["How do I start?", "Create an account and your teacher will set up your profile and lessons."],
+            ["Can I see my past lessons?", "Yes — every lesson, link and quiz score is saved in your portal."],
+            ["How do I pay?", "Your invoices and instalment plans are shown under Payments in your portal."],
+          ].map(([q, a]) => (
+            <details key={q} className="rounded-xl border border-border p-5">
+              <summary className="cursor-pointer font-semibold">{q}</summary>
+              <p className="mt-2 text-muted-foreground">{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-primary py-16 text-center text-primary-foreground">
+        <h2 className="text-3xl font-extrabold sm:text-4xl">Ready to speak English with confidence?</h2>
+        <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
+          <Link to="/auth">Get started</Link>
+        </Button>
+      </section>
+
+      <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-muted-foreground sm:flex-row">
           <span>© {new Date().getFullYear()} ARP Speak English With Me</span>
-          <Link to="/auth" className="font-medium text-primary hover:underline">
-            Student sign in
-          </Link>
+          <Link to="/auth" className="font-medium text-primary hover:underline">Student log in</Link>
         </div>
       </footer>
     </div>

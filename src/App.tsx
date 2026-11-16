@@ -39,6 +39,8 @@ import Pricing from "./pages/Pricing";
 import CurriculumPlan from "./pages/CurriculumPlan";
 import Videos from "./pages/Videos";
 import AdminInstallments from "./pages/AdminInstallments";
+import AdminLanding from "./pages/AdminLanding";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,7 @@ const App = () => (
           <Route path="/cefr-test" element={<CefrTest />} />
           <Route path="/" element={<RoleRedirect />} />
           <Route path="/index" element={<Index />} />
+          <Route path="/welcome" element={<Landing />} />
 
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
@@ -96,6 +99,7 @@ const App = () => (
               <Route path="/admin/invoices" element={<AdminInvoices />} />
               <Route path="/admin/instalments" element={<AdminInstallments />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/admin/home-page" element={<AdminLanding />} />
             </Route>
           </Route>
 

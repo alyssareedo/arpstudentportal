@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { CalendarCheck, BookOpen, BarChart3, CreditCard, Video, UserCheck, Check, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
-import teacher from "@/assets/landing-teacher.jpg";
+import teacher from "@/assets/teacher-photo.jpg";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 const steps = [
@@ -19,7 +21,30 @@ const features = [
   { icon: CreditCard, title: "Clear payments", text: "Invoices and instalment plans all in one place." },
 ];
 
-export default function Landing() {
+export type LandingContent = {
+  headline: string; subtitle: string; bullets: string[]; photo_url: string; cta_heading: string;
+};
+export const defaultLanding: LandingContent = {
+  headline: "1-on-1 private online English lessons",
+  subtitle: "Speak English with confidence. Personal lessons, your own curriculum, and clear progress tracking — all in one student portal.",
+  bullets: ["Lessons for kids, teens and adults", "Learn at your own pace", "See every lesson and score"],
+  photo_url: "",
+  cta_heading: "Ready to speak English with confidence?",
+};
+
+export function useLandingContent() {
+  const [c, setC] = useState<LandingContent>(defaultLanding);
+  useEffect(() => {
+    supabase.from("landing_content").select("content").eq("id", 1).maybeSingle().then(({ data }) => {
+      if (data?.content) setC({ ...defaultLanding, ...(data.content as Partial<LandingContent>) });
+    });
+  }, []);
+  return [c, setC] as const;
+}
+
+export default function Landing({ content }: { content?: LandingContent }) {
+  const [loaded] = useLandingContent();
+  const c = content ?? loaded;
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
@@ -46,14 +71,13 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-16 lg:grid-cols-2 lg:py-24">
           <div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-              1-on-1 private online English lessons
+              {c.headline}
             </h1>
             <p className="mt-5 max-w-lg text-lg text-muted-foreground">
-              Speak English with confidence. Personal lessons, your own curriculum, and clear
-              progress tracking — all in one student portal.
+              {c.subtitle}
             </p>
             <ul className="mt-6 space-y-2">
-              {["Lessons for kids, teens and adults", "Learn at your own pace", "See every lesson and score"].map((t) => (
+              {c.bullets.filter(Boolean).map((t) => (
                 <li key={t} className="flex items-center gap-2 font-medium">
                   <Check className="h-5 w-5 text-primary" /> {t}
                 </li>
@@ -69,8 +93,8 @@ export default function Landing() {
             </div>
           </div>
           <div className="relative">
-            <img src={teacher} alt="Teacher giving an online English lesson" width={1024} height={896}
-              className="w-full rounded-3xl object-cover shadow-xl" />
+            <img src={c.photo_url || teacher} alt="Your English teacher"
+              className="mx-auto max-h-[560px] w-full rounded-3xl object-cover object-top shadow-xl" />
           </div>
         </div>
       </section>
@@ -126,7 +150,7 @@ export default function Landing() {
 
       {/* CTA */}
       <section className="bg-primary py-16 text-center text-primary-foreground">
-        <h2 className="text-3xl font-extrabold sm:text-4xl">Ready to speak English with confidence?</h2>
+        <h2 className="text-3xl font-extrabold sm:text-4xl">{c.cta_heading}</h2>
         <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
           <Link to="/auth">Get started</Link>
         </Button>

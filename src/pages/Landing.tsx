@@ -46,6 +46,8 @@ export function useLandingContent() {
 export default function Landing({ content }: { content?: LandingContent }) {
   const [loaded] = useLandingContent();
   const c = content ?? loaded;
+  const { user, role, loading } = useAuth();
+  const portal = role === "admin" ? "/dashboard" : role === "teacher" ? "/schedule" : "/my-profile";
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}

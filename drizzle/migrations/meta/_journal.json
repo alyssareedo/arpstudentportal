@@ -36,6 +36,13 @@
       "when": 1794841220906,
       "tag": "0004_admin_landing_photo_upload",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794841722204,
+      "tag": "0005_user_roles_self_read",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import logo from "@/assets/logo.png";
 import teacher from "@/assets/teacher-photo.jpg";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
 const steps = [
@@ -45,6 +46,8 @@ export function useLandingContent() {
 export default function Landing({ content }: { content?: LandingContent }) {
   const [loaded] = useLandingContent();
   const c = content ?? loaded;
+  const { user, role, loading } = useAuth();
+  const portal = role === "admin" ? "/dashboard" : role === "teacher" ? "/schedule" : "/my-profile";
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}
@@ -60,8 +63,16 @@ export default function Landing({ content }: { content?: LandingContent }) {
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild><Link to="/auth">Log in</Link></Button>
-            <Button className="rounded-full px-5" asChild><Link to="/auth">Sign up</Link></Button>
+            {loading ? null : user ? (
+              <Button className="rounded-full px-5" asChild>
+                <Link to={portal}>Go to portal <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild><Link to="/auth">Log in</Link></Button>
+                <Button className="rounded-full px-5" asChild><Link to="/auth">Sign up</Link></Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -84,12 +95,20 @@ export default function Landing({ content }: { content?: LandingContent }) {
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button size="lg" className="h-14 rounded-full px-8 text-base" asChild>
-                <Link to="/auth">Start learning <ArrowRight className="ml-2 h-5 w-5" /></Link>
-              </Button>
-              <Button size="lg" variant="outline" className="h-14 rounded-full px-8 text-base" asChild>
-                <Link to="/auth">Student log in</Link>
-              </Button>
+              {user ? (
+                <Button size="lg" className="h-14 rounded-full px-8 text-base" asChild>
+                  <Link to={portal}>Go to portal <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                </Button>
+              ) : (
+                <>
+                  <Button size="lg" className="h-14 rounded-full px-8 text-base" asChild>
+                    <Link to="/auth">Start learning <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                  </Button>
+                  <Button size="lg" variant="outline" className="h-14 rounded-full px-8 text-base" asChild>
+                    <Link to="/auth">Student log in</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           <div className="relative">
@@ -151,15 +170,25 @@ export default function Landing({ content }: { content?: LandingContent }) {
       {/* CTA */}
       <section className="bg-primary py-16 text-center text-primary-foreground">
         <h2 className="text-3xl font-extrabold sm:text-4xl">{c.cta_heading}</h2>
-        <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
-          <Link to="/auth">Get started</Link>
-        </Button>
+        {user ? (
+          <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
+            <Link to={portal}>Go to portal</Link>
+          </Button>
+        ) : (
+          <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
+            <Link to="/auth">Get started</Link>
+          </Button>
+        )}
       </section>
 
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-muted-foreground sm:flex-row">
           <span>© {new Date().getFullYear()} ARP Speak English With Me</span>
-          <Link to="/auth" className="font-medium text-primary hover:underline">Student log in</Link>
+          {user ? (
+            <Link to={portal} className="font-medium text-primary hover:underline">Go to portal</Link>
+          ) : (
+            <Link to="/auth" className="font-medium text-primary hover:underline">Student log in</Link>
+          )}
         </div>
       </footer>
     </div>

@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Only admins can write roles" ON public.user_roles;

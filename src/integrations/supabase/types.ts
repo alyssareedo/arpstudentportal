@@ -1062,6 +1062,24 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_content: {
+        Row: {
+          content: Json
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           attendance: Database["public"]["Enums"]["attendance_status"]

@@ -63,8 +63,16 @@ export default function Landing({ content }: { content?: LandingContent }) {
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild><Link to="/auth">Log in</Link></Button>
-            <Button className="rounded-full px-5" asChild><Link to="/auth">Sign up</Link></Button>
+            {loading ? null : user ? (
+              <Button className="rounded-full px-5" asChild>
+                <Link to={portal}>Go to portal <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild><Link to="/auth">Log in</Link></Button>
+                <Button className="rounded-full px-5" asChild><Link to="/auth">Sign up</Link></Button>
+              </>
+            )}
           </div>
         </div>
       </header>

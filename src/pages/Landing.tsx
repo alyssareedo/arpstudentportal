@@ -4,6 +4,7 @@ import logo from "@/assets/logo.png";
 import teacher from "@/assets/teacher-photo.jpg";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
 const steps = [

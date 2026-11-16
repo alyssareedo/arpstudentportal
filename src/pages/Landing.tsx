@@ -150,7 +150,7 @@ export default function Landing({ content }: { content?: LandingContent }) {
 
       {/* CTA */}
       <section className="bg-primary py-16 text-center text-primary-foreground">
-        <h2 className="text-3xl font-extrabold sm:text-4xl">Ready to speak English with confidence?</h2>
+        <h2 className="text-3xl font-extrabold sm:text-4xl">{c.cta_heading}</h2>
         <Button size="lg" variant="secondary" className="mt-8 h-14 rounded-full px-10 text-base" asChild>
           <Link to="/auth">Get started</Link>
         </Button>

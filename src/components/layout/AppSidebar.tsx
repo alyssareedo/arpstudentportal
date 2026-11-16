@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, CalendarDays, FileBarChart, Settings,
-  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video,
+  LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video, Home,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
@@ -28,10 +28,12 @@ const adminItems = [
   { title: "Promotions & Pricing", url: "/pricing", icon: Tag },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Language Assessments", url: "/assessments", icon: Award },
+  { title: "Edit home page", url: "/admin/home-page", icon: Home },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 const teacherItems = [
+  { title: "Home page", url: "/welcome", icon: Home },
   { title: "My Schedule", url: "/schedule", icon: CalendarRange },
   { title: "Teacher calendar", url: "/calendar-view", icon: CalendarDays },
   { title: "My Students", url: "/students", icon: Users },
@@ -45,6 +47,7 @@ const teacherItems = [
 ];
 
 const studentItems = [
+  { title: "Home page", url: "/welcome", icon: Home },
   { title: "My roadmap", url: "/roadmap", icon: Map },
   { title: "Book a lesson", url: "/book", icon: CalendarPlus },
   { title: "My schedule", url: "/schedule", icon: CalendarRange },

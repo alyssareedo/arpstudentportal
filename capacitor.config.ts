@@ -23,8 +23,9 @@ const config: CapacitorConfig = {
   appName: 'arpstudentportal',
   webDir: 'dist',
   server: {
-    // ⚠️ REMOVE THIS LINE BEFORE A STORE BUILD — see note at the top of this file.
-    url: 'https://49520209-16ad-4edf-8721-e7d5e08f8e11.lovableproject.com?forceHideBadge=true',
+    // Standalone mode: the app loads its own bundled copy of the site from
+    // `dist/` (built with `npm run build:native`). No live preview address —
+    // safe for APK testing and store releases.
     cleartext: true,
   },
   ios: {

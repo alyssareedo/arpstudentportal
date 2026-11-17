@@ -3,20 +3,15 @@ import type { CapacitorConfig } from '@capacitor/cli';
 /**
  * arpstudentportal — native shell configuration
  *
- * HOT RELOAD (development only)
- * -----------------------------
- * `server.url` below points at the live sandbox preview so the app on your
- * phone/emulator reloads the moment the code changes. This is a TEMPORARY
- * development address.
+ * STANDALONE MODE
+ * ---------------
+ * There is no `server.url` — the app loads its own copy of the site from the
+ * `dist/` folder that `npm run build:native` produces, so it works fully
+ * self-contained on the phone (APK testing and store releases).
  *
- * ⚠️  BEFORE YOU BUILD FOR GOOGLE PLAY OR THE APP STORE
- *     delete the `url:` line (keep `cleartext: true`). If you ship it, the
- *     published app will stop working the moment that preview address expires,
- *     and Apple/Google reviewers will see a blank screen.
- *     `npm run check:release` will fail loudly if the line is still there.
- *
- * With the `url:` line removed, the app loads its own copy of the site from
- * the `dist/` folder that `npm run build:native` produces — fully self-contained.
+ * If you ever add a temporary `server.url` for hot-reload development, remove
+ * it before building for the stores. `npm run check:release` fails loudly
+ * while that line is present.
  */
 const config: CapacitorConfig = {
   appId: 'app.lovable.p4952020916ad4edf8721e7d5e08f8e11',

@@ -12,3 +12,4 @@
 - Run `npm run check:release` before any store upload. `capacitor.config.ts` deliberately carries
   a temporary preview address so the app hot-reloads during development; shipping it leaves a
   published app depending on an address that expires.
+- Test APKs are built by `.github/workflows/build-apk.yml` (debug build via `build:native`), so APK testing never needs a local Android toolchain.

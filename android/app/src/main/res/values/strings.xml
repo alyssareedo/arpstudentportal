@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">arpstudentportal</string>
+    <string name="title_activity_main">arpstudentportal</string>
+    <string name="package_name">app.lovable.p4952020916ad4edf8721e7d5e08f8e11</string>
+    <string name="custom_url_scheme">app.lovable.p4952020916ad4edf8721e7d5e08f8e11</string>
+</resources>

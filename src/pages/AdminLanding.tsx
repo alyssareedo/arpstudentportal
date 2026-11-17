@@ -39,13 +39,6 @@ export default function AdminLanding() {
             <div key={i}><Label>Point {i + 1}</Label><Input value={b} onChange={e => { const bl = [...c.bullets]; bl[i] = e.target.value; setC({ ...c, bullets: bl }); }} /></div>
           ))}
           <div><Label>Bottom banner heading</Label><Input value={c.cta_heading} onChange={e => setC({ ...c, cta_heading: e.target.value })} /></div>
-          <h3 className="mt-2 font-semibold">Thai version (ภาษาไทย)</h3>
-          <div><Label>Headline (Thai)</Label><Input value={c.headline_th} onChange={e => setC({ ...c, headline_th: e.target.value })} /></div>
-          <div><Label>Intro text (Thai)</Label><Textarea value={c.subtitle_th} onChange={e => setC({ ...c, subtitle_th: e.target.value })} /></div>
-          {(c.bullets_th ?? []).map((b, i) => (
-            <div key={i}><Label>Point {i + 1} (Thai)</Label><Input value={b} onChange={e => { const bl = [...c.bullets_th]; bl[i] = e.target.value; setC({ ...c, bullets_th: bl }); }} /></div>
-          ))}
-          <div><Label>Bottom banner heading (Thai)</Label><Input value={c.cta_heading_th} onChange={e => setC({ ...c, cta_heading_th: e.target.value })} /></div>
           <div className="flex flex-wrap items-end gap-3">
             <div><Label>Photo</Label><Input type="file" accept="image/*" onChange={e => e.target.files?.[0] && upload(e.target.files[0])} /></div>
             {c.photo_url && <Button variant="outline" onClick={() => setC({ ...c, photo_url: "" })}>Use default photo</Button>}

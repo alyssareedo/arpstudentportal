@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Mail, Lock, ArrowRight } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useBrand } from "@/components/Branding";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const brand = useBrand();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -66,8 +68,8 @@ export default function Auth() {
         <Card className="border-border/60 shadow-elevated">
           <CardContent className="p-8">
             <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <img src={logo} alt="ARP Speak English With Me" className="h-12 w-auto" />
-              <span className="text-lg font-bold">ARP Speak English With Me</span>
+              <img src={brand.logo} alt={brand.name} className="h-12 w-auto" />
+              <span className="text-lg font-bold">{brand.name}</span>
             </div>
 
             <Tabs defaultValue="signin">

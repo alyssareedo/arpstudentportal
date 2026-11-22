@@ -4,6 +4,7 @@ import {
   LogOut, UserCircle, CalendarClock, Inbox, CalendarPlus, CalendarRange, GraduationCap, Award, UserCog, BookOpen, Receipt, Map, Newspaper, Tag, Video, Home,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { useBrand } from "@/components/Branding";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -28,7 +29,7 @@ const adminItems = [
   { title: "Promotions & Pricing", url: "/pricing", icon: Tag },
   { title: "Reports", url: "/reports", icon: FileBarChart },
   { title: "Language Assessments", url: "/assessments", icon: Award },
-  { title: "Edit home page", url: "/admin/home-page", icon: Home },
+  { title: "Edit site & notices", url: "/admin/home-page", icon: Home },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -67,6 +68,7 @@ export function AppSidebar() {
   const { pathname } = useLocation();
   const { role, signOut } = useAuth();
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + "/");
+  const brand = useBrand();
   const items = role === "admin" ? adminItems : role === "teacher" ? teacherItems : studentItems;
 
   return (
@@ -74,12 +76,11 @@ export function AppSidebar() {
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-3 px-2 py-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-glow">
-            <img src={logo} alt="ARP Speak English With Me" className="h-full w-full object-contain" />
+            <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain" />
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-bold tracking-tight text-sidebar-foreground">ARP Speak English</span>
-              <span className="text-xs text-sidebar-foreground/70">With Me</span>
+              <span className="text-sm font-bold tracking-tight text-sidebar-foreground">{brand.name}</span>
             </div>
           )}
         </div>

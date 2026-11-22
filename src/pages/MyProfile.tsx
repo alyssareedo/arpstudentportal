@@ -1,3 +1,4 @@
+import { PortalNotices } from "@/components/PortalNotices";
 import { Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Mail, Calendar, Target, BookOpen, CheckCircle2, ArrowRight } from "lucide-react";
@@ -44,6 +45,7 @@ export default function MyProfile() {
 
   return (
     <div className="space-y-6">
+      <PortalNotices />
       <Card className="overflow-hidden border-border/60 shadow-elegant">
         <div className="h-24 gradient-hero" />
         <CardContent className="-mt-12 flex flex-col gap-4 p-6 md:flex-row md:items-end">

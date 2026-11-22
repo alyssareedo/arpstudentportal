@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { CalendarCheck, BookOpen, BarChart3, CreditCard, Video, UserCheck, Check, ArrowRight } from "lucide-react";
-import logo from "@/assets/logo.png";
+import defaultLogo from "@/assets/logo.png";
 import teacher from "@/assets/teacher-photo.jpg";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useSiteContent, type LandingContent } from "@/lib/siteContent";
+import { HomePrices } from "@/components/HomePrices";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -34,30 +34,14 @@ const faq = [
   ["How do I pay?", "Your invoices and instalment plans are shown under Payments in your portal."],
 ];
 
-export type LandingContent = {
-  headline: string; subtitle: string; bullets: string[]; photo_url: string; cta_heading: string;
-};
-export const defaultLanding: LandingContent = {
-  headline: "1-on-1 private online English lessons",
-  subtitle: "Speak English with confidence. Personal lessons, your own curriculum, and clear progress tracking — all in one student portal.",
-  bullets: ["Lessons for kids, teens and adults", "Learn at your own pace", "See every lesson and score"],
-  photo_url: "",
-  cta_heading: "Ready to speak English with confidence?",
-};
-
-export function useLandingContent() {
-  const [c, setC] = useState<LandingContent>(defaultLanding);
-  useEffect(() => {
-    supabase.from("landing_content").select("content").eq("id", 1).maybeSingle().then(({ data }) => {
-      if (data?.content) setC({ ...defaultLanding, ...(data.content as Partial<LandingContent>) });
-    });
-  }, []);
-  return [c, setC] as const;
-}
+export { defaultLanding, useLandingContent } from "@/lib/siteContent";
+export type { LandingContent } from "@/lib/siteContent";
 
 export default function Landing({ content }: { content?: LandingContent }) {
-  const [loaded] = useLandingContent();
+  const loaded = useSiteContent();
   const c = content ?? loaded;
+  const logo = c.logo_url || defaultLogo;
+  const name = c.school_name || "ARP Speak English With Me";
   const { user, role, loading } = useAuth();
   const t = T;
   const portal = role === "admin" ? "/dashboard" : role === "teacher" ? "/schedule" : "/my-profile";
@@ -67,12 +51,13 @@ export default function Landing({ content }: { content?: LandingContent }) {
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="ARP Speak English With Me" className="h-10 w-auto" />
-            <span className="hidden font-bold sm:block">ARP Speak English With Me</span>
+            <img src={logo} alt={name} className="h-10 w-auto" />
+            <span className="hidden font-bold sm:block">{name}</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a href="#how" className="hover:text-foreground">{t.how}</a>
             <a href="#features" className="hover:text-foreground">{t.features}</a>
+            {c.show_prices && <a href="#prices" className="hover:text-foreground">Prices</a>}
             <a href="#faq" className="hover:text-foreground">{t.faq}</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -176,6 +161,8 @@ export default function Landing({ content }: { content?: LandingContent }) {
         </div>
       </section>
 
+      {c.show_prices && <HomePrices heading={c.prices_heading || "Lesson prices & packages"} />}
+
       {/* CTA */}
       <section className="bg-primary py-16 text-center text-primary-foreground">
         <h2 className="text-3xl font-extrabold sm:text-4xl">{c.cta_heading}</h2>
@@ -192,7 +179,7 @@ export default function Landing({ content }: { content?: LandingContent }) {
 
       <footer className="border-t border-border py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 text-sm text-muted-foreground sm:flex-row">
-          <span>© {new Date().getFullYear()} ARP Speak English With Me</span>
+          <span>© {new Date().getFullYear()} {name}</span>
           {user ? (
             <Link to={portal} className="font-medium text-primary hover:underline">{t.portal}</Link>
           ) : (

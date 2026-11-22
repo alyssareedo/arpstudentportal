@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
+import { useBrand } from "@/components/Branding";
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -25,7 +26,8 @@ const titles: Record<string, string> = {
 export default function AppLayout() {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
-  const title = titles[pathname] || (pathname.startsWith("/students/") ? "Student profile" : "ARP Speak English With Me");
+  const brand = useBrand();
+  const title = titles[pathname] || (pathname.startsWith("/students/") ? "Student profile" : brand.name);
 
   return (
     <SidebarProvider>
@@ -34,7 +36,7 @@ export default function AppLayout() {
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md md:px-6">
             <SidebarTrigger />
-            <img src={logo} alt="ARP" className="h-9 w-auto md:hidden" />
+            <img src={brand.logo} alt={brand.name} className="h-9 w-auto md:hidden" />
             <h1 className="text-lg font-semibold tracking-tight md:text-xl">{title}</h1>
             <div className="ml-auto flex items-center gap-2">
               <Button variant="ghost" size="icon" className="rounded-full">

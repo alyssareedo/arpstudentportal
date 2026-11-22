@@ -33,7 +33,7 @@ export default function AppLayout() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-gradient-to-b from-secondary/40 to-background">
         <AppSidebar />
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-md md:px-6">
             <SidebarTrigger />
             <img src={brand.logo} alt={brand.name} className="h-9 w-auto md:hidden" />

@@ -57,7 +57,7 @@ export default function MyProfile() {
               <Badge variant="secondary" className="rounded-full">{profile.level}</Badge>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {profile.email}</span>
+              <span className="flex min-w-0 items-center gap-1"><Mail className="h-3.5 w-3.5 shrink-0" /> <span className="break-all">{profile.email}</span></span>
               <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Joined {profile.joined_at}</span>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function MyProfile() {
 
 
       <Tabs defaultValue="progress">
-        <TabsList className="rounded-full">
+        <TabsList className="w-full justify-start overflow-x-auto rounded-full">
           <TabsTrigger value="progress" className="rounded-full">Progress</TabsTrigger>
           <TabsTrigger value="lessons" className="rounded-full">My lessons</TabsTrigger>
           <TabsTrigger value="homework" className="rounded-full">Homework</TabsTrigger>

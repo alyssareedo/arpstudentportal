@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcement_reads: {
+        Row: {
+          announcement_id: string
+          read_at: string
+          student_id: string
+        }
+        Insert: {
+          announcement_id: string
+          read_at?: string
+          student_id: string
+        }
+        Update: {
+          announcement_id?: string
+          read_at?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string

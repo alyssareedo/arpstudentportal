@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,22 @@ import { defaultLanding, useLandingContent, publishLanding } from "@/lib/siteCon
 export default function AdminLanding() {
   const [c, setC] = useLandingContent();
   const [saving, setSaving] = useState(false);
+  const [students, setStudents] = useState<{ id: string; full_name: string }[]>([]);
+  const [reads, setReads] = useState<Record<string, Record<string, string>>>({});
+  useEffect(() => {
+    (async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "student");
+      const sids = (roles ?? []).map((r) => r.user_id);
+      if (sids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", sids).order("full_name");
+        setStudents(profs ?? []);
+      }
+      const { data: r } = await supabase.from("announcement_reads").select("announcement_id, student_id, read_at");
+      const map: Record<string, Record<string, string>> = {};
+      (r ?? []).forEach((x) => { (map[x.announcement_id] ??= {})[x.student_id] = x.read_at; });
+      setReads(map);
+    })();
+  }, []);
 
   const upload = async (file: File, field: "photo_url" | "logo_url" = "photo_url") => {
     const path = `landing/${crypto.randomUUID()}-${file.name}`;
@@ -94,6 +110,26 @@ export default function AdminLanding() {
                   <Button variant="ghost" size="icon" aria-label="Remove announcement" onClick={() => setC({ ...c, announcements: c.announcements.filter(x => x.id !== a.id) })}><Trash2 className="h-4 w-4" /></Button>
                 </div>
                 <Textarea placeholder="Message" value={a.body} onChange={e => set({ body: e.target.value })} />
+                {(() => {
+                  const seen = reads[a.id] ?? {};
+                  const seenList = students.filter(s => seen[s.id]);
+                  const notSeen = students.filter(s => !seen[s.id]);
+                  return (
+                    <details className="text-sm">
+                      <summary className="cursor-pointer text-muted-foreground">Seen by {seenList.length} of {students.length} students</summary>
+                      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="font-medium">Seen</p>
+                          {seenList.length ? seenList.map(s => <p key={s.id}>{s.full_name} <span className="text-xs text-muted-foreground">· {new Date(seen[s.id]).toLocaleString()}</span></p>) : <p className="text-muted-foreground">No one yet</p>}
+                        </div>
+                        <div>
+                          <p className="font-medium">Not seen yet</p>
+                          {notSeen.length ? notSeen.map(s => <p key={s.id} className="text-muted-foreground">{s.full_name}</p>) : <p className="text-muted-foreground">Everyone has seen it</p>}
+                        </div>
+                      </div>
+                    </details>
+                  );
+                })()}
               </div>
             );
           })}
